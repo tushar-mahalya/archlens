@@ -102,6 +102,8 @@ class DistributionTests(unittest.TestCase):
                 self.assertTrue(any(name.endswith("/plugins/archlens/LICENSE") for name in names))
                 self.assertTrue(any(name.endswith("/skills/archlens/LICENSE") for name in names))
                 self.assertTrue(any(name.endswith("/skills/archlens/workflows/setup.md") for name in names))
+                for community in ("CODE_OF_CONDUCT.md", "SUPPORT.md", "GOVERNANCE.md", "SECURITY.md"):
+                    self.assertIn(f"{first.stem}/{community}", names)
                 self.assertEqual(sum(name.endswith("/SKILL.md") for name in names), 6)
                 self.assertFalse(any("\\" in name or ".validation" in name or "__pycache__" in name for name in names))
                 for path in (ROOT / "skills/archlens").rglob("*"):

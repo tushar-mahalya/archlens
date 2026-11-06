@@ -1,0 +1,70 @@
+name: Bug report
+description: Report incorrect behavior in the plugin, portable skill, checker, or installer.
+title: "bug: "
+labels: [bug, triage]
+body:
+  - type: markdown
+    attributes:
+      value: |
+        Thank you for the report. Do not include credentials, private source code, or customer data.
+        For a security issue, use [private vulnerability reporting](https://github.com/tushar-mahalya/archlens/security/advisories/new) instead.
+  - type: dropdown
+    id: distribution
+    attributes:
+      label: Distribution
+      options:
+        - Native Claude Code plugin
+        - Portable Agent Skill (skills.sh / npx skills)
+        - Release ZIP
+        - Checker script only
+    validations:
+      required: true
+  - type: input
+    id: host
+    attributes:
+      label: Agent host and version
+      placeholder: "Claude Code 2.1.318, Codex CLI 0.x, Cursor 1.x, ..."
+    validations:
+      required: true
+  - type: input
+    id: version
+    attributes:
+      label: Archlens version
+      placeholder: "0.2.0"
+    validations:
+      required: true
+  - type: input
+    id: os
+    attributes:
+      label: Operating system
+      placeholder: "Windows 11, macOS 15, Ubuntu 24.04"
+  - type: textarea
+    id: steps
+    attributes:
+      label: Steps to reproduce
+      description: Give the exact command or workflow, for example `/archlens:check` or `archlens.py check --root . --strict`.
+    validations:
+      required: true
+  - type: textarea
+    id: expected
+    attributes:
+      label: Expected result
+    validations:
+      required: true
+  - type: textarea
+    id: actual
+    attributes:
+      label: Actual result
+      description: Paste error output. Redact private paths and content.
+      render: text
+    validations:
+      required: true
+  - type: checkboxes
+    id: checks
+    attributes:
+      label: Checks
+      options:
+        - label: I searched existing issues and discussions.
+          required: true
+        - label: I removed secrets and private content from this report.
+          required: true

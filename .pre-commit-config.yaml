@@ -1,0 +1,81 @@
+# Install once: pipx install pre-commit (or: uv tool install pre-commit)
+# Then:        pre-commit install
+# Run all:     pre-commit run --all-files
+# Revisions are frozen to commit SHAs. Update with: pre-commit autoupdate --freeze
+minimum_pre_commit_version: "4.0.0"
+default_install_hook_types: [pre-commit, commit-msg, pre-push]
+default_stages: [pre-commit]
+
+repos:
+  - repo: https://github.com/pre-commit/pre-commit-hooks
+    rev: 3e8a8703264a2f4a69428a0aa4dcb512790b2c8c # frozen: v6.0.0
+    hooks:
+      - id: check-added-large-files
+        args: [--maxkb=500]
+      - id: check-case-conflict
+      - id: check-merge-conflict
+      - id: check-json
+      - id: check-yaml
+      - id: check-symlinks
+      - id: detect-private-key
+      - id: end-of-file-fixer
+      - id: mixed-line-ending
+        args: [--fix=lf]
+      - id: trailing-whitespace
+        args: [--markdown-linebreak-ext=md]
+
+  - repo: https://github.com/gitleaks/gitleaks
+    rev: 83d9cd684c87d95d656c1458ef04895a7f1cbd8e # frozen: v8.30.1
+    hooks:
+      - id: gitleaks
+
+  - repo: https://github.com/python-jsonschema/check-jsonschema
+    rev: a76b92851fc9eede9f9bc4073eb55202f34eb0df # frozen: 0.39.0
+    hooks:
+      - id: check-github-workflows
+      - id: check-dependabot
+
+  - repo: https://github.com/rhysd/actionlint
+    rev: 914e7df21a07ef503a81201c76d2b11c789d3fca # frozen: v1.7.12
+    hooks:
+      - id: actionlint
+
+  - repo: https://github.com/compilerla/conventional-pre-commit
+    rev: 33b50eb042bee26eac0ee96ad84aa9c1b4dccdd8 # frozen: v4.5.0
+    hooks:
+      - id: conventional-pre-commit
+        stages: [commit-msg]
+
+  - repo: local
+    hooks:
+      - id: archlens-portable-sync
+        name: archlens portable skill is in sync
+        entry: python tools/sync_portable.py --check
+        language: python
+        pass_filenames: false
+        files: ^(plugins/archlens/|skills/archlens/|tools/sync_portable\.py$)
+      - id: archlens-prompt-budget
+        name: archlens prompt budgets
+        entry: python tools/prompt_budget.py
+        language: python
+        pass_filenames: false
+        files: ^(plugins/archlens/|skills/archlens/|tools/prompt_budget\.py$|docs/context-efficiency\.md$)
+      - id: archlens-handbook-check
+        name: archlens handbook check
+        entry: python plugins/archlens/scripts/archlens.py check --root . --strict
+        language: python
+        pass_filenames: false
+        files: ^(docs/|plugins/archlens/scripts/)
+      - id: archlens-example-check
+        name: archlens example check
+        entry: python plugins/archlens/scripts/archlens.py check --root examples/order-service --strict
+        language: python
+        pass_filenames: false
+        files: ^(examples/order-service/|plugins/archlens/scripts/)
+      - id: archlens-unit-tests
+        name: archlens unit tests
+        entry: python -m unittest discover -s tests
+        language: python
+        pass_filenames: false
+        always_run: true
+        stages: [pre-push]
