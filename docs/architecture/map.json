@@ -1,0 +1,10 @@
+{
+  "version": 1,
+  "pages": [
+    {"path":"README.md","id":"ARCH-INDEX","kind":"index","owner":"Tushar Sharma","reviewState":"draft","verifiedCommit":null,"covers":["plugins/**",".claude-plugin/**","tools/**"]},
+    {"path":"runtime.md","id":"ARCH-RUNTIME","kind":"runtime","owner":"Tushar Sharma","reviewState":"draft","verifiedCommit":null,"covers":["plugins/archlens/skills/update/**","plugins/archlens/scripts/**","tests/test_archlens.py"]},
+    {"path":"data.md","id":"ARCH-DATA","kind":"data","owner":"Tushar Sharma","reviewState":"draft","verifiedCommit":null,"covers":["plugins/archlens/defaults.json","plugins/archlens/scripts/**","plugins/archlens/references/configuration.md"]},
+    {"path":"decisions/ADR-001.md","id":"ADR-001","kind":"decision","owner":"Tushar Sharma","reviewState":"draft","verifiedCommit":null,"covers":["plugins/archlens/skills/**","plugins/archlens/references/contract.md","tools/prompt_budget.py"],"decisionStatus":"proposed"},
+    {"path":"decisions/ADR-002.md","id":"ADR-002","kind":"decision","owner":"Tushar Sharma","reviewState":"draft","verifiedCommit":null,"covers":["plugins/archlens/scripts/**","plugins/archlens/references/configuration.md"],"decisionStatus":"proposed"}
+  ]
+}

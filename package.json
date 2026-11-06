@@ -1,0 +1,15 @@
+{
+  "name": "archlens-development",
+  "version": "0.1.0",
+  "private": true,
+  "description": "Development-only diagram validation. Not required to install Archlens.",
+  "scripts": {
+    "test:diagrams": "node tools/render-diagrams.mjs"
+  },
+  "engines": {
+    "node": ">=22.13.0"
+  },
+  "devDependencies": {
+    "@mermaid-js/mermaid-cli": "12.2.0"
+  }
+}

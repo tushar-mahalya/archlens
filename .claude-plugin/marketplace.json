@@ -1,0 +1,19 @@
+{
+  "name": "archlens",
+  "owner": {
+    "name": "Tushar Sharma",
+    "url": "https://github.com/tushar-mahalya"
+  },
+  "metadata": {
+    "description": "Architecture documents that explain execution, data, and decisions.",
+    "version": "0.1.0"
+  },
+  "plugins": [
+    {
+      "name": "archlens",
+      "source": "./plugins/archlens",
+      "description": "Create and maintain clear architecture documents with Mermaid, evidence, and decision records.",
+      "category": "documentation"
+    }
+  ]
+}

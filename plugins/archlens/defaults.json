@@ -1,0 +1,6 @@
+{
+  "docsRoot": "docs/architecture",
+  "styleTarget": 0.8,
+  "maxDiagramNodes": 12,
+  "maxSequenceParticipants": 7
+}

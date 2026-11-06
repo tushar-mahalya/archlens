@@ -1,0 +1,13 @@
+{
+  "name": "archlens",
+  "version": "0.1.0",
+  "description": "Understand a codebase through clear architecture documents, execution traces, data flows, and decision records.",
+  "author": {
+    "name": "Tushar Sharma",
+    "url": "https://github.com/tushar-mahalya"
+  },
+  "homepage": "https://github.com/tushar-mahalya/archlens#readme",
+  "repository": "https://github.com/tushar-mahalya/archlens",
+  "license": "MIT",
+  "keywords": ["architecture", "documentation", "mermaid", "adr", "plain-language"]
+}

@@ -1,0 +1,31 @@
+name: Release
+on:
+  push:
+    tags: ['v*']
+permissions:
+  contents: read
+jobs:
+  validate:
+    uses: ./.github/workflows/ci.yml
+  publish:
+    needs: validate
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.13'
+      - name: Verify tag and package version
+        shell: python
+        run: |
+          import json, os
+          from pathlib import Path
+          version = json.loads(Path("plugins/archlens/.claude-plugin/plugin.json").read_text())["version"]
+          assert os.environ["GITHUB_REF_NAME"] == "v" + version, "Tag must match plugin version"
+      - run: python tools/package_release.py
+      - name: Publish verified release assets
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: gh release create "$GITHUB_REF_NAME" dist/*.zip dist/SHA256SUMS.txt --verify-tag --title "Archlens $GITHUB_REF_NAME" --notes-file CHANGELOG.md

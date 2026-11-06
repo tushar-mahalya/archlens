@@ -1,0 +1,11 @@
+{
+  "version": 1,
+  "pages": [
+    {"path":"README.md","id":"INDEX","kind":"index","owner":"example maintainer","reviewState":"draft","verifiedCommit":null,"covers":["order_service.py"]},
+    {"path":"context.md","id":"CONTEXT","kind":"context","owner":"example maintainer","reviewState":"draft","verifiedCommit":null,"covers":["order_service.py"]},
+    {"path":"runtime/submit-order.md","id":"FLOW-001","kind":"runtime","owner":"example maintainer","reviewState":"draft","verifiedCommit":null,"covers":["order_service.py"]},
+    {"path":"data.md","id":"DATA","kind":"data","owner":"example maintainer","reviewState":"draft","verifiedCommit":null,"covers":["order_service.py"]},
+    {"path":"decisions/ADR-001.md","id":"ADR-001","kind":"decision","owner":"example maintainer","reviewState":"draft","verifiedCommit":null,"covers":["order_service.py"],"decisionStatus":"proposed"},
+    {"path":"glossary.md","id":"GLOSSARY","kind":"glossary","owner":"example maintainer","reviewState":"draft","verifiedCommit":null,"covers":[]}
+  ]
+}
