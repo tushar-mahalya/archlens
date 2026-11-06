@@ -1,0 +1,33 @@
+name: Feature request
+description: Propose a workflow, document type, diagram, agent host, or checker improvement.
+title: "feat: "
+labels: [enhancement, triage]
+body:
+  - type: markdown
+    attributes:
+      value: |
+        For open questions or early ideas, start a [discussion](https://github.com/tushar-mahalya/archlens/discussions) first.
+  - type: textarea
+    id: problem
+    attributes:
+      label: Problem
+      description: What do you need to understand or maintain that Archlens does not support now?
+    validations:
+      required: true
+  - type: textarea
+    id: proposal
+    attributes:
+      label: Proposal
+    validations:
+      required: true
+  - type: textarea
+    id: context-cost
+    attributes:
+      label: Context cost
+      description: >-
+        Archlens keeps agent instructions small. Explain how the change affects loaded instructions,
+        prompt budgets, or automatic behavior. Write "unknown" if you are not sure.
+  - type: textarea
+    id: alternatives
+    attributes:
+      label: Alternatives considered

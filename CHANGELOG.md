@@ -1,5 +1,12 @@
 # Changelog
 
+## Unreleased
+
+- Add a Code of Conduct, support and governance guides, issue and pull request templates, and CODEOWNERS.
+- Add pre-commit hooks for formatting, secrets, workflows, commit messages, portable-skill drift, prompt budgets, and handbooks. CI runs them too.
+- Add versioned rulesets for `main` and release tags, a single `CI passed` required check, Dependabot, and OpenSSF Scorecard.
+- Include community files in release archives.
+
 ## 0.2.0 - 2026-11-06
 
 - Add one portable Agent Skill for setup, update, check, explanation, and decisions.

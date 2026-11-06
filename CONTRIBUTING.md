@@ -1,5 +1,36 @@
 # Contributing
 
+Thank you for helping improve Archlens. By taking part, you agree to follow the
+[Code of Conduct](CODE_OF_CONDUCT.md). For questions, use
+[Discussions](https://github.com/tushar-mahalya/archlens/discussions) and see [SUPPORT.md](SUPPORT.md).
+
+## Workflow
+
+1. For a non-trivial change, open an issue or discussion first. See [GOVERNANCE.md](GOVERNANCE.md).
+2. Fork the repository and create a branch from `main`, for example `fix/config-precedence`.
+3. Install the Git hooks (below) and make focused commits.
+4. Use [Conventional Commits](https://www.conventionalcommits.org/) for commit messages and the PR title:
+   `feat:`, `fix:`, `docs:`, `test:`, `refactor:`, `perf:`, `build:`, `ci:`, `chore:`, or `revert:`.
+5. Open a pull request and complete the template. A code owner review and the `CI passed` check are required.
+6. Pull requests are merged by squash or rebase. `main` keeps a linear history.
+
+## Git hooks
+
+The repository uses [pre-commit](https://pre-commit.com/). Hooks check formatting, line endings,
+JSON and YAML, GitHub workflows, secrets (gitleaks), commit messages, portable-skill drift, prompt
+budgets, and the handbooks. Unit tests run before each push.
+
+```text
+pipx install pre-commit        # or: uv tool install pre-commit, or: pip install pre-commit
+pre-commit install             # installs pre-commit, commit-msg, and pre-push hooks
+pre-commit run --all-files     # optional: check the whole tree
+```
+
+CI runs the same hooks, so a skipped hook still fails the pull request.
+Update hook versions with `pre-commit autoupdate --freeze`. Dependabot also proposes updates.
+
+## Tests
+
 Use Python 3.10+ for tests. The runtime checker uses only the standard library.
 
 ```text
@@ -66,3 +97,24 @@ The generator reports unexpected generated files instead of deleting them.
 
 The release archive includes the marketplace, plugin, portable skill, docs, example, tests, and development scripts.
 It excludes installed dependencies, temporary tools, and local configuration.
+
+Release tags (`v*`) are protected: they cannot be moved or deleted after publication.
+Publish a new patch version instead of replacing a release.
+
+## Repository rulesets
+
+Branch and tag protection is defined as code in [.github/rulesets](.github/rulesets):
+
+- `main.json` protects the default branch. It blocks deletion and force pushes, requires linear
+  history, a pull request with one code owner approval, resolved review threads, and the `CI passed` check.
+  Repository administrators can bypass these rules only through a pull request.
+- `release-tags.json` blocks moving or deleting `v*` tags. Administrators can bypass it for recovery.
+
+A maintainer applies a changed definition with the GitHub CLI:
+
+```text
+gh api repos/tushar-mahalya/archlens/rulesets --method POST --input .github/rulesets/main.json
+gh api repos/tushar-mahalya/archlens/rulesets/<id> --method PUT --input .github/rulesets/main.json
+```
+
+Use `POST` for a new ruleset and `PUT` with the existing ID (`gh api repos/tushar-mahalya/archlens/rulesets`) to update one.

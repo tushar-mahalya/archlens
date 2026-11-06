@@ -1,5 +1,10 @@
 # Archlens
 
+[![CI](https://github.com/tushar-mahalya/archlens/actions/workflows/ci.yml/badge.svg?branch=main)](https://github.com/tushar-mahalya/archlens/actions/workflows/ci.yml)
+[![OpenSSF Scorecard](https://api.scorecard.dev/projects/github.com/tushar-mahalya/archlens/badge)](https://scorecard.dev/viewer/?uri=github.com/tushar-mahalya/archlens)
+[![Release](https://img.shields.io/github/v/release/tushar-mahalya/archlens)](https://github.com/tushar-mahalya/archlens/releases/latest)
+[![License: MIT](https://img.shields.io/badge/license-MIT-blue.svg)](LICENSE)
+
 **Understand how a project works, how its data moves, and why its design exists.**
 
 Archlens is an Agent Skill and Claude Code plugin for clear, evidence-based architecture documents.
@@ -158,6 +163,8 @@ The [CLI reference](docs/cli.md) explains checks, exit codes, and limitations.
 - [Documentation method and research](docs/methodology.md)
 - [How Archlens works](docs/architecture/README.md)
 - [Contributing and tests](CONTRIBUTING.md)
+- [Questions and support](SUPPORT.md) and [Discussions](https://github.com/tushar-mahalya/archlens/discussions)
+- [Code of Conduct](CODE_OF_CONDUCT.md), [governance](GOVERNANCE.md), and [security policy](SECURITY.md)
 - [Release notes](CHANGELOG.md)
 
 MIT licensed. Independent project; not affiliated with Anthropic or ASD.
