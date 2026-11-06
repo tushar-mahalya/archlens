@@ -3,13 +3,24 @@
 Preferences load in this order:
 
 1. [Bundled defaults](../plugins/archlens/defaults.json).
-2. `ARCHLENS_CONFIG`, if set; otherwise `archlens.json` under `CLAUDE_CONFIG_DIR` or `~/.claude`.
+2. One user preference file, selected in this order:
+   - The file named by `ARCHLENS_CONFIG`, if set.
+   - Otherwise, `archlens.json` under `CLAUDE_CONFIG_DIR`, if set.
+   - Otherwise, `archlens/config.json` under `XDG_CONFIG_HOME`, or
+     `~/.config/archlens/config.json` when `XDG_CONFIG_HOME` is not set, if that file exists.
+   - Otherwise, the legacy `~/.claude/archlens.json`.
 3. `.archlens.json` in the selected project root.
 
-Later keys replace earlier keys. These are Archlens preferences, not Claude Code settings.
+Later keys replace earlier keys. Only one user file is read; the files are not merged.
+These are Archlens preferences, not agent-host settings.
 An explicitly named config file must exist.
 Default optional files may be absent.
 Unknown keys, duplicate keys, invalid types, and malformed JSON are errors.
+
+On Windows, `~` refers to your user home directory. For example, the shared
+default is `C:\Users\you\.config\archlens\config.json` unless `XDG_CONFIG_HOME`
+is set. If `CLAUDE_CONFIG_DIR` is set, its file takes precedence even when absent;
+clear it or set `ARCHLENS_CONFIG` explicitly to choose another file.
 
 | Key | Default | Meaning |
 |---|---|---|

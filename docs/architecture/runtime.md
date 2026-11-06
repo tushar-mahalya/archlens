@@ -1,6 +1,6 @@
 # How does update select documents?
 
-The user invokes update with an optional local base ref.
+The user requests update with an optional local base ref.
 The checker selects candidate pages by source path.
 The task then checks semantics and indirect consumers before changing documents.
 
@@ -8,12 +8,16 @@ The task then checks semantics and indirect consumers before changing documents.
 sequenceDiagram
     autonumber
     actor User
-    participant Host as Claude Code
+    participant Host as Coding agent
     participant Task as Update skill
     participant CLI as Python checker
     participant Git
-    User->>Host: archlens:update with local base
-    Host->>Task: Start isolated task
+    User->>Host: Request update with local base
+    alt Native Claude plugin
+        Host->>Task: Start isolated update task
+    else Portable skill
+        Host->>Task: Load router and update workflow
+    end
     Task->>CLI: impact with summary output
     CLI->>CLI: Validate config and document map
     CLI->>Git: Read branch and working-tree changes
@@ -26,6 +30,7 @@ sequenceDiagram
 If Python is absent, the task uses Git and the map directly.
 It states that deterministic checks were unavailable.
 If the checker fails, the task reports the error instead of hiding it with a fallback.
+The portable host decides whether the workflow runs in a separate context.
 
 | Condition | Behavior | Evidence |
 |---|---|---|

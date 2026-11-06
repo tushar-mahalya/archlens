@@ -18,7 +18,7 @@ def build(output_dir=None):
         "README.md", "LICENSE", "CHANGELOG.md", "CONTRIBUTING.md", "SECURITY.md",
         "package.json", "package-lock.json",
     )]
-    for name in (".claude-plugin", "plugins", "docs", "examples", "tools", "tests"):
+    for name in (".claude-plugin", "plugins", "skills", "docs", "examples", "tools", "tests"):
         inputs.extend(
             path for path in (ROOT / name).rglob("*")
             if path.is_file() and (path.suffix in {".md", ".json", ".py", ".mjs"} or path.name == "LICENSE")

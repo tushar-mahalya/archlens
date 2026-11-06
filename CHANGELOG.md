@@ -1,5 +1,16 @@
 # Changelog
 
+## 0.2.0 - 2026-11-06
+
+- Add one portable Agent Skill for setup, update, check, explanation, and decisions.
+- Generate its resources from the native Claude plugin and check for distribution drift.
+- Support a shared cross-agent user configuration with the existing Claude location as a fallback.
+- Test isolated project and global installations with ten skills CLI adapters.
+- Add portable prompt budgets and include the skill in release archives.
+
+Portable host discovery, context isolation, and model behavior vary by agent.
+Installer tests do not establish end-to-end model reliability.
+
 ## 0.1.1 - 2026-11-06
 
 - Include the MIT notice inside the plugin so it remains present when the host copies only that directory.

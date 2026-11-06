@@ -25,7 +25,7 @@ Research checked on 6 November 2026:
 
 These are host capabilities, not guarantees that an LLM follows every read budget.
 
-## Our choices
+## Native Claude plugin
 
 ```mermaid
 flowchart TD
@@ -58,6 +58,30 @@ It also tests report limits with oversized synthetic inputs.
 It does not pretend that bytes are exact tokens.
 The `roughBaseTokens` figure is `ceil(bytes / 4)` for planning only.
 
+## Portable Agent Skill
+
+The portable bundle has one router, five separate workflows, the shared contract,
+and the same conditional references and checker. The host may load the router's
+description at startup, invoke it automatically, or retain its instructions in
+the current conversation. It does not necessarily create a forked task.
+The router requests one workflow and the contract, not all five workflows.
+These are instructions to the model, not enforced read limits.
+
+| Portable operation | Router + workflow + contract | Required cold load including named sections |
+|---|---:|---:|
+| setup | 5,438 bytes | 11,087 bytes |
+| update | 5,584 bytes | 5,584 bytes |
+| check | 5,285 bytes | 5,285 bytes |
+| explain | 4,869 bytes | 4,869 bytes |
+| decide | 5,105 bytes | 6,242 bytes |
+
+These are current UTF-8 byte counts with LF line endings, not measured tokens. Conditional source,
+template sections, tool output, and host context add to them. CI limits the
+router to 2,200 bytes, each workflow to 2,600, and base instructions to 7,200.
+Required cold-load limits are 12,700 bytes for setup, 8,700 for decide, and
+7,200 for the other operations. The sync check verifies that generated references
+and workflows match the canonical Claude plugin.
+
 ## Per-command loading
 
 | Command | Always read | Conditional reads |
@@ -82,7 +106,7 @@ Omission counts prevent a compact preview from masquerading as complete coverage
 
 ### Isolate only one coherent task
 
-Each user command starts one forked task. The plugin does not build an agent tree.
+Each native Claude command starts one forked task. The plugin does not build an agent tree.
 This limits duplicate setup and repeated instructions.
 We use the host's general-purpose agent rather than registering more always-discoverable agents.
 Normal repository guidance and permissions remain in effect.
@@ -95,14 +119,15 @@ The commands are intended for evidence-backed architecture work, not every code 
 A file read still costs tokens. A separate reference does not help if every command always reads it.
 Once text enters a worker, Archlens cannot force the host to evict it.
 The isolation boundary ends the task; it is not an unlimited memory or cache mechanism.
-Compaction and prompt caching are controlled by Claude Code and its provider.
+Compaction and prompt caching are controlled by the host and its provider.
 Cached input can reduce billing without reducing context size.
 
 ### Persist knowledge, not full transcripts
 
 Handbook pages, source links, and map entries are reusable outputs.
-On the next invocation, the worker reads only relevant current evidence.
+On the next native Claude invocation, the worker reads only relevant current evidence.
 It does not receive the old exploration transcript or a growing auto-memory file.
+Portable hosts may retain earlier conversation context.
 Do not use stale summaries as proof that source behavior is unchanged.
 
 ## Measurement and acceptance

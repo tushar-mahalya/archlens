@@ -8,9 +8,12 @@ import sys
 
 ROOT = Path(__file__).resolve().parents[1]
 PLUGIN = ROOT / "plugins/archlens"
+PORTABLE = ROOT / "skills/archlens"
 SKILL_LIMIT = 2600
 CONTRACT_LIMIT = 2400
 BASE_LIMIT = 5000
+ROUTER_LIMIT = 2200
+PORTABLE_BASE_LIMIT = 7200
 REQUIRED_SECTIONS = {
     "setup": [
         ("configuration.md", None),
@@ -20,6 +23,7 @@ REQUIRED_SECTIONS = {
     "decide": [("templates.md", "Decision record")],
 }
 COLD_LIMITS = {"setup": 10500, "decide": 6500, "check": 5000, "update": 5000, "explain": 5000}
+PORTABLE_COLD_LIMITS = {"setup": 12700, "decide": 8700, "check": 7200, "update": 7200, "explain": 7200}
 
 
 def section_bytes(filename, heading):
@@ -40,7 +44,7 @@ def audit():
         errors.append(f"Shared contract exceeds {CONTRACT_LIMIT} bytes")
     for path in sorted((PLUGIN / "skills").glob("*/SKILL.md")):
         raw = path.read_bytes()
-        text = raw.decode("utf-8")
+        text = raw.decode("utf-8").replace("\r\n", "\n")
         name = path.parent.name
         if len(raw) > SKILL_LIMIT:
             errors.append(f"{name}: skill exceeds {SKILL_LIMIT} bytes")
@@ -48,7 +52,7 @@ def audit():
             errors.append(f"{name}: base instructions exceed {BASE_LIMIT} bytes")
         for expected in (
             f"name: {name}", "disable-model-invocation: true", "context: fork",
-            "agent: general-purpose", "background: false",
+            "agent: general-purpose", "background: false", "metadata:\n  internal: true",
         ):
             if expected not in text.split("---", 2)[1]:
                 errors.append(f"{name}: missing {expected}")
@@ -72,12 +76,45 @@ def audit():
         })
     if len(routes) != 5:
         errors.append("Expected exactly five explicit command routes")
+    router = (PORTABLE / "SKILL.md").read_bytes()
+    router_text = router.decode("utf-8").replace("\r\n", "\n")
+    if len(router) > ROUTER_LIMIT:
+        errors.append(f"Portable router exceeds {ROUTER_LIMIT} bytes")
+    if router_text.count("](references/contract.md)") != 1:
+        errors.append("Portable router must link the shared contract exactly once")
+    portable_routes = []
+    for name in ("setup", "update", "check", "explain", "decide"):
+        if router_text.count(f"](workflows/{name}.md)") != 1:
+            errors.append(f"Portable router must link the {name} workflow exactly once")
+        path = PORTABLE / "workflows" / f"{name}.md"
+        raw = path.read_bytes()
+        text = raw.decode("utf-8")
+        if len(raw) > SKILL_LIMIT:
+            errors.append(f"Portable {name}: workflow exceeds {SKILL_LIMIT} bytes")
+        base_bytes = len(router) + len(raw) + len(contract)
+        if base_bytes > PORTABLE_BASE_LIMIT:
+            errors.append(f"Portable {name}: base instructions exceed {PORTABLE_BASE_LIMIT} bytes")
+        required_bytes = sum(section_bytes(*item) for item in REQUIRED_SECTIONS.get(name, []))
+        cold_bytes = base_bytes + required_bytes
+        if cold_bytes > PORTABLE_COLD_LIMITS[name]:
+            errors.append(f"Portable {name}: required cold-load references exceed the operation budget")
+        for target in re.findall(r"<skill-dir>/([\w/.-]+)", text):
+            if not (PORTABLE / target).is_file():
+                errors.append(f"Portable {name}: missing resource {target}")
+        if "${CLAUDE_PLUGIN_ROOT}" in text or "$ARGUMENTS" in text:
+            errors.append(f"Portable {name}: Claude-specific placeholder remains")
+        portable_routes.append({
+            "operation": name, "routerBytes": len(router), "workflowBytes": len(raw),
+            "contractBytes": len(contract), "baseBytes": base_bytes,
+            "requiredColdBytes": cold_bytes,
+            "roughRequiredColdTokens": (cold_bytes + 3) // 4,
+        })
     for forbidden in ("agents", "hooks", ".mcp.json", "CLAUDE.md"):
         if (PLUGIN / forbidden).exists():
             errors.append(f"New always-on surface needs a budget review: {forbidden}")
     return {
-        "ok": not errors, "errors": errors, "routes": routes,
-        "note": "Tokens are a rough bytes/4 estimate, NOT measured Claude tokens. Conditional reads, source, tool output, and host context are extra.",
+        "ok": not errors, "errors": errors, "routes": routes, "portableRoutes": portable_routes,
+        "note": "Tokens are a rough bytes/4 estimate, NOT measured model tokens. Conditional reads, source, tool output, and host context are extra.",
     }
 
 

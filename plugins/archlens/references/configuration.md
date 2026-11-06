@@ -1,6 +1,6 @@
 # Configuration contract
 
-These settings belong to Archlens, not to Claude Code.
+These settings belong to Archlens, not to the agent host.
 They load only when a command runs. They do not schedule tasks or override permissions.
 
 ## Resolve the project and preferences
@@ -9,11 +9,13 @@ Use the selected project's Git root. Outside Git, use the explicitly selected fo
 If several projects are possible, ask which one to use.
 Read these JSON objects, in order:
 
-1. `${CLAUDE_PLUGIN_ROOT}/defaults.json`.
-2. User preferences:
+1. The bundled `defaults.json` in the installed Archlens directory.
+2. One user preference file, selected in this order:
    - Use the file named by `ARCHLENS_CONFIG`, if set.
    - Otherwise use `archlens.json` in `CLAUDE_CONFIG_DIR`, if set.
-   - Otherwise use `~/.claude/archlens.json`.
+   - Otherwise use `archlens/config.json` under `XDG_CONFIG_HOME`, or
+     `~/.config/archlens/config.json` if `XDG_CONFIG_HOME` is not set, when that file exists.
+   - Otherwise use the legacy `~/.claude/archlens.json`.
 3. `.archlens.json` at the project root.
 
 Later keys replace earlier keys. Missing default user/project files are normal.
@@ -21,7 +23,8 @@ An explicit `ARCHLENS_CONFIG` file must exist.
 Reject malformed JSON, duplicate keys, unknown keys, and invalid values.
 Do not hide errors behind defaults.
 If Python 3.10+ exists, `scripts/archlens.py config --root <project> --json`
-returns validated effective preferences. Run it from the plugin's absolute path.
+returns validated effective preferences. Run it from the installed bundle's absolute path.
+Use the available Python 3.10+ command for your platform.
 
 | Key | Allowed values | Default |
 |---|---|---|

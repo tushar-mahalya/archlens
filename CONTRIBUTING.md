@@ -17,14 +17,34 @@ claude plugin validate . --strict
 claude plugin validate ./plugins/archlens --strict
 ```
 
-For diagram checks, use Node 22.13+:
+For diagram and portable installer checks, use Node 22.20+:
 
 ```text
 npm ci
 npm run test:diagrams
+npm run test:skills
 ```
 
-Node dependencies are development-only. They must not become requirements for plugin users.
+Set `DISABLE_TELEMETRY=1` and `DO_NOT_TRACK=1` for isolated installer tests.
+The tests use temporary project and home directories, not your personal agent settings.
+Node dependencies are development-only for the plugin. The portable installer's
+own CLI separately requires Node.
+
+## Portable skill
+
+The native Claude plugin is the source of truth for shared references, defaults,
+the checker, and the five workflows. After changing one of those resources, run:
+
+```text
+python tools/sync_portable.py
+python tools/sync_portable.py --check
+python tools/prompt_budget.py
+```
+
+Commit the generated files under `skills/archlens` with the source changes.
+Do not edit generated workflows or bundled resources independently.
+Edit the portable router `skills/archlens/SKILL.md` directly when its routing changes.
+The generator reports unexpected generated files instead of deleting them.
 
 ## Changes
 
@@ -38,11 +58,11 @@ Node dependencies are development-only. They must not become requirements for pl
 
 ## Release
 
-1. Update the plugin version and marketplace metadata version together.
+1. Update the plugin, marketplace metadata, and development package versions together.
 2. Add release notes.
 3. Pass CI and review the [evaluation plan](docs/context-efficiency.md).
 4. Run the package tool. It creates a deterministic, allowlisted ZIP and SHA-256 checksum.
 5. Publish the release from a tested commit.
 
-The release archive includes the marketplace, plugin, docs, example, tests, and development scripts.
+The release archive includes the marketplace, plugin, portable skill, docs, example, tests, and development scripts.
 It excludes installed dependencies, temporary tools, and local configuration.

@@ -80,6 +80,41 @@ class ConfigurationTests(Fixture):
         with self.assertRaises(archlens.ArchlensError):
             archlens.load_config(self.root, {"ARCHLENS_CONFIG": str(self.root / "missing.json")})
 
+    def test_shared_config_and_legacy_fallback(self):
+        home = self.root / "home"
+        shared = self.root / "xdg/archlens/config.json"
+        legacy = home / ".claude/archlens.json"
+        write_json(legacy, {"styleTarget": 0.6})
+        with patch.object(Path, "home", return_value=home):
+            config, sources = archlens.load_config(self.root, {"XDG_CONFIG_HOME": str(self.root / "xdg")})
+            self.assertEqual(config["styleTarget"], 0.6)
+            self.assertIn(str(legacy), sources)
+            write_json(shared, {"styleTarget": 0.7})
+            config, sources = archlens.load_config(self.root, {"XDG_CONFIG_HOME": str(self.root / "xdg")})
+            self.assertEqual(config["styleTarget"], 0.7)
+            self.assertIn(str(shared), sources)
+            self.assertNotIn(str(legacy), sources)
+            write_json(home / ".config/archlens/config.json", {"styleTarget": 0.8})
+            config, _ = archlens.load_config(self.root, {})
+            self.assertEqual(config["styleTarget"], 0.8)
+
+    def test_shared_config_precedence_and_errors(self):
+        shared = self.root / "xdg/archlens/config.json"
+        claude = self.root / "user/archlens.json"
+        explicit = self.root / "custom.json"
+        write_json(shared, {"styleTarget": 0.6})
+        write_json(claude, {"styleTarget": 0.7})
+        write_json(explicit, {"styleTarget": 0.8})
+        env = {"XDG_CONFIG_HOME": str(self.root / "xdg"), "CLAUDE_CONFIG_DIR": str(claude.parent)}
+        self.assertEqual(archlens.load_config(self.root, env)[0]["styleTarget"], 0.7)
+        env["ARCHLENS_CONFIG"] = str(explicit)
+        self.assertEqual(archlens.load_config(self.root, env)[0]["styleTarget"], 0.8)
+        write_json(self.root / ".archlens.json", {"styleTarget": 0.9})
+        self.assertEqual(archlens.load_config(self.root, env)[0]["styleTarget"], 0.9)
+        shared.write_text("{", encoding="utf-8")
+        with self.assertRaisesRegex(archlens.ArchlensError, "Cannot read JSON"):
+            archlens.load_config(self.root, {"XDG_CONFIG_HOME": str(self.root / "xdg")})
+
     def test_invalid_settings(self):
         cases = [
             {"docsRoot": "../outside"}, {"docsRoot": "C:\\outside"},

@@ -6,6 +6,8 @@ disable-model-invocation: true
 context: fork
 agent: general-purpose
 background: false
+metadata:
+  internal: true
 ---
 
 # Check architecture documents

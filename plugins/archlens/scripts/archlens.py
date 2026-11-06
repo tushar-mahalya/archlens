@@ -99,8 +99,15 @@ def load_config(root: Path, environ=None) -> tuple[dict, list[str]]:
     config = validate_config(read_json(PLUGIN_ROOT / "defaults.json"), "defaults")
     sources = [str(PLUGIN_ROOT / "defaults.json")]
     explicit = env.get("ARCHLENS_CONFIG")
-    home = Path(env.get("CLAUDE_CONFIG_DIR") or Path.home() / ".claude").expanduser()
-    user_path = Path(explicit).expanduser() if explicit else home / "archlens.json"
+    if explicit:
+        user_path = Path(explicit).expanduser()
+    elif env.get("CLAUDE_CONFIG_DIR"):
+        user_path = Path(env["CLAUDE_CONFIG_DIR"]).expanduser() / "archlens.json"
+    else:
+        config_home = Path(env.get("XDG_CONFIG_HOME") or Path.home() / ".config").expanduser()
+        shared_path = config_home / "archlens" / "config.json"
+        legacy_path = Path.home() / ".claude" / "archlens.json"
+        user_path = shared_path if shared_path.exists() or shared_path.is_symlink() else legacy_path
     if explicit and not user_path.is_file():
         raise ArchlensError(f"ARCHLENS_CONFIG does not name a readable file: {user_path}")
     project_path = contained(root, ".archlens.json", "project config")
@@ -135,7 +142,7 @@ def load_map(root: Path, config: dict) -> tuple[Path, list[dict]]:
     docs = contained(root, config["docsRoot"], "docsRoot")
     map_path = contained(docs, "map.json", "document map")
     if not map_path.is_file():
-        raise ArchlensError(f"No document map at {map_path}. Run /archlens:setup first.")
+        raise ArchlensError(f"No document map at {map_path}. Run Archlens setup (Claude: /archlens:setup) first.")
     data = read_json(map_path)
     if not isinstance(data, dict) or set(data) != {"version", "pages"}:
         raise ArchlensError("map.json requires exactly 'version' and 'pages'")
