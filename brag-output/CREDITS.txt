@@ -1,0 +1,53 @@
+ARCHLENS - SEE THE SYSTEM
+
+Original 24-second launch-film design and composition for Archlens.
+Product: https://github.com/tushar-mahalya/archlens
+Source content: Archlens v0.1.1 examples and current product distribution
+information; MIT, copyright Tushar Sharma.
+The depicted order-service library is fictional. Its runtime behavior and
+proposed ADR are actual repository examples. The styled document views are
+not recordings of a live agent session or a separate Archlens application.
+The visual identity and lens mark were created for this film.
+
+WORKFLOW
+Brag by latent-spaces, commit 669ab9286aa28b6c3ee30e75f181ee74319d012a.
+https://github.com/latent-spaces/brag
+MIT notice retained in composition/assets/licenses/brag-MIT.txt.
+The requested skill was read from its pinned source; no global agent setup changed.
+
+RENDERING AND ANIMATION
+Hyperframes 0.9.19, Apache-2.0:
+https://github.com/heygen-com/hyperframes
+GSAP 3.15.0, Standard License:
+https://gsap.com/standard-license/
+Original copyright and license reference remain in assets/gsap.min.js.
+The Hyperframes component catalog was searched. The full terminal/log simulator
+was not used: a simple command strip avoids implying a fabricated agent run.
+All scene artwork, layout, and diagram animation are authored for this film.
+
+MUSIC - KEEP THIS CREDIT WHEN SHARING
+"Happy Beats / Business Moves, Vol. 10" by Sascha Ende.
+Music: Sascha Ende, ende.app (CC BY 4.0).
+Source: https://ende.app/en
+License: https://creativecommons.org/licenses/by/4.0/
+Bundled source: https://github.com/latent-spaces/brag
+Changes: excerpt of first 24 seconds, level adjustment, fades, and sound-effect mix.
+Credit is included on the final video card and in share-copy.txt.
+
+SOUND EFFECTS
+Kenney interface and impact effects, CC0:
+https://kenney.nl/
+Used: impactSoft_medium_000.ogg, click_003.ogg, bong_001.ogg.
+Copied from the same pinned Brag commit. Levels and placement were changed.
+The selection click is padded with silence and played from an offset so its
+samples and cue timing stay unchanged while its preview waveform can be drawn.
+
+FONTS
+Sora, by the Sora project authors; SIL Open Font License 1.1.
+IBM Plex Mono, by the IBM Plex project authors; SIL Open Font License 1.1.
+Source: https://github.com/google/fonts
+Both complete license notices are in composition/assets/licenses/.
+
+PRIVACY
+Built and rendered locally. No voice generation, paid media, account login,
+remote rendering, or project-content upload. Tool telemetry was disabled.

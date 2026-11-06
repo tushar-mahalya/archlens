@@ -1,0 +1,102 @@
+<template>
+  <link rel="stylesheet" href="assets/film.css" />
+  <style>
+    #root { position: absolute; inset: 0; }
+    .e-panel { position: absolute; left: 192px; top: 359px; width: 1536px; height: 507px; overflow: hidden; }
+    .e-file { height: 65px; padding: 14px 30px; border-bottom: 2px solid #435A49; font-size: 28px; line-height: 33px; color: #C1CDC2; }
+    .e-diagram { position: absolute; left: 0; top: 66px; width: 1532px; height: 438px; }
+    .e-paths { position: absolute; inset: 0; }
+    .e-node { position: absolute; top: 168px; display: flex; flex-direction: column; justify-content: center; padding: 0 26px; height: 100px; border: 2px solid #58735A; border-radius: 15px; background: #223327; font-size: 32px; font-weight: 500; }
+    .e-caller { left: 55px; width: 195px; }
+    .e-validate { left: 330px; width: 235px; }
+    .e-store { left: 645px; width: 225px; }
+    .e-result { position: absolute; left: 1030px; width: 444px; padding: 21px 25px; border-radius: 15px; }
+    .e-success { top: 54px; border: 2px solid #C9FF65; background: #263822; color: #E5FFC0; }
+    .e-conflict { top: 268px; border: 2px solid #E8B27F; background: #332A20; color: #FFD6AC; }
+    .e-result h2 { font-size: 31px; font-weight: 500; letter-spacing: -0.03em; line-height: 1.35; }
+    .e-result p { font-size: 28px; margin-top: 9px; line-height: 1.25; }
+    .e-case { position: absolute; left: 1034px; font-size: 28px; line-height: 36px; font-weight: 400; }
+    .e-case-a { top: 8px; color: #D9F5BC; }
+    .e-case-b { top: 224px; color: #F3C79B; }
+    .e-side-note { position: absolute; right: 192px; bottom: 116px; font-size: 28px; line-height: 38px; color: #AFBCB3; }
+    .e-flow-label { position: absolute; left: 58px; top: 310px; color: #AFBCB3; font-size: 28px; letter-spacing: 0.01em; }
+    .e-paper-leading { position: absolute; inset: 0; background: var(--color-paper, #EEEFE3); transform-origin: left center; z-index: 4; }
+  </style>
+  <div id="root" data-composition-id="execution" data-width="1920" data-height="1080">
+    <div class="film">
+      <div class="brandline" id="e-brandline"><span class="brand-dot"></span><span>THE HANDBOOK / RUNTIME VIEW</span></div>
+      <div class="chapter mono" id="e-chapter">03 / EXECUTION</div>
+      <div class="rule" id="e-rule"></div>
+      <h1 class="headline" id="e-title">Follow the execution.</h1>
+      <div class="e-panel surface" id="e-panel">
+        <div class="e-file mono">docs / architecture / runtime / submit-order.md</div>
+        <div class="e-diagram" id="e-diagram">
+          <svg class="e-paths" width="1532" height="438" viewBox="0 0 1532 438" aria-hidden="true">
+            <path class="diagram-line" d="M250 218H330 M565 218H645 M870 218H945V109H1030 M945 218V324H1030" />
+            <path id="e-input-a" class="diagram-active" d="M250 218H330" />
+            <path id="e-input-b" class="diagram-active" d="M565 218H645" />
+            <path id="e-success-path" class="diagram-active" d="M870 218H945V109H1030" />
+            <path id="e-conflict-path" d="M870 218H945V324H1030" fill="none" stroke="#E8B27F" stroke-width="4" stroke-linecap="round" />
+            <circle id="e-junction" cx="945" cy="218" r="7" fill="#C9FF65" />
+            <circle id="e-input-dot" cx="250" cy="218" r="8" fill="#F5FFE4" />
+            <circle id="e-success-dot" cx="870" cy="218" r="8" fill="#F5FFE4" />
+            <circle id="e-conflict-dot" cx="870" cy="218" r="8" fill="#FFE5CA" />
+          </svg>
+          <div class="e-node e-caller" id="e-caller">Caller</div>
+          <div class="e-node e-validate" id="e-validate">Validate</div>
+          <div class="e-node e-store" id="e-store">SQLite</div>
+          <div id="e-match">
+            <p class="e-case e-case-a mono">SAME KEY + SAME DATA</p>
+            <div class="e-result e-success"><h2>Same order ID</h2><p class="mono">Repeat matches.</p></div>
+          </div>
+          <div id="e-conflict">
+            <p class="e-case e-case-b mono">SAME KEY + DIFFERENT DATA</p>
+            <div class="e-result e-conflict"><h2 class="mono">RequestConflict</h2><p class="mono">Roll back.</p></div>
+          </div>
+          <div class="e-flow-label mono" id="e-flow-label">SELECTED REPEAT-REQUEST PATHS</div>
+        </div>
+      </div>
+      <p class="footer-note mono" id="e-footer">Source-linked. Failure paths included.</p>
+      <p class="e-side-note mono" id="e-side-note">Fictional order-service example</p>
+      <div class="e-paper-leading" id="e-paper-leading" aria-hidden="true"></div>
+    </div>
+  </div>
+  <script>
+    const tl = gsap.timeline({ paused: true });
+    tl.fromTo("#e-title", { x: 60, opacity: 0 }, { x: 0, opacity: 1, duration: 0.7, ease: "expo.out" }, 0.12);
+    tl.fromTo("#e-panel", { y: 180, scale: 1.06, clipPath: "inset(0 0 62% 0 round 24px)" }, { y: 0, scale: 1, clipPath: "inset(0 0 0% 0 round 24px)", duration: 0.8, ease: "power4.out" }, 0);
+    tl.fromTo("#e-diagram", { opacity: 0 }, { opacity: 1, duration: 0.35 }, 0.25);
+    tl.fromTo("#e-caller", { x: -35, scale: 0.94, opacity: 0 }, { x: 0, scale: 1, opacity: 1, duration: 0.45, ease: "power3.out" }, 0.48);
+    tl.fromTo("#e-validate", { x: -35, scale: 0.94, opacity: 0 }, { x: 0, scale: 1, opacity: 1, duration: 0.45, ease: "power3.out" }, 0.66);
+    tl.fromTo("#e-store", { x: -35, scale: 0.94, opacity: 0 }, { x: 0, scale: 1, opacity: 1, duration: 0.45, ease: "power3.out" }, 0.88);
+    tl.fromTo("#e-input-a", { strokeDasharray: 80, strokeDashoffset: 80 }, { strokeDashoffset: 0, duration: 0.24, ease: "none" }, 0.7);
+    tl.fromTo("#e-input-b", { strokeDasharray: 80, strokeDashoffset: 80 }, { strokeDashoffset: 0, duration: 0.24, ease: "none" }, 1.2);
+    tl.fromTo("#e-input-dot", { attr: { cx: 250 }, opacity: 0 }, { opacity: 1, duration: 0.08 }, 0.7);
+    tl.to("#e-input-dot", { attr: { cx: 645 }, duration: 0.85, ease: "none" }, 0.7);
+    tl.to("#e-input-dot", { opacity: 0, duration: 0.08 }, 1.5);
+    tl.to("#e-validate", { borderColor: "#C9FF65", duration: 0.18 }, 0.88);
+    tl.to("#e-validate", { borderColor: "#58735A", duration: 0.4 }, 1.1);
+    tl.to("#e-store", { borderColor: "#C9FF65", duration: 0.18 }, 1.36);
+    tl.to("#e-store", { borderColor: "#58735A", duration: 0.4 }, 1.58);
+    tl.fromTo("#e-success-path", { strokeDasharray: 270, strokeDashoffset: 270 }, { strokeDashoffset: 0, duration: 0.57, ease: "none" }, 1.55);
+    tl.fromTo("#e-junction", { opacity: 0 }, { opacity: 1, duration: 0.2 }, 1.6);
+    tl.fromTo("#e-success-dot", { attr: { cx: 870, cy: 218 }, opacity: 0 }, { opacity: 1, duration: 0.08 }, 1.55);
+    tl.to("#e-success-dot", { attr: { cx: 945 }, duration: 0.16, ease: "none" }, 1.55);
+    tl.to("#e-success-dot", { attr: { cy: 109 }, duration: 0.23, ease: "none" }, 1.71);
+    tl.to("#e-success-dot", { attr: { cx: 1030 }, duration: 0.18, ease: "none" }, 1.94);
+    tl.to("#e-success-dot", { opacity: 0, duration: 0.1 }, 2.05);
+    tl.fromTo("#e-match", { x: 36, opacity: 0 }, { x: 0, opacity: 1, duration: 0.55, ease: "power3.out" }, 1.9);
+    tl.fromTo("#e-conflict-path", { strokeDasharray: 270, strokeDashoffset: 270 }, { strokeDashoffset: 0, duration: 0.57, ease: "none" }, 3.2);
+    tl.fromTo("#e-conflict-dot", { attr: { cx: 870, cy: 218 }, opacity: 0 }, { opacity: 1, duration: 0.08 }, 3.2);
+    tl.to("#e-conflict-dot", { attr: { cx: 945 }, duration: 0.16, ease: "none" }, 3.2);
+    tl.to("#e-conflict-dot", { attr: { cy: 324 }, duration: 0.23, ease: "none" }, 3.36);
+    tl.to("#e-conflict-dot", { attr: { cx: 1030 }, duration: 0.18, ease: "none" }, 3.59);
+    tl.to("#e-conflict-dot", { opacity: 0, duration: 0.1 }, 3.7);
+    tl.fromTo("#e-conflict", { x: 36, opacity: 0 }, { x: 0, opacity: 1, duration: 0.55, ease: "power3.out" }, 3.5);
+    tl.fromTo("#e-flow-label", { opacity: 0 }, { opacity: 1, duration: 0.45 }, 0.8);
+    tl.fromTo("#e-footer", { opacity: 0 }, { opacity: 1, duration: 0.4 }, 1.1);
+    tl.to(["#e-title", "#e-panel", "#e-footer", "#e-side-note", "#e-brandline", "#e-chapter", "#e-rule"], { x: -35, opacity: 0, duration: 0.3, ease: "power2.in" }, 5.94);
+    tl.fromTo("#e-paper-leading", { scaleX: 0 }, { scaleX: 0.08, duration: 0.22, ease: "power2.in" }, 6.07);
+    window.__timelines["execution"] = tl;
+  </script>
+</template>

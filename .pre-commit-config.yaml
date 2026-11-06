@@ -5,6 +5,8 @@
 minimum_pre_commit_version: "4.0.0"
 default_install_hook_types: [pre-commit, commit-msg, pre-push]
 default_stages: [pre-commit]
+# Vendored, minified, and binary film assets are kept byte-for-byte.
+exclude: ^brag-output/composition/assets/
 
 repos:
   - repo: https://github.com/pre-commit/pre-commit-hooks

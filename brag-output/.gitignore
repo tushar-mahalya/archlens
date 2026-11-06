@@ -1,0 +1,8 @@
+# Regenerable HyperFrames caches, editor state (contains machine-specific paths), and scratch.
+composition/.hyperframes/
+composition/.thumbnails/
+composition/.waveform-cache/
+.opening-live-work/
+# Rendered outputs: attach to a release instead of committing.
+*.mp4
+*.jpg

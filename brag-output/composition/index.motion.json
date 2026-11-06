@@ -1,0 +1,27 @@
+{
+  "duration": 24,
+  "assertions": [
+    { "kind": "appearsBy", "selector": "#q-first", "bySec": 1 },
+    { "kind": "appearsBy", "selector": "#q-second", "bySec": 1 },
+    { "kind": "appearsBy", "selector": "#q-lens", "bySec": 1 },
+    { "kind": "appearsBy", "selector": "#q-node-a", "bySec": 1.3 },
+    { "kind": "appearsBy", "selector": "#q-node-b", "bySec": 1.5 },
+    { "kind": "appearsBy", "selector": "#q-node-c", "bySec": 1.7 },
+    { "kind": "appearsBy", "selector": "#r-title", "bySec": 4.1 },
+    { "kind": "appearsBy", "selector": "#e-title", "bySec": 9 },
+    { "kind": "appearsBy", "selector": "#e-store", "bySec": 9 },
+    { "kind": "appearsBy", "selector": "#d-status", "bySec": 15.3 },
+    { "kind": "appearsBy", "selector": "#p-command-label", "bySec": 20.1 },
+    { "kind": "appearsBy", "selector": "#p-command", "bySec": 20.1 },
+    { "kind": "appearsBy", "selector": "#p-link", "bySec": 21.7 },
+    { "kind": "before", "a": "#d-status", "b": "#p-command" },
+    { "kind": "before", "a": "#p-command", "b": "#p-link" },
+    { "kind": "staysInFrame", "selector": "#q-lens" },
+    { "kind": "staysInFrame", "selector": "#q-node-a" },
+    { "kind": "staysInFrame", "selector": "#q-node-b" },
+    { "kind": "staysInFrame", "selector": "#q-node-c" },
+    { "kind": "staysInFrame", "selector": "#p-command-label" },
+    { "kind": "staysInFrame", "selector": "#p-command" },
+    { "kind": "staysInFrame", "selector": "#p-link" }
+  ]
+}

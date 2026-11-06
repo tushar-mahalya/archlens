@@ -1,0 +1,56 @@
+<template>
+  <link rel="stylesheet" href="assets/film.css" />
+  <style>
+    #root { position: absolute; inset: 0; }
+    .q-title { position: absolute; left: 192px; top: 305px; width: 1020px; font-size: 114px; line-height: 1.19; letter-spacing: -0.045em; font-weight: 600; }
+    .q-title span { display: block; }
+    .q-sub { position: absolute; left: 200px; top: 658px; font-size: 28px; letter-spacing: 0.025em; color: #AFBCB3; }
+    .q-lens { position: absolute; left: 1190px; top: 230px; width: 480px; height: 390px; transform: scale(0.72); }
+    .q-lens svg { width: 480px; height: 390px; }
+    .q-wires { position: absolute; inset: 0; }
+    .q-wire { fill: none; stroke: #536D58; stroke-width: 2; stroke-linecap: round; }
+    .q-node { position: absolute; padding: 12px 20px; border: 2px solid #435A49; border-radius: 12px; background: #18251F; color: #D7E5D2; font-size: 28px; line-height: 40px; text-align: center; }
+    .q-node-a { left: 1292px; top: 210px; width: 276px; }
+    .q-node-b { left: 1080px; top: 622px; width: 236px; }
+    .q-node-c { left: 1544px; top: 622px; width: 166px; }
+  </style>
+  <div id="root" data-composition-id="question" data-width="1920" data-height="1080">
+    <div class="film">
+      <div class="brandline" id="q-brandline"><span class="brand-dot"></span><span data-var-text="product-name">Archlens</span></div>
+      <div class="chapter mono" id="q-chapter">01 / THE QUESTION</div>
+      <div class="rule" id="q-rule"></div>
+      <h1 class="q-title"><span id="q-first">The code runs.</span><span id="q-second" class="signal">But why?</span></h1>
+      <p class="q-sub mono" id="q-sub">MAKE THE WHY VISIBLE.</p>
+      <div id="q-context">
+        <svg class="q-wires" width="1920" height="1080" viewBox="0 0 1920 1080" aria-hidden="true">
+          <path class="q-wire" pathLength="100" d="M1430 274V296" />
+          <path class="q-wire" pathLength="100" d="M1198 622C1198 568 1250 535 1345 520" />
+          <path class="q-wire" pathLength="100" d="M1627 622C1627 568 1575 535 1515 520" />
+        </svg>
+        <div class="q-node q-node-a mono" id="q-node-a">submit_order()</div>
+        <div class="q-node q-node-b mono" id="q-node-b">request_key</div>
+        <div class="q-node q-node-c mono" id="q-node-c">SQLite</div>
+      </div>
+      <div class="q-lens" id="q-lens">
+        <svg viewBox="0 0 480 390" aria-hidden="true">
+          <circle cx="240" cy="195" r="180" fill="#1C2A20" stroke="#C9FF65" stroke-width="4" />
+          <text x="240" y="195" text-anchor="middle" dominant-baseline="central" fill="#C9FF65" font-family="Sora, sans-serif" font-size="180">?</text>
+        </svg>
+      </div>
+    </div>
+  </div>
+  <script>
+    const tl = gsap.timeline({ paused: true });
+    tl.fromTo("#q-rule", { scaleX: 0.7 }, { scaleX: 1, duration: 0.8, ease: "sine.out" }, 0);
+    tl.fromTo("#q-first", { x: 12 }, { x: 0, duration: 0.65, ease: "power2.out" }, 0);
+    tl.fromTo("#q-second", { x: 16 }, { x: 0, duration: 0.75, ease: "power2.out" }, 0.06);
+    tl.fromTo("#q-sub", { y: 10, opacity: 0 }, { y: 0, opacity: 1, duration: 0.6, ease: "sine.out" }, 0.36);
+    tl.fromTo(["#q-node-a", "#q-node-b", "#q-node-c"], { y: 10, opacity: 0 }, { y: 0, opacity: 1, duration: 0.6, stagger: 0.14, ease: "power2.out" }, 0.22);
+    tl.fromTo(".q-wire", { strokeDasharray: 100, strokeDashoffset: 100 }, { strokeDashoffset: 0, duration: 0.8, stagger: 0.14, ease: "sine.inOut" }, 0.38);
+    tl.to("#q-context", { opacity: 0, duration: 0.5, ease: "sine.inOut" }, 2.85);
+    tl.to(["#q-first", "#q-second", "#q-sub"], { y: -12, opacity: 0, duration: 0.5, ease: "sine.inOut" }, 3.0);
+    tl.to(["#q-brandline", "#q-chapter", "#q-rule"], { opacity: 0, duration: 0.5, ease: "sine.inOut" }, 3.0);
+    tl.fromTo("#q-lens", { scale: 0.72 }, { scale: 0.81, duration: 0.55, ease: "power1.in" }, 3.0);
+    window.__timelines["question"] = tl;
+  </script>
+</template>

@@ -1,0 +1,69 @@
+<template>
+  <link rel="stylesheet" href="assets/film.css" />
+  <style>
+    #root { position: absolute; inset: 0; }
+    .r-title { position: absolute; left: 186px; top: 245px; font-size: 158px; font-weight: 600; letter-spacing: -0.06em; line-height: 1.2; }
+    .r-tagline { position: absolute; left: 196px; top: 462px; font-size: 61px; font-weight: 400; letter-spacing: -0.05em; }
+    .r-lens { position: absolute; left: 1190px; top: 230px; width: 480px; height: 390px; }
+    .r-lens svg { width: 480px; height: 390px; }
+    .r-terminal { position: absolute; left: 192px; top: 687px; width: 1536px; height: 194px; padding: 26px 36px; }
+    .r-terminal-label { color: #AFBCB3; font-size: 28px; letter-spacing: 0.04em; }
+    .r-command { margin-top: 21px; font-size: 37px; line-height: 1.2; color: #F5F5E9; white-space: nowrap; }
+    .r-prompt { color: #C9FF65; margin-right: 22px; }
+    .r-command-copy { display: inline-block; }
+    .r-proof { position: absolute; left: 196px; top: 563px; color: #AFBCB3; font-size: 28px; letter-spacing: 0.01em; }
+    .r-lens-label { position: absolute; left: 1255px; top: 623px; color: #AFBCB3; font-size: 28px; letter-spacing: 0.04em; }
+  </style>
+  <div id="root" data-composition-id="reveal" data-width="1920" data-height="1080">
+    <div class="film">
+      <div class="brandline" id="r-brandline"><span class="brand-dot"></span><span>MEET YOUR ARCHITECTURE LENS</span></div>
+      <div class="chapter mono" id="r-chapter">02 / THE REVEAL</div>
+      <div class="rule" id="r-rule"></div>
+      <h1 id="r-title" class="r-title" data-var-text="product-name">Archlens</h1>
+      <p id="r-tagline" class="r-tagline signal" data-var-text="tagline">See the system.</p>
+      <p id="r-proof" class="r-proof mono">Clear documents. Grounded in source.</p>
+      <div class="r-lens" id="r-lens">
+        <svg viewBox="0 0 480 390" aria-hidden="true">
+          <circle id="r-shell" cx="240" cy="195" r="180" fill="#1C2A20" stroke="#C9FF65" stroke-width="4" />
+          <circle id="r-ring" cx="240" cy="195" r="141" fill="none" stroke="#C9FF65" stroke-width="3" />
+          <g id="r-reticle">
+            <circle cx="240" cy="195" r="95" fill="none" stroke="#456149" stroke-width="2" />
+            <path d="M15 195H465 M240 5V385" stroke="#456149" stroke-width="2" />
+            <circle id="r-arc" cx="240" cy="195" r="163" fill="none" stroke="#70DDD0" stroke-width="3" stroke-dasharray="65 960" />
+          </g>
+          <text id="r-question" x="240" y="195" text-anchor="middle" dominant-baseline="central" fill="#C9FF65" font-family="Sora, sans-serif" font-size="180">?</text>
+          <path id="r-architecture" d="M154 248L240 118L326 248 M189 195H291" fill="none" stroke="#C9FF65" stroke-width="12" stroke-linecap="round" stroke-linejoin="round" />
+          <circle class="r-point" cx="154" cy="248" r="16" fill="#C9FF65" />
+          <circle class="r-point" cx="240" cy="118" r="16" fill="#C9FF65" />
+          <circle class="r-point" cx="326" cy="248" r="16" fill="#C9FF65" />
+        </svg>
+      </div>
+      <p class="r-lens-label mono" id="r-lens-label">EVIDENCE INTO VIEW</p>
+      <div class="r-terminal surface" id="r-terminal">
+        <p class="r-terminal-label mono">CLAUDE CODE / ONE SCENARIO AT A TIME</p>
+        <p class="r-command mono"><span class="r-prompt">&gt;</span><span id="r-command-copy" class="r-command-copy">/archlens:explain submit an order</span></p>
+      </div>
+    </div>
+  </div>
+  <script>
+    const tl = gsap.timeline({ paused: true });
+    tl.fromTo(["#r-brandline", "#r-chapter", "#r-rule"], { opacity: 0 }, { opacity: 1, duration: 0.55, ease: "sine.out" }, 0);
+    tl.fromTo("#r-title", { x: 22, opacity: 0 }, { x: 0, opacity: 1, duration: 0.8, ease: "power2.out" }, 0.08);
+    tl.fromTo("#r-tagline", { y: 20, opacity: 0 }, { y: 0, opacity: 1, duration: 0.65, ease: "power2.out" }, 0.3);
+    tl.fromTo("#r-proof", { opacity: 0 }, { opacity: 1, duration: 0.45 }, 0.62);
+    tl.fromTo("#r-lens", { scale: 0.81 }, { scale: 1, duration: 1.16, ease: "power1.out" }, 0);
+    tl.fromTo("#r-shell", { stroke: "#C9FF65" }, { stroke: "#456149", duration: 0.8, ease: "power2.out" }, 0.06);
+    tl.fromTo("#r-question", { opacity: 1 }, { opacity: 0, duration: 0.25, ease: "power2.in" }, 0.12);
+    tl.fromTo("#r-reticle", { opacity: 0 }, { opacity: 1, duration: 0.5 }, 0.12);
+    tl.fromTo("#r-arc", { strokeDashoffset: 400 }, { strokeDashoffset: 0, duration: 1.15, ease: "power3.out" }, 0.12);
+    tl.fromTo("#r-ring", { strokeDasharray: 890, strokeDashoffset: 890 }, { strokeDashoffset: 0, duration: 1.1, ease: "power2.inOut" }, 0.12);
+    tl.fromTo("#r-architecture", { strokeDasharray: 430, strokeDashoffset: 430 }, { strokeDashoffset: 0, duration: 0.85, ease: "power2.inOut" }, 0.28);
+    tl.fromTo(".r-point", { scale: 0, opacity: 0, transformOrigin: "50% 50%" }, { scale: 1, opacity: 1, duration: 0.4, stagger: 0.12, ease: "power3.out" }, 0.42);
+    tl.fromTo("#r-lens-label", { opacity: 0 }, { opacity: 1, duration: 0.45 }, 0.75);
+    tl.fromTo("#r-terminal", { y: 55, opacity: 0 }, { y: 0, opacity: 1, duration: 0.7, ease: "power4.out" }, 0.48);
+    tl.fromTo("#r-command-copy", { clipPath: "inset(0 100% 0 0)" }, { clipPath: "inset(0 0% 0 0)", duration: 0.85, ease: "none" }, 0.82);
+    tl.to("#r-terminal", { y: -150, scale: 1.06, duration: 0.35, ease: "power3.in" }, 3.45);
+    tl.to(["#r-title", "#r-tagline", "#r-proof", "#r-lens", "#r-lens-label"], { y: -35, opacity: 0, duration: 0.26, ease: "power2.in" }, 3.48);
+    window.__timelines["reveal"] = tl;
+  </script>
+</template>

@@ -1,0 +1,52 @@
+<template>
+  <link rel="stylesheet" href="assets/film.css" />
+  <style>
+    #root { position: absolute; inset: 0; }
+    .d-page { position: absolute; left: 192px; top: 372px; width: 1536px; height: 465px; border-top: 3px solid #45603E; border-bottom: 2px solid #ADB8A7; }
+    .d-id { position: absolute; left: 0; top: 31px; color: #36502E; font-size: 28px; font-weight: 500; letter-spacing: 0.07em; }
+    .d-status { position: absolute; right: 0; top: 23px; padding: 12px 23px; border: 2px solid #6B7942; border-radius: 50px; color: #37431C; background: #DCE7BB; font-size: 28px; font-weight: 500; }
+    .d-proposal { position: absolute; left: 0; top: 145px; width: 630px; font-size: 70px; font-weight: 600; letter-spacing: -0.045em; line-height: 1.15; }
+    .d-proposal span { display: block; }
+    .d-divider { position: absolute; left: 720px; top: 136px; width: 2px; height: 230px; background: #ADB8A7; transform-origin: top; }
+    .d-benefit { position: absolute; left: 790px; top: 132px; }
+    .d-cost { position: absolute; left: 790px; top: 270px; }
+    .d-label { font-size: 28px; color: #49603E; letter-spacing: 0.05em; margin-bottom: 17px; }
+    .d-copy { font-size: 39px; letter-spacing: -0.04em; font-weight: 500; line-height: 1.2; }
+    .d-note { position: absolute; left: 192px; bottom: 116px; font-size: 28px; color: #4B624F; }
+    .d-note-right { position: absolute; right: 192px; bottom: 116px; font-size: 28px; color: #4B624F; }
+    .d-iris { position: absolute; left: 1546px; top: 340px; width: 180px; height: 180px; border-radius: 50%; background: var(--color-ground, #101918); z-index: 4; }
+  </style>
+  <div id="root" data-composition-id="decision" data-width="1920" data-height="1080">
+    <div class="film paper" id="d-film">
+      <div class="brandline" id="d-brandline"><span class="brand-dot"></span><span>THE HANDBOOK / DECISION RECORD</span></div>
+      <div class="chapter mono" id="d-chapter">04 / TRADEOFFS</div>
+      <div class="rule" id="d-rule"></div>
+      <h1 class="headline" id="d-title">Know the tradeoffs.</h1>
+      <div class="d-page" id="d-page" data-hold>
+        <p class="d-id mono">ADR-001</p>
+        <p class="d-status mono" id="d-status" data-layout-allow-occlusion>PROPOSED</p>
+        <h2 class="d-proposal" id="d-proposal"><span>Unique</span><span>request key.</span></h2>
+        <div class="d-divider" id="d-divider"></div>
+        <div class="d-benefit" id="d-benefit"><p class="d-label mono">THE BENEFIT</p><p class="d-copy">Prevents duplicate rows per key.</p></div>
+        <div class="d-cost" id="d-cost"><p class="d-label mono">THE TRADEOFF</p><p class="d-copy">Callers manage stable keys.</p></div>
+      </div>
+      <p class="d-note mono" id="d-note">A proposal. Not invented history.</p>
+      <p class="d-note-right mono" id="d-note-right">Fictional order-service example</p>
+      <div class="d-iris" id="d-iris" aria-hidden="true"></div>
+    </div>
+  </div>
+  <script>
+    const tl = gsap.timeline({ paused: true });
+    tl.fromTo("#d-film", { clipPath: "inset(0 92% 0 0)" }, { clipPath: "inset(0 0% 0 0)", duration: 0.55, ease: "power2.out" }, 0);
+    tl.fromTo("#d-title", { x: 65, opacity: 0 }, { x: 0, opacity: 1, duration: 0.7, ease: "expo.out" }, 0.15);
+    tl.fromTo("#d-page", { y: 55, opacity: 0 }, { y: 0, opacity: 1, duration: 0.75, ease: "power4.out" }, 0.18);
+    tl.fromTo("#d-proposal", { x: -35, opacity: 0 }, { x: 0, opacity: 1, duration: 0.65, ease: "power3.out" }, 0.35);
+    tl.fromTo("#d-divider", { scaleY: 0 }, { scaleY: 1, duration: 0.7, ease: "power2.inOut" }, 0.32);
+    tl.fromTo("#d-benefit", { x: 35, opacity: 0 }, { x: 0, opacity: 1, duration: 0.55, ease: "power3.out" }, 0.48);
+    tl.fromTo("#d-cost", { x: 35, opacity: 0 }, { x: 0, opacity: 1, duration: 0.55, ease: "power3.out" }, 0.72);
+    tl.fromTo("#d-status", { scale: 1.45, opacity: 0 }, { scale: 1, opacity: 1, duration: 0.55, ease: "expo.out" }, 0.43);
+    tl.to(["#d-title", "#d-page", "#d-note", "#d-note-right", "#d-brandline", "#d-chapter", "#d-rule"], { y: -22, opacity: 0, duration: 0.3, ease: "power2.in" }, 4.56);
+    tl.fromTo("#d-iris", { scale: 0 }, { scale: 1, duration: 0.34, ease: "power2.in" }, 4.57);
+    window.__timelines["decision"] = tl;
+  </script>
+</template>

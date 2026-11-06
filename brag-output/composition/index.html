@@ -1,0 +1,73 @@
+<!doctype html>
+<html lang="en" data-resolution="landscape"
+  data-composition-variables='[
+    {"id":"color-ground","type":"color","label":"Instrument ground","default":"#101918"},
+    {"id":"color-ink","type":"color","label":"Light ink","default":"#F5F5E9"},
+    {"id":"color-accent","type":"color","label":"Signal","default":"#C9FF65"},
+    {"id":"color-secondary","type":"color","label":"Data signal","default":"#70DDD0"},
+    {"id":"color-paper","type":"color","label":"Decision paper","default":"#EEEFE3"},
+    {"id":"font-display","type":"string","label":"Display face","default":"Sora"},
+    {"id":"product-name","type":"string","label":"Product","default":"Archlens"},
+    {"id":"tagline","type":"string","label":"Tagline","default":"See the system."},
+    {"id":"repository","type":"string","label":"Repository","default":"github.com/tushar-mahalya/archlens"}
+  ]'>
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=1920, height=1080" />
+    <title>Archlens - See the system</title>
+    <script src="assets/gsap.min.js"></script>
+    <link rel="stylesheet" href="assets/film.css" />
+    <style>
+      html, body { width: 1920px; height: 1080px; overflow: hidden; background: #101918; }
+      #root { position: relative; width: 1920px; height: 1080px; overflow: hidden; }
+      .scene-host { position: absolute; inset: 0; }
+    </style>
+  </head>
+  <body>
+    <div id="root" data-composition-id="main" data-start="0" data-duration="24"
+      data-width="1920" data-height="1080" data-fps="30">
+      <div id="question" class="scene-host clip" data-composition-id="question"
+        data-composition-src="compositions/question.html" data-start="0"
+        data-duration="3.55" data-track-index="1" data-track-kind="graphics"
+        data-width="1920" data-height="1080"></div>
+      <div id="reveal" class="scene-host clip" data-composition-id="reveal"
+        data-composition-src="compositions/reveal.html" data-start="3.55"
+        data-duration="3.8" data-track-index="1" data-track-kind="graphics"
+        data-width="1920" data-height="1080"></div>
+      <div id="execution" class="scene-host clip" data-composition-id="execution"
+        data-composition-src="compositions/execution.html" data-start="7.35"
+        data-duration="6.29" data-track-index="1" data-track-kind="graphics"
+        data-width="1920" data-height="1080"></div>
+      <div id="decision" class="scene-host clip" data-composition-id="decision"
+        data-composition-src="compositions/decision.html" data-start="13.64"
+        data-duration="4.91" data-track-index="1" data-track-kind="graphics"
+        data-width="1920" data-height="1080"></div>
+      <div id="payoff" class="scene-host clip" data-composition-id="payoff"
+        data-composition-src="compositions/payoff.html" data-start="18.55"
+        data-duration="5.45" data-track-index="1" data-track-kind="graphics"
+        data-width="1920" data-height="1080"></div>
+      <audio id="music" class="clip" src="assets/audio/music.mp3" data-start="0"
+        data-duration="24" data-track-index="2" data-volume="0.62"
+        data-fade-in="0.35" data-fade-out="1.5"></audio>
+      <audio id="reveal-hit" class="clip" src="assets/audio/soft-impact.ogg"
+        data-start="3.55" data-duration="0.13" data-track-index="3" data-volume="0.4"></audio>
+      <audio id="flow-hit" class="clip" src="assets/audio/resolve.ogg"
+        data-start="8.22" data-duration="0.13" data-track-index="3" data-volume="0.25"></audio>
+      <audio id="match-click" class="clip" src="assets/audio/select-waveform.wav"
+        data-start="9.35" data-media-start="0.03501133786848073" data-duration="0.1"
+        data-track-index="3" data-volume="0.25"></audio>
+      <audio id="conflict-click" class="clip" src="assets/audio/select-waveform.wav"
+        data-start="11" data-media-start="0.03501133786848073" data-duration="0.1"
+        data-track-index="3" data-volume="0.25"></audio>
+      <audio id="decision-hit" class="clip" src="assets/audio/soft-impact.ogg"
+        data-start="13.64" data-duration="0.13" data-track-index="3" data-volume="0.32"></audio>
+      <audio id="payoff-hit" class="clip" src="assets/audio/soft-impact.ogg"
+        data-start="18.55" data-duration="0.13" data-track-index="3" data-volume="0.4"></audio>
+    </div>
+    <script>
+      const tl = gsap.timeline({ paused: true });
+      window.__timelines = window.__timelines || {};
+      window.__timelines["main"] = tl;
+    </script>
+  </body>
+</html>

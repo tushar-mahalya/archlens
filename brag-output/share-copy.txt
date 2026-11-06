@@ -1,0 +1,3 @@
+The code runs. Now understand it.
+Archlens turns source evidence into execution maps, data flows, and explicit tradeoffs: https://github.com/tushar-mahalya/archlens
+Music: Sascha Ende, ende.app (CC BY 4.0; excerpt and mix).
