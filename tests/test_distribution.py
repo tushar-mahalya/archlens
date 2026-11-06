@@ -30,6 +30,7 @@ class DistributionTests(unittest.TestCase):
         self.assertEqual(manifest["name"], entry["name"])
         self.assertEqual(manifest["version"], market["metadata"]["version"])
         self.assertEqual(manifest["license"], "MIT")
+        self.assertEqual((plugin / "LICENSE").read_text(), (ROOT / "LICENSE").read_text())
 
     def test_reproducible_complete_archive(self):
         tool = load_tool("package_release")
@@ -41,6 +42,7 @@ class DistributionTests(unittest.TestCase):
                 names = archive.namelist()
                 self.assertTrue(any(name.endswith("/.claude-plugin/marketplace.json") for name in names))
                 self.assertTrue(any(name.endswith("/scripts/archlens.py") for name in names))
+                self.assertTrue(any(name.endswith("/plugins/archlens/LICENSE") for name in names))
                 self.assertEqual(sum(name.endswith("/SKILL.md") for name in names), 5)
                 self.assertFalse(any("\\" in name or ".validation" in name or "__pycache__" in name for name in names))
                 for name in names:

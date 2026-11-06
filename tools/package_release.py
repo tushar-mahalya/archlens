@@ -19,7 +19,10 @@ def build(output_dir=None):
         "package.json", "package-lock.json",
     )]
     for name in (".claude-plugin", "plugins", "docs", "examples", "tools", "tests"):
-        inputs.extend(path for path in (ROOT / name).rglob("*") if path.is_file() and path.suffix in {".md", ".json", ".py", ".mjs"})
+        inputs.extend(
+            path for path in (ROOT / name).rglob("*")
+            if path.is_file() and (path.suffix in {".md", ".json", ".py", ".mjs"} or path.name == "LICENSE")
+        )
     with zipfile.ZipFile(archive, "w", compression=zipfile.ZIP_DEFLATED) as bundle:
         for path in sorted(inputs):
             if path.is_symlink() or not path.resolve().is_relative_to(ROOT):

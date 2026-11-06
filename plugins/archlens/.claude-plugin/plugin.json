@@ -1,6 +1,6 @@
 {
   "name": "archlens",
-  "version": "0.1.0",
+  "version": "0.1.1",
   "description": "Understand a codebase through clear architecture documents, execution traces, data flows, and decision records.",
   "author": {
     "name": "Tushar Sharma",

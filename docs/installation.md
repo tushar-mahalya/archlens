@@ -39,7 +39,7 @@ Keep that folder: local marketplaces can read directly from it.
 From PowerShell:
 
 ```powershell
-claude plugin marketplace add "C:\Tools\archlens-0.1.0"
+claude plugin marketplace add "C:\Tools\archlens-0.1.1"
 claude plugin install archlens@archlens --scope user
 ```
 

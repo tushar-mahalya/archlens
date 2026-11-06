@@ -1,5 +1,10 @@
 # Changelog
 
+## 0.1.1 - 2026-11-06
+
+- Include the MIT notice inside the plugin so it remains present when the host copies only that directory.
+- Add distribution tests for the installed license and release archive.
+
 ## 0.1.0 - 2026-11-06
 
 - Five manual Claude Code commands for setup, update, check, explanation, and decisions.
