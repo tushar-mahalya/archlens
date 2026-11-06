@@ -37,12 +37,13 @@ jobs:
   plugin:
     runs-on: ubuntu-latest
     env:
-      CLAUDE_CONFIG_DIR: ${{ runner.temp }}/archlens-claude
       DISABLE_TELEMETRY: '1'
       DISABLE_ERROR_REPORTING: '1'
       DISABLE_AUTOUPDATER: '1'
     steps:
       - uses: actions/checkout@v4
+      - name: Set isolated Claude configuration
+        run: echo "CLAUDE_CONFIG_DIR=$RUNNER_TEMP/archlens-claude" >> "$GITHUB_ENV"
       - uses: actions/setup-node@v4
         with:
           node-version: '24'
