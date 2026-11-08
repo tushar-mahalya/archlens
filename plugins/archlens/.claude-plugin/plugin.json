@@ -1,7 +1,7 @@
 {
   "name": "archlens",
-  "version": "0.2.0",
-  "description": "Understand a codebase through clear architecture documents, execution traces, data flows, and decision records.",
+  "version": "0.3.0",
+  "description": "Architecture docs that stay in sync with code, a compact project map for coding agents, and an interactive tutor for the codebase.",
   "author": {
     "name": "Tushar Sharma",
     "url": "https://github.com/tushar-mahalya"
@@ -9,5 +9,14 @@
   "homepage": "https://github.com/tushar-mahalya/archlens#readme",
   "repository": "https://github.com/tushar-mahalya/archlens",
   "license": "MIT",
-  "keywords": ["architecture", "documentation", "mermaid", "adr", "plain-language"]
+  "keywords": [
+    "architecture",
+    "documentation",
+    "mermaid",
+    "adr",
+    "living-docs",
+    "agents-md",
+    "context",
+    "learning"
+  ]
 }

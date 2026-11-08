@@ -6,13 +6,13 @@
   },
   "metadata": {
     "description": "Architecture documents that explain execution, data, and decisions.",
-    "version": "0.2.0"
+    "version": "0.3.0"
   },
   "plugins": [
     {
       "name": "archlens",
       "source": "./plugins/archlens",
-      "description": "Create and maintain clear architecture documents with Mermaid, evidence, and decision records.",
+      "description": "Living architecture docs: drift detection, a compact agent context map, Mermaid, decision records, and a codebase tutor.",
       "category": "documentation"
     }
   ]
