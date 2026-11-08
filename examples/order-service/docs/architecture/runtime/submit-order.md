@@ -42,7 +42,7 @@ The connection context rolls back an active transaction when an exception escape
 Input validation uses this order. A boolean quantity is not an integer for this API.
 There is no automatic retry. The caller must handle storage failures.
 
-**Implementation observed:** [submit_order](../../../order_service.py).
+**Implementation observed:** [submit_order](../../../order_service.py#L20-L38).
 The unique constraint and conflict clause prevent two stored rows with the same key.
 This does not establish a general exactly-once guarantee for a distributed system.
 

@@ -3,7 +3,7 @@
 This fictional Python library accepts an order and stores it in SQLite.
 It has no HTTP server, payment service, background jobs, or production deployment.
 
-Run the demo with Python 3.10+:
+Run the demo with Python 3.9+:
 
 ```text
 python order_service.py

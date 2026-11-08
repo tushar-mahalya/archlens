@@ -33,7 +33,7 @@ The demo uses an in-memory database. Closing it destroys the data.
 A caller can pass a file path to `connect` for persistence.
 The example has no deletion API, retention job, backups, access control, or schema migration process.
 
-**Implementation observed:** [schema and write path](../../order_service.py).
+**Implementation observed:** [schema](../../order_service.py#L10-L17) and [write path](../../order_service.py#L20-L38).
 **Unknown:** production retention, data classification, and recovery objectives.
 
 Related: [request-key decision proposal](decisions/ADR-001.md).

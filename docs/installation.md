@@ -7,10 +7,11 @@
 | Native Claude plugin | Claude Code with explicit, isolated commands | Current Claude Code, Git, and an account or API configuration |
 | Portable Agent Skill | Other compatible coding agents, or a portable Claude skill | A skills-compatible agent, Git, Node.js 22.20+, and npm/npx |
 
-Python 3.10+ enables optional deterministic checks; neither distribution needs it
-for the model-assisted workflows. Normal agent and provider charges still apply.
+Python 3.9+ enables the plugin hooks, freshness tracking, and deterministic checks.
+The model-assisted workflows still run without it. The hooks call `python3`, so on
+Windows make sure a `python3` command exists. Normal agent and provider charges still apply.
 Choose one distribution per Claude Code installation to avoid duplicate discovery.
-Native plugin validation is tested with Claude Code 2.1.318.
+Native plugin validation and hooks are tested with Claude Code 2.1.319.
 
 ## Native Claude plugin
 
@@ -43,7 +44,7 @@ Keep that folder: local marketplaces can read directly from it.
 From PowerShell:
 
 ```powershell
-claude plugin marketplace add "C:\Tools\archlens-0.2.0"
+claude plugin marketplace add "C:\Tools\archlens-0.3.0"
 claude plugin install archlens@archlens --scope user
 ```
 
@@ -67,11 +68,12 @@ This loads the plugin for that session only.
 2. Run `/archlens:setup`.
 3. Review the generated handbook and its evidence.
 4. Run `/archlens:explain` with a specific journey.
-5. After a code change, run `/archlens:update` with your local base ref.
-6. Run `/archlens:check`.
+5. Change some covered code. The stop hook reports the stale pages.
+6. Run `/archlens:update`, then `/archlens:check`.
+7. Try `/archlens:learn tour`.
 
 The supplied [order example](../examples/order-service/README.md) is a safe place to start.
-Setup is a writing task. Check and explain are read-only by instruction.
+Setup is a writing task. Check, explain, and learn are read-only by instruction.
 Keep normal tool approvals enabled.
 
 ### Update
@@ -124,7 +126,7 @@ Restart the agent or reload its skills, then ask:
 Use the Archlens skill to explain how an order flows through this project.
 ```
 
-Other operations are setup, update, check, and decide. Specify the scenario,
+Other operations are setup, update, check, decide, and learn. Specify the scenario,
 local base ref, or decision evidence in your request. Some hosts also offer an
 explicit skill selector or slash command. Unlike the native Claude plugin, the
 portable skill is not guaranteed to run in a fork or to remain manual-only.

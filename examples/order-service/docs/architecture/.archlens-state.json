@@ -1,0 +1,8 @@
+{"version": 1, "pages": {
+  "ADR-001": {"anchors":[],"files":{"order_service.py":"44818c0a71"},"syncedAt":"2026-11-08T01:40:18Z","syncedCommit":"e26b012aeaac4aed1c06d6f3dbab8ef73fab9b82"},
+  "CONTEXT": {"anchors":[{"digest":"ba6959a175","lines":[10,17],"path":"order_service.py","symbol":"connect","symbolLines":[10,17]},{"digest":"4ddbe6fadc","lines":[20,38],"path":"order_service.py","symbol":"submit_order","symbolLines":[20,38]}],"files":{"order_service.py":"44818c0a71"},"syncedAt":"2026-11-08T01:40:18Z","syncedCommit":"e26b012aeaac4aed1c06d6f3dbab8ef73fab9b82"},
+  "DATA": {"anchors":[{"digest":"ba6959a175","lines":[10,17],"path":"order_service.py","symbol":"connect","symbolLines":[10,17]},{"digest":"4ddbe6fadc","lines":[20,38],"path":"order_service.py","symbol":"submit_order","symbolLines":[20,38]}],"files":{"order_service.py":"44818c0a71"},"syncedAt":"2026-11-08T01:40:18Z","syncedCommit":"e26b012aeaac4aed1c06d6f3dbab8ef73fab9b82"},
+  "FLOW-001": {"anchors":[{"digest":"4ddbe6fadc","lines":[20,38],"path":"order_service.py","symbol":"submit_order","symbolLines":[20,38]}],"files":{"order_service.py":"44818c0a71"},"syncedAt":"2026-11-08T01:40:18Z","syncedCommit":"e26b012aeaac4aed1c06d6f3dbab8ef73fab9b82"},
+  "GLOSSARY": {"anchors":[],"files":{},"syncedAt":"2026-11-08T01:40:18Z","syncedCommit":"e26b012aeaac4aed1c06d6f3dbab8ef73fab9b82"},
+  "INDEX": {"anchors":[{"digest":"ba6959a175","lines":[10,17],"path":"order_service.py","symbol":"connect","symbolLines":[10,17]},{"digest":"4ddbe6fadc","lines":[20,38],"path":"order_service.py","symbol":"submit_order","symbolLines":[20,38]}],"files":{"order_service.py":"44818c0a71"},"syncedAt":"2026-11-08T01:40:18Z","syncedCommit":"e26b012aeaac4aed1c06d6f3dbab8ef73fab9b82"}
+}}
