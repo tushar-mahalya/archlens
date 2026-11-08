@@ -31,3 +31,18 @@ body:
     id: alternatives
     attributes:
       label: Alternatives considered
+  - type: dropdown
+    id: contribute
+    attributes:
+      label: Contribution
+      options:
+        - I would like to open a pull request for this.
+        - I can help test or review.
+        - I am not able to contribute code.
+  - type: checkboxes
+    id: checks
+    attributes:
+      label: Checks
+      options:
+        - label: I searched existing issues and discussions.
+          required: true

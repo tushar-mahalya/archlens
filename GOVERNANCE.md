@@ -24,4 +24,6 @@ New maintainers are added to CODEOWNERS and this file in a pull request.
 ## Repository protection
 
 `main` and release tags are protected by repository rulesets. Their definitions are versioned in
-[.github/rulesets](.github/rulesets). See [CONTRIBUTING.md](CONTRIBUTING.md#repository-rulesets) for how to apply them.
+[.github/rulesets](.github/rulesets). Contributors change `main` through reviewed pull requests.
+The maintainer may push to `main` directly. Nobody can force-push to or delete `main`.
+See [CONTRIBUTING.md](CONTRIBUTING.md#repository-rulesets) for the full policy and how to apply it.

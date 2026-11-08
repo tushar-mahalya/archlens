@@ -16,7 +16,7 @@ def build(output_dir=None):
     archive = output / f"archlens-{version}.zip"
     inputs = [ROOT / name for name in (
         "README.md", "LICENSE", "CHANGELOG.md", "CONTRIBUTING.md", "SECURITY.md",
-        "CODE_OF_CONDUCT.md", "SUPPORT.md", "GOVERNANCE.md",
+        "CODE_OF_CONDUCT.md", "SUPPORT.md", "GOVERNANCE.md", "CITATION.cff",
         "package.json", "package-lock.json",
     )]
     for name in (".claude-plugin", "plugins", "skills", "docs", "examples", "tools", "tests"):

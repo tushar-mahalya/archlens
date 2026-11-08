@@ -1,0 +1,70 @@
+# Pull request labels for actions/labeler (.github/workflows/labeler.yml).
+# Area labels follow changed paths. Type labels follow the head branch prefix
+# (feat/, fix/, docs/) described in CONTRIBUTING.md. Labels are defined in .github/labels.yml.
+
+"area: plugin":
+  - changed-files:
+      - any-glob-to-any-file:
+          - .claude-plugin/**
+          - plugins/archlens/**
+
+"area: skill":
+  - changed-files:
+      - any-glob-to-any-file:
+          - skills/archlens/**
+          - tools/sync_portable.py
+
+"area: checker":
+  - changed-files:
+      - any-glob-to-any-file:
+          - plugins/archlens/scripts/**
+          - skills/archlens/scripts/**
+          - .pre-commit-hooks.yaml
+
+"area: docs":
+  - changed-files:
+      - any-glob-to-any-file:
+          - docs/**
+          - examples/**
+          - CITATION.cff
+      - all-globs-to-any-file: ["*.md", "!CHANGELOG.md"]
+
+"area: ci":
+  - changed-files:
+      - any-glob-to-any-file:
+          - .github/workflows/**
+          - .github/actions/**
+          - .github/dependabot.yml
+          - .pre-commit-config.yaml
+          - tools/package_release.py
+
+"area: site":
+  - changed-files:
+      - any-glob-to-any-file:
+          - site/**
+          - .github/workflows/pages.yml
+
+"area: bench":
+  - changed-files:
+      - any-glob-to-any-file:
+          - benchmarks/**
+          - tools/benchmark.py
+          - tools/model_benchmark.py
+
+"area: deps":
+  - changed-files:
+      - any-glob-to-any-file:
+          - package.json
+          - package-lock.json
+
+enhancement:
+  - head-branch: ["^feat/"]
+
+bug:
+  - head-branch: ["^fix/"]
+
+documentation:
+  - head-branch: ["^docs/"]
+
+dependencies:
+  - head-branch: ["^dependabot/", "^deps/"]

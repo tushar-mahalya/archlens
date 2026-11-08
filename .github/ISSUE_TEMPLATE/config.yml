@@ -1,8 +1,11 @@
 blank_issues_enabled: false
 contact_links:
-  - name: Questions and ideas
-    url: https://github.com/tushar-mahalya/archlens/discussions
-    about: Ask usage questions, share examples, and discuss ideas.
-  - name: Security vulnerability
+  - name: Ask a question
+    url: https://github.com/tushar-mahalya/archlens/discussions/categories/q-a
+    about: Get help with installation, configuration, or a workflow in Discussions Q&A.
+  - name: Share an idea
+    url: https://github.com/tushar-mahalya/archlens/discussions/categories/ideas
+    about: Discuss early ideas before you open a feature request.
+  - name: Report a security vulnerability
     url: https://github.com/tushar-mahalya/archlens/security/advisories/new
     about: Report security issues privately. Do not open a public issue.
