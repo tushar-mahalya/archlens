@@ -13,6 +13,7 @@ Living documentation, agent context, and learning.
   pages, including changes that were already committed.
 - Fingerprint the Python function or class around a cited line range by its syntax tree,
   so comments and formatting do not count. Other files use normalized text.
+  Fingerprints are identical on Python 3.9 through 3.14.
 - Detect moved evidence and rewrite its line links with `fix-anchors`. The Claude stop
   hook does this automatically (`fixAnchors`), with no model.
 - Warn when backticked paths, `name()` symbols, or `npm run` scripts in pages no longer exist.
