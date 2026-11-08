@@ -2,5 +2,11 @@
   "docsRoot": "docs/architecture",
   "styleTarget": 0.8,
   "maxDiagramNodes": 12,
-  "maxSequenceParticipants": 7
+  "maxSequenceParticipants": 7,
+  "contextBudget": 3000,
+  "contextFile": null,
+  "sessionContext": true,
+  "filePointers": true,
+  "fixAnchors": true,
+  "autoUpdate": "remind"
 }
