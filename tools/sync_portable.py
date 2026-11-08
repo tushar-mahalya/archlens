@@ -8,7 +8,7 @@ import sys
 ROOT = Path(__file__).resolve().parents[1]
 PLUGIN = ROOT / "plugins" / "archlens"
 PORTABLE = ROOT / "skills" / "archlens"
-OPERATIONS = ("setup", "update", "check", "explain", "decide")
+OPERATIONS = ("setup", "update", "check", "explain", "decide", "learn")
 
 
 def workflow(name):
@@ -20,6 +20,11 @@ def workflow(name):
     body = body.replace("${CLAUDE_PLUGIN_ROOT}", "<skill-dir>")
     body = body.replace("$ARGUMENTS", "the relevant part of the user's request")
     body = body.replace("`/archlens:setup`", "the Archlens setup operation")
+    body = body.replace(
+        "Claude Code loads a short handbook map at session start. For other agents,\n   offer",
+        "This host may not load a handbook map at session start.\n   Offer",
+    )
+    body = body.replace("Use the Archlens block already in context", "Use an Archlens context block already loaded")
     if "${CLAUDE_PLUGIN_ROOT}" in body or "$ARGUMENTS" in body:
         raise ValueError(f"{name}: a Claude-specific placeholder remains")
     return body.encode("utf-8")

@@ -99,7 +99,7 @@ test("discovery exposes only the portable skill by default", { timeout: 120000 }
     }
     context.env.INSTALL_INTERNAL_SKILLS = "1";
     const internal = runSkills(["add", ROOT, "--list"], context);
-    assert.match(internal, /Found 6 skills\b/);
+    assert.match(internal, /Found 7 skills\b/);
   });
 });
 

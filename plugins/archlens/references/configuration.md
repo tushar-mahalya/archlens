@@ -22,9 +22,9 @@ Later keys replace earlier keys. Missing default user/project files are normal.
 An explicit `ARCHLENS_CONFIG` file must exist.
 Reject malformed JSON, duplicate keys, unknown keys, and invalid values.
 Do not hide errors behind defaults.
-If Python 3.10+ exists, `scripts/archlens.py config --root <project> --json`
+If Python 3.9+ exists, `scripts/archlens.py config --root <project> --json`
 returns validated effective preferences. Run it from the installed bundle's absolute path.
-Use the available Python 3.10+ command for your platform.
+Use the available Python 3.9+ command for your platform.
 
 | Key | Allowed values | Default |
 |---|---|---|
@@ -32,6 +32,12 @@ Use the available Python 3.10+ command for your platform.
 | `styleTarget` | Number from 0 to 1 | `0.8` |
 | `maxDiagramNodes` | Integer from 2 to 30 | `12` |
 | `maxSequenceParticipants` | Integer from 2 to 15 | `7` |
+| `contextBudget` | Integer from 600 to 20000 bytes | `3000` |
+| `contextFile` | `null` or a project-relative Markdown file, such as `AGENTS.md` | `null` |
+| `sessionContext` | `true` or `false`: Claude plugin loads the map at session start | `true` |
+| `fixAnchors` | `true` or `false`: stop hook rewrites line links whose code only moved | `true` |
+| `filePointers` | `true` or `false`: Claude plugin names the page for a file the agent opens | `true` |
+| `autoUpdate` | `off`, `remind`, or `auto` after Claude changes covered files | `remind` |
 
 Use either slash style in JSON paths. Normalize for the host OS.
 Resolve symlinks before access. Do not read or write through paths outside the project.
@@ -80,6 +86,20 @@ For working-tree evidence, leave it null and explain the reviewed state on the p
 Decision pages also require `decisionStatus`: `proposed`, `accepted`, `rejected`,
 `deprecated`, or `superseded`. Evidence basis is prose, not a lifecycle state.
 The map checker validates structure, not the truth of review or approval claims.
+
+## Freshness and agent context
+
+`sync` stores Git-compatible content IDs of each page's covered and linked files in
+`.archlens-state.json` beside `map.json`. Commit it with the handbook.
+`sync` also fingerprints cited line ranges (Python: the enclosing function or class).
+`status` reports `stale` when cited evidence changed or moved, and `review` when only
+other covered files changed. Committed changes also count.
+Sync a page only after you verify it against current source.
+If the state file has a merge conflict, take either side and sync the reviewed pages again.
+
+`context` prints a compact map of pages, summaries, coverage, and stale flags,
+limited to `contextBudget` bytes. With `contextFile`, sync also replaces the
+managed `archlens:context` block in that file. Do not edit inside the block.
 
 An impact report includes all changed files, candidate pages, and uncovered files.
 It does not prove that the handbook is complete or that a mapped page is stale.

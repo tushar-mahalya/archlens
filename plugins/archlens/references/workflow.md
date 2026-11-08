@@ -67,8 +67,9 @@ Separate configured retention from proven deletion behavior.
 
 ## Update with a change
 
-With a base ref, compare its merge base with HEAD, then include staged, unstaged,
-and relevant untracked changes. Without a base, inspect only working-tree changes.
+Start with freshness: compare each page's covered and linked files with its last sync.
+This includes commits made since that sync. For branch review, also compare a base
+ref's merge base with HEAD, plus staged, unstaged, and relevant untracked changes.
 Do not assume `main` exists. Report invalid refs. Do not fetch.
 Track deleted files and both sides of renames.
 
