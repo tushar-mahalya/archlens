@@ -1,0 +1,76 @@
+{
+  "machine": "Darwin arm64",
+  "python": "3.9.6",
+  "footprint": {
+    "startupDescriptionBytes": 178,
+    "sessionMapBudgetBytes": 3000,
+    "sessionMaps": {
+      "this repository": {
+        "mapBytes": 1630,
+        "roughTokens": 408,
+        "handbookBytes": 17591,
+        "ratio": 0.093
+      },
+      "order example": {
+        "mapBytes": 1131,
+        "roughTokens": 283,
+        "handbookBytes": 7379,
+        "ratio": 0.153
+      }
+    },
+    "nativeCommands": {
+      "/archlens:check": 3984,
+      "/archlens:decide": 4864,
+      "/archlens:explain": 3477,
+      "/archlens:learn": 1907,
+      "/archlens:setup": 9179,
+      "/archlens:update": 4731
+    },
+    "portableOperations": {
+      "setup": 10708,
+      "update": 6305,
+      "check": 5596,
+      "explain": 5100,
+      "decide": 6473,
+      "learn": 3570
+    }
+  },
+  "performance": [
+    {
+      "files": 1000,
+      "pages": 20,
+      "syncMs": 63,
+      "statusMs": 49,
+      "contextMs": 51,
+      "stopHookMs": 82,
+      "checkMs": 11,
+      "stalePages": 0,
+      "mapBytes": 2069,
+      "stateFileBytes": 36215
+    },
+    {
+      "files": 10000,
+      "pages": 100,
+      "syncMs": 92,
+      "statusMs": 83,
+      "contextMs": 89,
+      "stopHookMs": 117,
+      "checkMs": 36,
+      "stalePages": 0,
+      "mapBytes": 2510,
+      "stateFileBytes": 357086
+    },
+    {
+      "files": 50000,
+      "pages": 300,
+      "syncMs": 257,
+      "statusMs": 222,
+      "contextMs": 245,
+      "stopHookMs": 328,
+      "checkMs": 75,
+      "stalePages": 0,
+      "mapBytes": 2982,
+      "stateFileBytes": 1828468
+    }
+  ]
+}
