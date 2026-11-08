@@ -1,7 +1,7 @@
 # What data does Archlens use?
 
 Archlens stores no central project database.
-The user's handbook and map hold durable documentation.
+The user's handbook, map, and freshness state hold durable documentation data.
 Reports are transient output unless the user or task saves them locally.
 
 ```mermaid
@@ -9,9 +9,12 @@ flowchart LR
     D["Bundled defaults"] --> C["Validated preferences"]
     U["User preferences"] --> C
     P["Project overrides"] --> C
-    C --> R["Read-only checker"]
+    C --> R["Checker"]
     M["Document map"] --> R
     G["Markdown and Git state"] --> R
+    R -->|"sync writes"| S["Freshness state"]
+    S -->|"status reads"| R
+    R -->|"context"| X["Agent map or context block"]
     R --> O["Full report or bounded summary"]
 ```
 
@@ -25,12 +28,18 @@ The checker rejects unknown keys and duplicate JSON keys.
 | User preferences | User | Local config file until the user removes it |
 | Project preferences | Project team | Version or ignore according to team policy |
 | Handbook and map | Project team | Normal repository history and review |
+| `.archlens-state.json` | Project team | Committed beside the map; rewritten only by `sync` |
+| Context block in `contextFile` | Project team | Rewritten by `sync` or `context --write`; text outside the block is kept |
+| Hook markers | Local user | Per session: the starting commit, the last reminder hash, and pages already pointed to; in the plugin data folder or a private temp folder |
 | Checker reports | Caller | Standard output, or an explicitly saved local file |
 | Agent context | Coding-agent host/provider | Governed by the host and provider policy |
 
+The state file maps each page ID to short Git-compatible content IDs of its covered
+and linked files, plus the sync time and commit. Each cited line range also has a
+fingerprint: a hash of the enclosing Python function or class syntax tree, or of the
+normalized text. It holds no file content.
 The checker uses no network API and sends no telemetry.
-This does not imply that the coding agent runs a local language model.
 Source content selected by the agent follows the host's provider and retention policy.
 
-**Implementation observed:** [config and reports](../../plugins/archlens/scripts/archlens.py).
+**Implementation observed:** [config, state, and reports](../../plugins/archlens/scripts/archlens.py).
 **Unknown:** any particular user's provider policy, storage encryption, or backup settings.

@@ -16,9 +16,9 @@ This is a teaching example, not a production design.
 
 | Concern | Page | Evidence | Gaps |
 |---|---|---|---|
-| New and repeated requests | [Flow](runtime/submit-order.md) | [Implementation](../../order_service.py) | Concurrent callers are not demonstrated |
-| Conflicting request key | [Flow](runtime/submit-order.md) | [Implementation](../../order_service.py) | No network error mapping |
-| Storage and lifetime | [Data](data.md) | [Schema](../../order_service.py) | No production retention policy |
+| New and repeated requests | [Flow](runtime/submit-order.md) | [Implementation](../../order_service.py#L20-L38) | Concurrent callers are not demonstrated |
+| Conflicting request key | [Flow](runtime/submit-order.md) | [Implementation](../../order_service.py#L20-L38) | No network error mapping |
+| Storage and lifetime | [Data](data.md) | [Schema](../../order_service.py#L10-L17) | No production retention policy |
 
 All pages are drafts. No human approval or production verification is claimed.
 The example excludes authentication, payments, stock checks, and recovery operations.

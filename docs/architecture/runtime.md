@@ -1,46 +1,54 @@
-# How does update select documents?
+# How does the handbook stay current?
 
-The user requests update with an optional local base ref.
-The checker selects candidate pages by source path.
-The task then checks semantics and indirect consumers before changing documents.
+Archlens records what each page was last checked against.
+It flags a page as stale when the evidence the page cites changes, and for review
+when only other covered files change. An agent then fixes those pages and records the new baseline.
 
 ```mermaid
 sequenceDiagram
     autonumber
     actor User
     participant Host as Coding agent
-    participant Task as Update skill
+    participant Hook as Plugin hooks
     participant CLI as Python checker
-    participant Git
-    User->>Host: Request update with local base
-    alt Native Claude plugin
-        Host->>Task: Start isolated update task
-    else Portable skill
-        Host->>Task: Load router and update workflow
-    end
-    Task->>CLI: impact with summary output
-    CLI->>CLI: Validate config and document map
-    CLI->>Git: Read branch and working-tree changes
-    Git-->>CLI: Changed paths
-    CLI-->>Task: Bounded candidate report
-    Task->>Task: Trace evidence and update relevant views
+    participant Task as Update skill
+    Host->>Hook: Session starts
+    Hook->>CLI: hook session-start
+    CLI-->>Host: Compact handbook map with stale flags
+    User->>Host: Ask for a code change
+    Host->>Hook: Read or edit a documented file
+    Hook->>CLI: hook file-pointer
+    CLI-->>Host: Name of the page that documents it, once per session
+    Host->>Host: Edit source
+    Host->>Hook: Turn stops
+    Hook->>CLI: hook stop
+    CLI-->>User: Reminder, or a request to run update (auto mode)
+    User->>Task: Run update
+    Task->>CLI: status with summary output
+    CLI-->>Task: Stale pages and changed files
+    Task->>Task: Trace evidence and edit affected pages
+    Task->>CLI: sync reviewed pages
     Task-->>User: Return changed pages, checks, and gaps
 ```
 
-If Python is absent, the task uses Git and the map directly.
-It states that deterministic checks were unavailable.
-If the checker fails, the task reports the error instead of hiding it with a fallback.
-The portable host decides whether the workflow runs in a separate context.
+The map comes from `map.json`, page titles, and first sentences.
+It stays within `contextBudget` bytes and loads only where a handbook exists.
+In other projects, both hooks print nothing.
 
 | Condition | Behavior | Evidence |
 |---|---|---|
-| Base ref supplied | Resolve it, find merge base, inspect committed changes | [changed_files](../../plugins/archlens/scripts/archlens.py) |
-| No base | Inspect working tree only | [changed_files](../../plugins/archlens/scripts/archlens.py) |
-| Source path matches coverage | Return the page as a candidate | [impact_report](../../plugins/archlens/scripts/archlens.py) |
-| Page also changed | Keep it in the candidate report | [Impact tests](../../tests/test_archlens.py) |
-| No map or invalid config | Exit 2 with an explicit error | [CLI](../../plugins/archlens/scripts/archlens.py) |
-| Preview cannot fit all records | Return totals and omitted counts | [bounded_report](../../plugins/archlens/scripts/archlens.py) |
+| A linked file, or the Python function or class around a cited line range, changed | Page is stale | [page_changes](../../plugins/archlens/scripts/archlens.py) |
+| A cited function or text block moved | Stop hook rewrites the line link without a model; `fix-anchors` does the same on demand | [fix_anchors](../../plugins/archlens/scripts/archlens.py) |
+| Only other covered files changed, or comments and formatting inside cited code | Page needs review, not stale | [Anchor tests](../../tests/test_archlens.py) |
+| Change was already committed | Still stale; content IDs do not depend on a base ref | [Freshness tests](../../tests/test_archlens.py) |
+| Same stale set seen in this session | Stop hook stays silent | [hook_stop](../../plugins/archlens/scripts/archlens.py) |
+| `autoUpdate` is `auto` and the hook has not already blocked | Agent is asked to run update | [hook_stop](../../plugins/archlens/scripts/archlens.py) |
+| `contextFile` is set | Sync rewrites the managed block, without stale flags | [write_context](../../plugins/archlens/scripts/archlens.py) |
+| The agent committed during the session | Stop hook also compares against the session's starting commit | [hook_stop](../../plugins/archlens/scripts/archlens.py) |
+| Base ref supplied to update | Impact report adds branch changes and uncovered files | [impact_report](../../plugins/archlens/scripts/archlens.py) |
+| Hook input or configuration is invalid | Hook exits 0 with no output | [run_hook](../../plugins/archlens/scripts/archlens.py) |
 
-No automatic retry, remote fetch, or mutation occurs in the checker.
-The host's tool permissions control the agent's writes.
-The skill requires source evidence before treating a candidate as stale.
+If Python is absent, the skills use Git and the map directly and state that limit.
+Portable hosts do not run the plugin hooks. They use the `contextFile` block,
+the [pre-commit hooks](../../.pre-commit-hooks.yaml), or CI for the same signals.
+A stale flag is a review candidate. It does not prove that the prose is wrong.

@@ -1,0 +1,105 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1280" height="420" viewBox="0 0 1280 420" role="img" aria-labelledby="title desc">
+  <title id="title">Archlens: architecture docs that keep up with your code</title>
+  <desc id="desc">A drafting sheet. The Archlens wordmark, a dimension line reading "at most 3,000 bytes of agent context", and two document sheets: one stamped STALE after a code change, and one stamped SYNCED after the update.</desc>
+  <style>
+    .paper { fill: #f2eee4; }
+    .grid { stroke: #16130f; stroke-opacity: 0.06; }
+    .ink { fill: #16130f; }
+    .line { stroke: #16130f; fill: none; }
+    .muted { fill: #5c564b; }
+    .sheet { fill: #fbf9f3; stroke: #16130f; }
+    .rule { stroke: #16130f; stroke-opacity: 0.35; }
+    .stale { fill: none; stroke: #e8431a; }
+    .stale-text { fill: #e8431a; }
+    .synced { fill: none; stroke: #1f5bd8; }
+    .synced-text { fill: #1f5bd8; }
+    .display { font-family: 'Iowan Old Style', 'Palatino Linotype', Palatino, Georgia, serif; }
+    .mono { font-family: ui-monospace, 'SF Mono', Menlo, Consolas, monospace; }
+    @media (prefers-color-scheme: dark) {
+      .paper { fill: #0b1c33; }
+      .grid { stroke: #9cc7ff; stroke-opacity: 0.08; }
+      .ink { fill: #e6f0ff; }
+      .line { stroke: #cfe2ff; }
+      .muted { fill: #9db4d3; }
+      .sheet { fill: #10284a; stroke: #cfe2ff; }
+      .rule { stroke: #cfe2ff; stroke-opacity: 0.35; }
+      .stale { stroke: #ff6a3d; }
+      .stale-text { fill: #ff6a3d; }
+      .synced { stroke: #6aa8ff; }
+      .synced-text { fill: #6aa8ff; }
+    }
+  </style>
+  <defs>
+    <pattern id="grid" width="20" height="20" patternUnits="userSpaceOnUse">
+      <path d="M 20 0 L 0 0 0 20" class="grid" stroke-width="1" fill="none"/>
+    </pattern>
+    <marker id="arrow" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="8" markerHeight="8" orient="auto-start-reverse">
+      <path d="M 0 0 L 10 5 L 0 10 z" class="ink"/>
+    </marker>
+  </defs>
+
+  <rect class="paper" width="1280" height="420"/>
+  <rect width="1280" height="420" fill="url(#grid)"/>
+  <rect class="line" x="16" y="16" width="1248" height="388" stroke-width="2"/>
+  <rect class="line" x="24" y="24" width="1232" height="372" stroke-width="0.75"/>
+
+  <text class="mono muted" x="56" y="66" font-size="14" letter-spacing="2">SHEET A-000 · COVER · REV 0.3.0</text>
+  <text class="display ink" x="52" y="176" font-size="112" letter-spacing="-2">Archlens</text>
+  <text class="display ink" x="56" y="226" font-size="30" font-style="italic">Architecture docs that keep up with your code.</text>
+  <text class="mono muted" x="56" y="262" font-size="15">Coupled to source · drift found in milliseconds</text>
+  <text class="mono muted" x="56" y="284" font-size="15">A map every agent has · a tutor for you</text>
+
+  <line class="line" x1="56" y1="318" x2="56" y2="342" stroke-width="1"/>
+  <line class="line" x1="516" y1="318" x2="516" y2="342" stroke-width="1"/>
+  <line class="line" x1="60" y1="330" x2="512" y2="330" stroke-width="1" marker-start="url(#arrow)" marker-end="url(#arrow)"/>
+  <rect class="paper" x="196" y="318" width="180" height="24"/>
+  <text class="mono ink" x="286" y="335" font-size="14" text-anchor="middle">≤ 3,000 bytes</text>
+  <text class="mono muted" x="56" y="368" font-size="13">session map: what every agent turn costs</text>
+
+  <g transform="translate(700 70)">
+    <rect class="sheet" x="0" y="0" width="210" height="260" stroke-width="1.5"/>
+    <text class="mono muted" x="16" y="26" font-size="11">runtime/submit-order.md</text>
+    <rect class="ink" x="16" y="42" width="140" height="10" opacity="0.85"/>
+    <line class="rule" x1="16" y1="74" x2="190" y2="74" stroke-width="6"/>
+    <line class="rule" x1="16" y1="92" x2="176" y2="92" stroke-width="6"/>
+    <line class="rule" x1="16" y1="110" x2="186" y2="110" stroke-width="6"/>
+    <line class="rule" x1="16" y1="146" x2="190" y2="146" stroke-width="6"/>
+    <line class="rule" x1="16" y1="164" x2="150" y2="164" stroke-width="6"/>
+    <text class="mono muted" x="16" y="214" font-size="11">order_service.py#L20-L38</text>
+    <g transform="rotate(-12 105 130)">
+      <rect class="stale" x="38" y="104" width="134" height="52" rx="6" stroke-width="4"/>
+      <text class="display stale-text" x="105" y="142" font-size="32" font-weight="700" text-anchor="middle" letter-spacing="3">STALE</text>
+    </g>
+  </g>
+
+  <line class="line" x1="926" y1="200" x2="1006" y2="200" stroke-width="1.5" marker-end="url(#arrow)"/>
+  <text class="mono ink" x="966" y="190" font-size="13" text-anchor="middle">update</text>
+  <text class="mono muted" x="966" y="222" font-size="11" text-anchor="middle">then sync</text>
+
+  <g transform="translate(1020 70)">
+    <rect class="sheet" x="0" y="0" width="210" height="260" stroke-width="1.5"/>
+    <text class="mono muted" x="16" y="26" font-size="11">runtime/submit-order.md</text>
+    <rect class="ink" x="16" y="42" width="140" height="10" opacity="0.85"/>
+    <line class="rule" x1="16" y1="74" x2="190" y2="74" stroke-width="6"/>
+    <line class="rule" x1="16" y1="92" x2="182" y2="92" stroke-width="6"/>
+    <line class="rule" x1="16" y1="110" x2="160" y2="110" stroke-width="6"/>
+    <line class="rule" x1="16" y1="146" x2="190" y2="146" stroke-width="6"/>
+    <line class="rule" x1="16" y1="164" x2="170" y2="164" stroke-width="6"/>
+    <text class="mono muted" x="16" y="214" font-size="11">order_service.py#L21-L39</text>
+    <g transform="rotate(8 105 130)">
+      <rect class="synced" x="30" y="104" width="150" height="52" rx="6" stroke-width="4"/>
+      <text class="display synced-text" x="105" y="142" font-size="30" font-weight="700" text-anchor="middle" letter-spacing="3">SYNCED</text>
+    </g>
+  </g>
+
+  <g class="mono" font-size="11">
+    <rect class="line" x="700" y="344" width="530" height="40" stroke-width="1"/>
+    <line class="line" x1="840" y1="344" x2="840" y2="384" stroke-width="1"/>
+    <line class="line" x1="970" y1="344" x2="970" y2="384" stroke-width="1"/>
+    <line class="line" x1="1100" y1="344" x2="1100" y2="384" stroke-width="1"/>
+    <text class="muted" x="710" y="360">PROJECT</text><text class="ink" x="710" y="376">Archlens</text>
+    <text class="muted" x="850" y="360">DRAWN</text><text class="ink" x="850" y="376">your agent</text>
+    <text class="muted" x="980" y="360">CHECKED</text><text class="ink" x="980" y="376">git + you</text>
+    <text class="muted" x="1110" y="360">LICENSE</text><text class="ink" x="1110" y="376">MIT</text>
+  </g>
+</svg>

@@ -28,6 +28,12 @@ clear it or set `ARCHLENS_CONFIG` explicitly to choose another file.
 | `styleTarget` | `0.8` | Target for a declared human or agent style audit |
 | `maxDiagramNodes` | `12` | Soft authoring limit for a flowchart |
 | `maxSequenceParticipants` | `7` | Soft sequence limit; checker counts explicit declarations |
+| `contextBudget` | `3000` | Maximum bytes of the page map given to agents (600 to 20000) |
+| `contextFile` | `null` | Agent instruction file, such as `AGENTS.md`, that receives the managed map block |
+| `sessionContext` | `true` | Claude plugin: load the map at session start |
+| `fixAnchors` | `true` | Claude plugin stop hook: rewrite line links whose cited code only moved |
+| `filePointers` | `true` | Claude plugin: when the agent reads or edits a documented file, name its page once per session |
+| `autoUpdate` | `remind` | Claude plugin stop hook: `off`, `remind` (one message), or `auto` (ask the agent to run update) |
 
 The checker does not calculate the style score or count implicit flowchart nodes.
 These limits guide authors; they are not universal readability thresholds.
@@ -58,3 +64,17 @@ Do not set `verifiedCommit` merely because a document changed.
 
 Coverage patterns select review candidates. They do not model all dependencies.
 Always review indirect consumers when an interface or data contract changes.
+
+## Keep agents informed
+
+The Claude plugin loads the map at session start. It skips this if `CLAUDE.md`
+already contains the block, or imports the configured `contextFile` with `@AGENTS.md`.
+For Codex, Cursor, Copilot, Gemini CLI, and other agents that read `AGENTS.md`:
+
+```json
+{ "contextFile": "AGENTS.md" }
+```
+
+Then run `context --write` once. Every later `sync` refreshes the block.
+Use `autoUpdate: "auto"` only if you accept an extra isolated update task after
+turns that change documented code. See [automation](automation.md).

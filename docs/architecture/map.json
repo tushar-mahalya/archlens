@@ -2,9 +2,11 @@
   "version": 1,
   "pages": [
     {"path":"README.md","id":"ARCH-INDEX","kind":"index","owner":"Tushar Sharma","reviewState":"draft","verifiedCommit":null,"covers":["plugins/**","skills/**",".claude-plugin/**","tools/**","tests/test-skills-install.mjs"]},
-    {"path":"runtime.md","id":"ARCH-RUNTIME","kind":"runtime","owner":"Tushar Sharma","reviewState":"draft","verifiedCommit":null,"covers":["plugins/archlens/skills/update/**","plugins/archlens/scripts/**","skills/archlens/SKILL.md","skills/archlens/workflows/update.md","tests/test_archlens.py"]},
+    {"path":"runtime.md","id":"ARCH-RUNTIME","kind":"runtime","owner":"Tushar Sharma","reviewState":"draft","verifiedCommit":null,"covers":["plugins/archlens/skills/update/**","plugins/archlens/hooks/**","plugins/archlens/scripts/**","skills/archlens/SKILL.md","skills/archlens/workflows/update.md",".pre-commit-hooks.yaml","tests/test_archlens.py"]},
     {"path":"data.md","id":"ARCH-DATA","kind":"data","owner":"Tushar Sharma","reviewState":"draft","verifiedCommit":null,"covers":["plugins/archlens/defaults.json","plugins/archlens/scripts/**","plugins/archlens/references/configuration.md","skills/archlens/defaults.json","skills/archlens/scripts/**"]},
+    {"path":"distribution.md","id":"ARCH-DIST","kind":"containers","owner":"Tushar Sharma","reviewState":"draft","verifiedCommit":null,"covers":["tools/sync_portable.py","tools/package_release.py","skills/archlens/SKILL.md","tests/test_distribution.py","tests/test-skills-install.mjs",".claude-plugin/**"]},
     {"path":"decisions/ADR-001.md","id":"ADR-001","kind":"decision","owner":"Tushar Sharma","reviewState":"draft","verifiedCommit":null,"covers":["plugins/archlens/skills/**","plugins/archlens/references/contract.md","skills/archlens/SKILL.md","skills/archlens/workflows/**","tools/prompt_budget.py"],"decisionStatus":"proposed"},
-    {"path":"decisions/ADR-002.md","id":"ADR-002","kind":"decision","owner":"Tushar Sharma","reviewState":"draft","verifiedCommit":null,"covers":["plugins/archlens/scripts/**","plugins/archlens/references/configuration.md"],"decisionStatus":"proposed"}
+    {"path":"decisions/ADR-002.md","id":"ADR-002","kind":"decision","owner":"Tushar Sharma","reviewState":"draft","verifiedCommit":null,"covers":["plugins/archlens/scripts/**","plugins/archlens/references/configuration.md"],"decisionStatus":"proposed"},
+    {"path":"decisions/ADR-003.md","id":"ADR-003","kind":"decision","owner":"Tushar Sharma","reviewState":"draft","verifiedCommit":null,"covers":["plugins/archlens/hooks/**","plugins/archlens/skills/update/SKILL.md","plugins/archlens/skills/learn/**","plugins/archlens/defaults.json"],"decisionStatus":"proposed"}
   ]
 }

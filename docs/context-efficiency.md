@@ -29,20 +29,26 @@ These are host capabilities, not guarantees that an LLM follows every read budge
 
 ```mermaid
 flowchart TD
-    A["Normal session: no Archlens prompt load"] -->|"User invokes one command"| B["Isolated task"]
+    A["Session starts"] -->|"Project has a handbook"| M["Page map, at most 3,000 bytes"]
+    A -->|"No handbook"| N["Nothing loaded"]
+    M --> W["Agent works with the map in context"]
+    W -->|"Opens a documented file"| F["File pointer: names its page once"]
+    W -->|"Turn changes cited evidence"| H["Stop hook: one reminder, no model tokens"]
+    W -->|"User runs a command"| B["Isolated task"]
     B --> C["Short command plus shared contract"]
-    C --> D["Names, map, or bounded checker output"]
-    D --> E["Relevant source ranges and page sections"]
-    E --> F["Write or audit the scoped result"]
-    F --> G["Return links, evidence, gaps, and status"]
+    C --> D["Bounded checker output, then selected source ranges"]
+    D --> G["Return links, evidence, gaps, and status"]
 ```
 
 The diagram shows logical loading, not literal removal of tokens from an active worker.
 
 | Layer | Loading rule | Constraint |
 |---|---|---|
-| Discovery | Manual commands only | No auto-invocable skill or custom agent descriptions |
-| Command | One task, one fork | At most 2,600 UTF-8 bytes per skill |
+| Discovery | Only `update` is model-invocable | Its description is at most 260 bytes; currently 178 bytes |
+| Session map | Session start, only where `map.json` exists | `contextBudget`, default 3,000 bytes; CI caps the default at 4,000 |
+| File pointer | After Read or Edit of a documented file | One line per page per session, naming the page |
+| Stop hook | After each turn | No output unless cited evidence changed; one message per stale set |
+| Command | One task, one fork; `learn` runs inline | At most 2,600 UTF-8 bytes per skill |
 | Shared contract | Once within that task | At most 2,400 bytes |
 | Base instructions | Command plus contract | At most 5,000 bytes |
 | Detailed references | Named section only when required | No blanket "read every reference" instruction |
@@ -52,7 +58,8 @@ The diagram shows logical loading, not literal removal of tokens from an active 
 
 CI checks byte budgets, routes, resource paths, and forbidden eager-loading surfaces.
 It also counts setup's required configuration and workflow sections, and decide's ADR frame.
-The cold-load limits are 10,500 bytes for setup, 6,500 for decide, and 5,000 for the other commands.
+Hooks may only run the bundled script for SessionStart, PostToolUse, and Stop, in exec form, never async.
+The cold-load limits are 10,500 bytes for setup, 6,500 for decide, 2,200 for inline learn, and 5,000 for the other commands.
 These limits exclude conditional source reads and template sections selected later in the task.
 It also tests report limits with oversized synthetic inputs.
 It does not pretend that bytes are exact tokens.
@@ -60,37 +67,39 @@ The `roughBaseTokens` figure is `ceil(bytes / 4)` for planning only.
 
 ## Portable Agent Skill
 
-The portable bundle has one router, five separate workflows, the shared contract,
+The portable bundle has one router, six separate workflows, the shared contract,
 and the same conditional references and checker. The host may load the router's
 description at startup, invoke it automatically, or retain its instructions in
 the current conversation. It does not necessarily create a forked task.
-The router requests one workflow and the contract, not all five workflows.
+The router requests one workflow and the contract, not all six workflows. Learn skips the contract.
 These are instructions to the model, not enforced read limits.
 
 | Portable operation | Router + workflow + contract | Required cold load including named sections |
 |---|---:|---:|
-| setup | 5,438 bytes | 11,087 bytes |
-| update | 5,584 bytes | 5,584 bytes |
-| check | 5,285 bytes | 5,285 bytes |
-| explain | 4,869 bytes | 4,869 bytes |
-| decide | 5,105 bytes | 6,242 bytes |
+| setup | 6,308 bytes | 10,708 bytes |
+| update | 6,305 bytes | 6,305 bytes |
+| check | 5,596 bytes | 5,596 bytes |
+| explain | 5,100 bytes | 5,100 bytes |
+| decide | 5,336 bytes | 6,473 bytes |
+| learn | 3,570 bytes | 3,570 bytes |
 
 These are current UTF-8 byte counts with LF line endings, not measured tokens. Conditional source,
 template sections, tool output, and host context add to them. CI limits the
 router to 2,200 bytes, each workflow to 2,600, and base instructions to 7,200.
-Required cold-load limits are 12,700 bytes for setup, 8,700 for decide, and
-7,200 for the other operations. The sync check verifies that generated references
+Required cold-load limits are 12,700 bytes for setup, 8,700 for decide, 4,200 for learn,
+and 7,200 for the other operations. The sync check verifies that generated references
 and workflows match the canonical Claude plugin.
 
 ## Per-command loading
 
 | Command | Always read | Conditional reads |
 |---|---|---|
-| setup | Contract, configuration | Coverage and trace sections; one template section per new page |
+| setup | Contract; map and freshness sections of configuration | Coverage and trace sections; one template section per new page |
 | update | Contract | Configuration only without Python or for map edits; specific trace/template sections |
 | check | Contract | Config fallback; writing rubric only for an explicitly requested style audit |
 | explain | Contract | Config only to locate a custom handbook; relevant implementation |
 | decide | Contract, ADR template section | Effective config; map section for registration |
+| learn | Nothing beyond the command | Handbook pages first, then bounded source |
 
 The entire workflow, style manual, and template catalog are not default input for every command.
 The method guide and research citations are for users, not loaded into skills.
@@ -158,5 +167,5 @@ Accept an optimization only if it preserves evidence, failure coverage, approval
 and report completeness. A smaller prompt that misses a changed consumer is not an improvement.
 
 Local tests validate static base and cold-load budgets, plus bounded reports.
-Model-task token totals and comparative quality are not yet measured.
+Model-task measurements for answer quality and tokens are in [benchmarks](benchmarks.md).
 Host plugin validation and install tests do not substitute for these model evaluations.
