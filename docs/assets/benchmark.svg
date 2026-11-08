@@ -1,0 +1,83 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="960" height="370" viewBox="0 0 960 370" role="img" aria-labelledby="t d">
+<title id="t">Archlens benchmark: answer quality and cost</title>
+<desc id="d">No handbook: recall 86%, 24952 input tokens, 4.2 turns, $0.022 per answer; Handbook only: recall 84%, 23778 input tokens, 3.9 turns, $0.020 per answer; Archlens: recall 89%, 17253 input tokens, 3.1 turns, $0.015 per answer.</desc>
+<style>
+  .surface { fill: none; }
+  .title { font: 600 15px ui-sans-serif, -apple-system, 'Segoe UI', sans-serif; fill: #0b0b0b; }
+  .note { font: 400 12px ui-sans-serif, -apple-system, 'Segoe UI', sans-serif; fill: #52514e; }
+  .label { font: 400 13px ui-sans-serif, -apple-system, 'Segoe UI', sans-serif; fill: #52514e; }
+  .label.focus { font-weight: 600; fill: #0b0b0b; }
+  .value { font: 600 13px ui-monospace, 'SF Mono', Menlo, monospace; fill: #0b0b0b; }
+  .bar { fill: #8a8984; }
+  .bar.focus { fill: #2a78d6; }
+  .ci { stroke: #0b0b0b; stroke-width: 1.5; }
+  .axis { stroke: #d8d7d2; stroke-width: 1; }
+  @media (prefers-color-scheme: dark) {
+    .title, .value, .label.focus { fill: #f0efec; }
+    .note, .label { fill: #c3c2b7; }
+    .bar { fill: #8e8d88; }
+    .bar.focus { fill: #3987e5; }
+    .ci { stroke: #f0efec; }
+    .axis { stroke: #3a3a37; }
+  }
+</style>
+<rect class="surface" width="960" height="370"/>
+<text class="note" x="20" y="28">24 answers per condition, Claude Code (sonnet), 2026-11-08. Recall bars show 95% confidence intervals. Source: docs/benchmarks.md</text>
+<text class="title" x="20" y="66">Key facts recalled</text>
+<text class="note" x="460" y="66" text-anchor="end">higher is better</text>
+<line class="axis" x1="140" y1="80" x2="140" y2="170"/>
+<text class="label" x="130" y="97" text-anchor="end">No handbook</text>
+<rect class="bar" x="140" y="84" width="198.9" height="18" rx="4"/>
+<line class="ci" x1="321.0" y1="93.0" x2="355.7" y2="93.0"/>
+<line class="ci" x1="321.0" y1="88.0" x2="321.0" y2="98.0"/>
+<line class="ci" x1="355.7" y1="88.0" x2="355.7" y2="98.0"/>
+<text class="value" x="363.7" y="97">86%</text>
+<text class="label" x="130" y="127" text-anchor="end">Handbook only</text>
+<rect class="bar" x="140" y="114" width="194.1" height="18" rx="4"/>
+<line class="ci" x1="314.8" y1="123.0" x2="351.8" y2="123.0"/>
+<line class="ci" x1="314.8" y1="118.0" x2="314.8" y2="128.0"/>
+<line class="ci" x1="351.8" y1="118.0" x2="351.8" y2="128.0"/>
+<text class="value" x="359.8" y="127">84%</text>
+<text class="label focus" x="130" y="157" text-anchor="end">Archlens</text>
+<rect class="bar focus" x="140" y="144" width="204.9" height="18" rx="4"/>
+<line class="ci" x1="329.3" y1="153.0" x2="358.3" y2="153.0"/>
+<line class="ci" x1="329.3" y1="148.0" x2="329.3" y2="158.0"/>
+<line class="ci" x1="358.3" y1="148.0" x2="358.3" y2="158.0"/>
+<text class="value" x="366.3" y="157">89%</text>
+<text class="title" x="492" y="66">Input tokens per answer</text>
+<text class="note" x="932" y="66" text-anchor="end">lower is better</text>
+<line class="axis" x1="612" y1="80" x2="612" y2="170"/>
+<text class="label" x="602" y="97" text-anchor="end">No handbook</text>
+<rect class="bar" x="612" y="84" width="230.0" height="18" rx="4"/>
+<text class="value" x="850.0" y="97">25.0k</text>
+<text class="label" x="602" y="127" text-anchor="end">Handbook only</text>
+<rect class="bar" x="612" y="114" width="219.2" height="18" rx="4"/>
+<text class="value" x="839.2" y="127">23.8k</text>
+<text class="label focus" x="602" y="157" text-anchor="end">Archlens</text>
+<rect class="bar focus" x="612" y="144" width="159.0" height="18" rx="4"/>
+<text class="value" x="779.0" y="157">17.3k</text>
+<text class="title" x="20" y="216">Agent turns per answer</text>
+<text class="note" x="460" y="216" text-anchor="end">lower is better</text>
+<line class="axis" x1="140" y1="230" x2="140" y2="320"/>
+<text class="label" x="130" y="247" text-anchor="end">No handbook</text>
+<rect class="bar" x="140" y="234" width="230.0" height="18" rx="4"/>
+<text class="value" x="378.0" y="247">4.2</text>
+<text class="label" x="130" y="277" text-anchor="end">Handbook only</text>
+<rect class="bar" x="140" y="264" width="213.6" height="18" rx="4"/>
+<text class="value" x="361.6" y="277">3.9</text>
+<text class="label focus" x="130" y="307" text-anchor="end">Archlens</text>
+<rect class="bar focus" x="140" y="294" width="169.8" height="18" rx="4"/>
+<text class="value" x="317.8" y="307">3.1</text>
+<text class="title" x="492" y="216">Cost per answer</text>
+<text class="note" x="932" y="216" text-anchor="end">lower is better</text>
+<line class="axis" x1="612" y1="230" x2="612" y2="320"/>
+<text class="label" x="602" y="247" text-anchor="end">No handbook</text>
+<rect class="bar" x="612" y="234" width="230.0" height="18" rx="4"/>
+<text class="value" x="850.0" y="247">$0.022</text>
+<text class="label" x="602" y="277" text-anchor="end">Handbook only</text>
+<rect class="bar" x="612" y="264" width="212.0" height="18" rx="4"/>
+<text class="value" x="832.0" y="277">$0.020</text>
+<text class="label focus" x="602" y="307" text-anchor="end">Archlens</text>
+<rect class="bar focus" x="612" y="294" width="161.1" height="18" rx="4"/>
+<text class="value" x="781.1" y="307">$0.015</text>
+</svg>

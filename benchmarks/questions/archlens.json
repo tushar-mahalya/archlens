@@ -1,0 +1,85 @@
+{
+  "repository": "archlens (this repository)",
+  "questions": [
+    {
+      "id": "staleness",
+      "question": "How does Archlens decide that a handbook page is stale, and does a source change that was already committed still count?",
+      "key": [
+        "sync records content IDs (Git blob hashes) of covered and linked files, plus fingerprints of cited line ranges, in .archlens-state.json",
+        "covered files come from map.json covers glob patterns plus files the page links to",
+        "status compares the recorded fingerprints with current content",
+        "yes, committed changes still count because it compares content, not a base ref",
+        "stale when cited evidence changed or moved; review when only other covered files changed; neither proves the prose is wrong"
+      ]
+    },
+    {
+      "id": "isolation",
+      "question": "Why do most native Claude Code Archlens commands run in an isolated (forked) task, and which command does not?",
+      "key": [
+        "keep exploration and large source traces out of the parent conversation context",
+        "return only a bounded result to the parent",
+        "worker does not receive prior conversation, so evidence must be supplied",
+        "learn runs inline so the user can ask follow-up questions"
+      ]
+    },
+    {
+      "id": "json-map",
+      "question": "Why does Archlens keep page metadata in a JSON map.json instead of YAML frontmatter?",
+      "key": [
+        "the checker uses only the Python standard library / no package install",
+        "a YAML parser would be an extra dependency, and a custom YAML subset parser is ambiguous and risky",
+        "one map.json with explicit schema, duplicate-key and schema checks",
+        "cost: authors must maintain the separate map and coverage patterns"
+      ]
+    },
+    {
+      "id": "summary-limit",
+      "question": "What is the size limit of the checker's --summary output, and how does it avoid silently dropping records?",
+      "key": [
+        "6000 UTF-8 bytes",
+        "keeps whole records rather than truncating JSON",
+        "reports totals and omitted counts",
+        "hints to use --json saved to a local file for full details"
+      ]
+    },
+    {
+      "id": "config-order",
+      "question": "In what order does Archlens merge its configuration files, and which one wins?",
+      "key": [
+        "bundled defaults.json first",
+        "then one user file: ARCHLENS_CONFIG, else CLAUDE_CONFIG_DIR/archlens.json, else XDG or ~/.config/archlens/config.json if present, else legacy ~/.claude/archlens.json",
+        "then project .archlens.json",
+        "later layers replace earlier keys; only one user file is read"
+      ]
+    },
+    {
+      "id": "portable-sync",
+      "question": "How is the portable Agent Skill kept consistent with the native Claude plugin?",
+      "key": [
+        "the plugin is canonical; tools/sync_portable.py generates skills/archlens from it",
+        "it rewrites Claude placeholders such as ${CLAUDE_PLUGIN_ROOT} and $ARGUMENTS",
+        "--check reports stale, missing, unexpected or linked resources",
+        "run in CI / pre-commit / tests"
+      ]
+    },
+    {
+      "id": "hook-safety",
+      "question": "What do the Archlens Claude Code hooks do in a project that has no Archlens handbook, or when the hook input is malformed?",
+      "key": [
+        "they print nothing / stay silent",
+        "exit code 0 so they never break the session",
+        "only projects with a map.json (opted in) get the session map or stop reminder"
+      ]
+    },
+    {
+      "id": "other-agents",
+      "question": "If I use Codex or Cursor instead of Claude Code, how can those agents learn about and keep up with the Archlens handbook?",
+      "key": [
+        "set contextFile (for example AGENTS.md) in .archlens.json",
+        "context --write / sync writes a managed archlens:context block with the compact page map (without live stale flags)",
+        "plugin hooks do not run in other hosts",
+        "pre-commit hooks (archlens-stale, archlens-check) or CI status --fail-on-stale detect stale pages"
+      ]
+    }
+  ]
+}

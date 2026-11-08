@@ -1,0 +1,1490 @@
+{
+  "meta": {
+    "model": "sonnet",
+    "judge": "sonnet",
+    "questions": 8,
+    "reps": 3,
+    "date": "2026-11-08",
+    "repository": "archlens (this repository)"
+  },
+  "summary": [
+    {
+      "condition": "no-handbook",
+      "runs": 24,
+      "keyFactRecall": 0.9,
+      "incorrectClaimsPerAnswer": 0,
+      "inputTokens": 23527,
+      "uncachedInputTokens": 3133,
+      "outputTokens": 841,
+      "turns": 4.2,
+      "costUsd": 0.023,
+      "seconds": 9.3
+    },
+    {
+      "condition": "handbook",
+      "runs": 22,
+      "keyFactRecall": 0.85,
+      "incorrectClaimsPerAnswer": 0,
+      "inputTokens": 23025,
+      "uncachedInputTokens": 2987,
+      "outputTokens": 822,
+      "turns": 4,
+      "costUsd": 0.0222,
+      "seconds": 9.0
+    },
+    {
+      "condition": "archlens",
+      "runs": 24,
+      "keyFactRecall": 0.802,
+      "incorrectClaimsPerAnswer": 0,
+      "inputTokens": 19556,
+      "uncachedInputTokens": 2522,
+      "outputTokens": 642,
+      "turns": 3.1,
+      "costUsd": 0.0182,
+      "seconds": 7.4
+    }
+  ],
+  "runs": [
+    {
+      "condition": "archlens",
+      "question": "json-map",
+      "rep": 0,
+      "answer": "Archlens uses a JSON `map.json` because its optional checker needs structured metadata and predictable errors. Normal plugin users also shouldn't have to install any packages. This comes from `docs/architecture/decisions/ADR-002.md`.\n\n- **Standard library only:** Python's built-in JSON parser, plus duplicate-key and schema checks, covers the need. YAML frontmatter would require an external parser, which is an extra runtime dependency.\n- **No partial YAML parser:** A custom YAML subset parser would avoid the dependency. The ADR rejects it because of ambiguous syntax and maintenance risk.\n- **Trade-offs:** Metadata lives in a separate file instead of next to each page. Authors must register pages and maintain coverage patterns by hand. The single map can grow large, so the agent should query it rather than load it all. Merge conflicts on the map are a review trigger.\n\nThe ADR's status is \"proposed\", and it is awaiting maintainer review. It cites `plugins/archlens/references/configuration.md`, `plugins/archlens/scripts/archlens.py` and `tests/test_archlens.py` as evidence.",
+      "inputTokens": 13127,
+      "uncachedInputTokens": 3715,
+      "cachedInputTokens": 9412,
+      "outputTokens": 499,
+      "turns": 2,
+      "costUsd": 0.0207832,
+      "durationMs": 5610,
+      "error": false,
+      "grade": {
+        "covered": 4,
+        "total": 4,
+        "incorrect": 0,
+        "note": "Covers stdlib-only/no install, YAML dependency and risky custom parser, JSON map with schema and duplicate-key checks, and the cost of manual map and coverage pattern maintenance; extra details are not contradicted by the key."
+      }
+    },
+    {
+      "condition": "handbook",
+      "question": "hook-safety",
+      "rep": 0,
+      "answer": "They do nothing in either case: no output, and the hook exits 0. The logic is in `run_hook` and the functions around it in `plugins/archlens/scripts/archlens.py:813-897`.\n\n**No handbook:** A project counts as opted in only if `<docsRoot>/map.json` exists (`opted_in`, line 820).\n- Without that file, `hook_session_start` returns `\"\"`, so nothing is printed.\n- `hook_stop` returns `None`, so no nudge or block is issued.\n- `hook_stop` also returns `None` when `autoUpdate` is `off` or the project isn't a git repo.\n\n**Malformed input:**\n- Empty or whitespace-only stdin is treated as `{}`.\n- JSON that isn't an object is also replaced with `{}`.\n- Invalid JSON raises an error, which the `except Exception` at line 895 catches. The hook then returns 0 silently.\n- The same catch-all covers any other error, so a documentation hook never breaks the agent session.",
+      "inputTokens": 27813,
+      "uncachedInputTokens": 5665,
+      "cachedInputTokens": 22148,
+      "outputTokens": 987,
+      "turns": 5,
+      "costUsd": 0.0347288,
+      "durationMs": 10097,
+      "error": false,
+      "grade": {
+        "covered": 3,
+        "total": 3,
+        "incorrect": 0,
+        "note": "The answer states silent/no output, exit 0 so the session never breaks, and that opt-in depends on map.json existing."
+      }
+    },
+    {
+      "condition": "handbook",
+      "question": "json-map",
+      "rep": 2,
+      "answer": "Archlens uses `map.json` so the optional checker can get structured metadata and predictable errors without making users install anything. `docs/architecture/decisions/ADR-002.md` records this decision, and its status is still \"proposed\".\n\n- **Standard library only:** Python's built-in JSON parser handles it, with duplicate-key and schema checks (`skills/archlens/scripts/archlens.py:189-201`).\n- **YAML frontmatter would need a parser:** The ADR names an external YAML parser as an extra runtime dependency. A custom YAML-subset parser would avoid that dependency, but the ADR rejects it for ambiguous syntax and maintenance risk.\n- **Single source of truth:** `skills/archlens/references/configuration.md:49` says not to duplicate the metadata in page frontmatter. The checker skips frontmatter and doesn't parse it (`docs/cli.md:46`).\n\nThe ADR lists these costs:\n- Authors must register each page in the map by hand.\n- The map can grow large.\n- It can cause merge conflicts.\n\nIt says to revisit the choice if map size or merge conflicts become a persistent problem.",
+      "inputTokens": 22538,
+      "uncachedInputTokens": 5590,
+      "cachedInputTokens": 16948,
+      "outputTokens": 737,
+      "turns": 4,
+      "costUsd": 0.031412800000000005,
+      "durationMs": 7943,
+      "error": false,
+      "grade": {
+        "covered": 3,
+        "total": 4,
+        "incorrect": 0,
+        "note": "Covers stdlib-only, YAML parser dependency/custom parser risk, and single map.json with duplicate-key/schema checks; the cost stated is manual registration, size, and merge conflicts, but it omits maintaining separate coverage patterns."
+      }
+    },
+    {
+      "condition": "archlens",
+      "question": "hook-safety",
+      "rep": 0,
+      "answer": "The hooks fail safe in both cases. They exit 0 and print nothing, so the session isn't disturbed.\n\n**No handbook:** A project counts as opted in only if `<docsRoot>/map.json` exists. This is checked by `opted_in` in `plugins/archlens/scripts/archlens.py:820`. If the file is missing, or `docsRoot` fails the containment check, `opted_in` returns False. Then:\n- `hook_session_start` returns `\"\"`, so no context is printed (`archlens.py:828`).\n- `hook_stop` returns `None`, so there is no nudge and no block (`archlens.py:835`).\n\nThe Stop hook also does nothing outside a git repo or when `autoUpdate` is `\"off\"`.\n\n**Malformed input:** `run_hook` (`archlens.py:878`) treats empty stdin, or JSON that isn't an object, as an empty payload `{}`. It wraps everything else in `try/except Exception` and returns 0. That covers invalid JSON, config errors and git failures, so none of them can break the session.\n\nThe hooks are registered in `plugins/archlens/hooks/hooks.json` as SessionStart and Stop, each with a 15-second timeout.",
+      "inputTokens": 29561,
+      "uncachedInputTokens": 6526,
+      "cachedInputTokens": 23035,
+      "outputTokens": 930,
+      "turns": 5,
+      "costUsd": 0.0376915,
+      "durationMs": 10764,
+      "error": false,
+      "grade": {
+        "covered": 3,
+        "total": 3,
+        "incorrect": 0,
+        "note": "Answer states silent output, exit 0, and the map.json opt-in gating for session map and stop reminder."
+      }
+    },
+    {
+      "condition": "handbook",
+      "question": "hook-safety",
+      "rep": 1,
+      "answer": "They do nothing and never break the session.\n\n**No handbook:** A project counts as opted in only if `<docsRoot>/map.json` exists (`opted_in`, `plugins/archlens/scripts/archlens.py:820`). Without it:\n- `hook_session_start` returns `\"\"`, so nothing is printed (line 828).\n- `hook_stop` returns `None`, so there is no nudge and no block (line 835).\n- The Stop hook also does nothing when `autoUpdate` is `\"off\"`, when the directory isn't a git repo, or when no tracked pages are stale.\n\n**Malformed input:** `run_hook` (line 878) handles input defensively:\n- Empty stdin, or stdin that is a TTY, gives an empty payload.\n- JSON that isn't an object also becomes `{}` (lines 881\u2013884).\n- Invalid JSON raises inside the `try`. The blanket `except Exception` (line 895) catches it, and the hook returns 0 with no output.\n\nEvery path exits with code 0, so the agent session is never affected.",
+      "inputTokens": 27779,
+      "uncachedInputTokens": 3195,
+      "cachedInputTokens": 24584,
+      "outputTokens": 1039,
+      "turns": 5,
+      "costUsd": 0.0256124,
+      "durationMs": 10587,
+      "error": false,
+      "grade": {
+        "covered": 3,
+        "total": 3,
+        "incorrect": 0,
+        "note": "The answer covers silence, exit code 0, and the map.json opt-in requirement; the extra details about autoUpdate and git don't contradict the key."
+      }
+    },
+    {
+      "condition": "no-handbook",
+      "question": "other-agents",
+      "rep": 2,
+      "answer": "**Learning about it:** Install the portable skill with skills.sh. For Codex, run `npx skills@1.7.6 add tushar-mahalya/archlens --skill archlens --agent codex --copy --yes`. For Cursor, use `--agent cursor`. The installation doc says to verify Cursor discovery in your version. Codex uses the shared `.agents/skills` location. The skill itself is `skills/archlens/SKILL.md`, with its workflows in `skills/archlens/workflows/`. See `docs/installation.md` (lines 100\u2013153).\n\n**Keeping up:** Claude Code has the plugin's Stop hook, which the other agents lack. For them, `docs/automation.md` (lines 16\u201351) gives three options:\n- **Context file:** Set `{ \"contextFile\": \"AGENTS.md\" }`, then write it once. The agent sees the page map and stale flags every session, and each `sync` refreshes that block.\n- **Manual update:** Ask the agent to run the Archlens update operation.\n- **Git or CI:** Use the `pre-push` hook from `.pre-commit-hooks.yaml`, or the CI pull request check.",
+      "inputTokens": 19515,
+      "uncachedInputTokens": 4346,
+      "cachedInputTokens": 15169,
+      "outputTokens": 787,
+      "turns": 4,
+      "costUsd": 0.0267589,
+      "durationMs": 7736,
+      "error": false,
+      "grade": {
+        "covered": 3,
+        "total": 4,
+        "incorrect": 0,
+        "note": "Covers contextFile, plugin hooks not running elsewhere (Stop hook), and git/CI checks; but doesn't clearly state that context --write/sync writes a managed archlens:context block (only says sync refreshes the block), and CI mention lacks status --fail-on-stale specifics, though pre-push hook/CI is close enough."
+      }
+    },
+    {
+      "condition": "no-handbook",
+      "question": "staleness",
+      "rep": 0,
+      "answer": "Archlens decides staleness by comparing content hashes, not by checking git status. The logic is in `freshness()` in `skills/archlens/scripts/archlens.py` (around lines 607\u2013632).\n\n- **Recording:** each page's record in the docs state file (`STATE_FILE`) holds a short blob hash (`blob_id`, first 10 characters) for every source file the page covers. The record is written when the page is synced. It also stores `syncedAt` and `syncedCommit`.\n- **Checking:** `freshness()` hashes the current covered files and compares them with the recorded ones. A file counts as `modified` if its hash differs, `added` if it is new, and `removed` if it is gone. Any difference makes the page **stale**. A page with no record is **unsynced**. Otherwise it is **fresh**.\n- **Committed changes:** they still count. The comparison runs against the files on disk (`project_files`) and ignores whether a change is committed. A commit doesn't reset staleness. Only re-syncing the page updates the recorded hashes.\n\nThe report says stale means covered or linked files changed since the page was synced, not that the prose is wrong (line 638).",
+      "inputTokens": 28230,
+      "uncachedInputTokens": 4183,
+      "cachedInputTokens": 24047,
+      "outputTokens": 860,
+      "turns": 4,
+      "costUsd": 0.0277207,
+      "durationMs": 10069,
+      "error": false,
+      "grade": {
+        "covered": 4,
+        "total": 5,
+        "incorrect": 0,
+        "note": "Covers blob hash recording, comparison with current content, committed changes counting, and stale-not-proof-wrong; omits the map.json covers globs plus linked files as the source of covered files, and doesn't name .archlens-state.json explicitly."
+      }
+    },
+    {
+      "condition": "no-handbook",
+      "question": "portable-sync",
+      "rep": 1,
+      "answer": "The native plugin (`plugins/archlens/`) is canonical. The portable skill (`skills/archlens/`) is generated from it by `tools/sync_portable.py`.\n\n- **What it generates:** The script copies `LICENSE`, `defaults.json`, `scripts/archlens.py` and `references/*.md` byte for byte. It builds `workflows/{setup,update,check,explain,decide,learn}.md` from each native `SKILL.md`. In those workflows it strips the frontmatter and rewrites Claude-only placeholders. `${CLAUDE_PLUGIN_ROOT}` becomes `<skill-dir>`, and `$ARGUMENTS` becomes neutral wording. It raises an error if any placeholder is left over.\n- **How drift is caught:** `python tools/sync_portable.py --check` reports stale, missing, unexpected or symlinked files. I read only the first 60 lines of the script and didn't open the `--check` code, so that behavior comes from `benchmarks/questions/archlens.json`.\n- **Where the check runs:**\n  - CI, in `.github/workflows/ci.yml:40`.\n  - Pre-commit, in `.pre-commit-config.yaml:53`.\n  - `tests/test_distribution.py`.\n- **Contributor workflow:** `CONTRIBUTING.md` and `.github/PULL_REQUEST_TEMPLATE.md` tell contributors to run the sync and commit the generated files.",
+      "inputTokens": 19855,
+      "uncachedInputTokens": 3192,
+      "cachedInputTokens": 16663,
+      "outputTokens": 838,
+      "turns": 4,
+      "costUsd": 0.022802299999999998,
+      "durationMs": 9205,
+      "error": false,
+      "grade": {
+        "covered": 4,
+        "total": 4,
+        "incorrect": 0,
+        "note": "Covers canonical plugin with sync script generation, placeholder rewriting, --check reporting stale/missing/unexpected/symlinked files, and CI/pre-commit/tests; no contradictions."
+      }
+    },
+    {
+      "condition": "no-handbook",
+      "question": "other-agents",
+      "rep": 0,
+      "answer": "Codex and Cursor can use Archlens in two ways. Together they let the agent learn the handbook and keep up with it.\n\n**Learn it.** Install the portable skill with skills.sh. For Codex, run `npx skills@1.7.6 add tushar-mahalya/archlens --skill archlens --agent codex --copy --yes`. Use `--agent cursor` for Cursor, though the docs say to verify skill discovery in your current Cursor version (`docs/installation.md`, lines 102\u2013144). The skill's own files are `skills/archlens/SKILL.md` and `skills/archlens/workflows/*.md`.\n\n**Keep up with it.** Set `{ \"contextFile\": \"AGENTS.md\" }` in the Archlens config and write the context file once. Each `sync` then refreshes a page-map and stale-flags block in that file. The agent sees the block every session, and you ask it to run the Archlens update operation when pages are flagged stale (`docs/automation.md`, lines 16 and 37\u201351).\n\nThe automatic Stop-hook update is Claude Code only. For other agents, the docs list a git `pre-push` hook through pre-commit (`.pre-commit-hooks.yaml`) and an optional CI check as backstops.",
+      "inputTokens": 22685,
+      "uncachedInputTokens": 3480,
+      "cachedInputTokens": 19205,
+      "outputTokens": 858,
+      "turns": 5,
+      "costUsd": 0.0244085,
+      "durationMs": 9007,
+      "error": false,
+      "grade": {
+        "covered": 4,
+        "total": 4,
+        "incorrect": 0,
+        "note": "Covers contextFile=AGENTS.md, sync-written managed block with page map, hooks being Claude Code only, and pre-commit/CI backstops (though not naming archlens-stale/check or --fail-on-stale explicitly)."
+      }
+    },
+    {
+      "condition": "handbook",
+      "question": "staleness",
+      "rep": 0,
+      "answer": "Archlens decides staleness by comparing file contents. It does not use timestamps or commit history.\n\n- **How it compares:** `freshness()` in `skills/archlens/scripts/archlens.py:607` takes the files each page covers (by its patterns and links). It compares their current short Git blob hashes with the hashes stored for that page at its last `sync`. The stored hashes are in the docs state file, which `load_state` reads.\n- **Result per page:** a page is `stale` if any covered file was modified, added or removed since that sync. It is `fresh` if none changed. It is `unsynced` if it has no recorded state.\n- **Committed changes:** yes, they still count. `project_files` (line 549) takes hashes from `git ls-files -s`, which reflect the index and so include committed content. It then overlays dirty and untracked files. Staleness is measured against the last-synced hashes, not against `HEAD`, so a commit doesn't clear it. Only re-running `sync` does.\n\nThe tool's own note says stale means \"review this page\", not that the prose is wrong (line 638).",
+      "inputTokens": 23246,
+      "uncachedInputTokens": 5159,
+      "cachedInputTokens": 18087,
+      "outputTokens": 630,
+      "turns": 3,
+      "costUsd": 0.0287327,
+      "durationMs": 7771,
+      "error": false,
+      "grade": {
+        "covered": 4,
+        "total": 5,
+        "incorrect": 0,
+        "note": "Covers hash comparison against sync-recorded state, covered files via patterns and links, committed changes still count, and stale as review candidate; it doesn't name .archlens-state.json or map.json covers explicitly (only 'docs state file' and 'patterns'), so the first fact is partial and is not counted."
+      }
+    },
+    {
+      "condition": "archlens",
+      "question": "summary-limit",
+      "rep": 1,
+      "answer": "**Limit:** `--summary` emits JSON of at most 6000 UTF-8 bytes. The flag is defined at `plugins/archlens/scripts/archlens.py:908`, and `bounded_report(report, budget=6000)` enforces the limit at line 928.\n\n**How it avoids silently dropping records:**\n- It keeps only whole records. It never cuts the JSON string mid-way.\n- It adds a `totals` count for each collection (`findings`, `candidates`, `uncoveredFiles`, `changedFiles`, `needsSync`, `fresh`).\n- It adds an `omitted` count per collection, which goes down as records are added.\n- It adds each record one at a time, up to 8 per collection. If the next record would push the output over budget, it removes that record and moves to the next collection (lines 935\u2013944).\n- It adds a `detailHint` that tells the caller to use `--json` redirected to a local file.\n- If the metadata alone exceeds the budget, it returns a minimal object. That object has `totals`, `omitted`, and a `note` (lines 945\u2013950).\n- Error messages longer than 600 characters are cut to 600, with `errorTruncated: true` and a hint (lines 1034\u20131037).",
+      "inputTokens": 23655,
+      "uncachedInputTokens": 4724,
+      "cachedInputTokens": 18931,
+      "outputTokens": 953,
+      "turns": 5,
+      "costUsd": 0.0303071,
+      "durationMs": 8874,
+      "error": false,
+      "grade": {
+        "covered": 4,
+        "total": 4,
+        "incorrect": 0,
+        "note": "The answer states the 6000-byte limit, whole-record retention, totals and omitted counts, and the --json local file hint; extra details are not contradicted by the key."
+      }
+    },
+    {
+      "condition": "archlens",
+      "question": "json-map",
+      "rep": 2,
+      "answer": "Archlens uses a single `map.json` for three reasons, according to `docs/architecture/decisions/ADR-002.md`:\n\n- **No extra install.** The optional checker uses Python's standard JSON parser. YAML frontmatter would need an external parser, which adds a runtime dependency. Normal plugin users shouldn't need a package installation.\n- **No custom parser.** A hand-written YAML subset parser would avoid the dependency. The ADR rejects it because of ambiguous syntax and maintenance risk.\n- **Predictable checking.** The checker needs structured metadata and clear errors. JSON gives an explicit schema, and the checker adds duplicate-key and schema checks.\n\n**Trade-offs:**\n- Metadata sits apart from the pages instead of next to them.\n- Authors must register pages and maintain coverage patterns by hand.\n- The map can grow large, so the agent should query it rather than load it whole.\n- Merge conflicts are possible.\n\nThe ADR's status is still \"proposed\", awaiting maintainer review. It should be revisited if map size or merge conflicts become a persistent problem.",
+      "inputTokens": 13127,
+      "uncachedInputTokens": 749,
+      "cachedInputTokens": 12378,
+      "outputTokens": 485,
+      "turns": 2,
+      "costUsd": 0.0090758,
+      "durationMs": 5747,
+      "error": false,
+      "grade": {
+        "covered": 4,
+        "total": 4,
+        "incorrect": 0,
+        "note": "Covers stdlib/no install, YAML parser dependency and risky custom parser, explicit schema with duplicate-key/schema checks, and the cost of authors maintaining the map and coverage patterns; the extra trade-offs and ADR status claims don't contradict the key."
+      }
+    },
+    {
+      "condition": "handbook",
+      "question": "other-agents",
+      "rep": 2,
+      "answer": "Codex and Cursor can use Archlens through the portable skill. To keep up with the handbook, they need a context file and a freshness baseline.\n\n- **Install the skill.** Run `npx skills@1.7.6 add tushar-mahalya/archlens --skill archlens --agent codex --copy --yes`. For Cursor, use `--agent cursor`. Codex uses the shared `.agents/skills` location. `docs/installation.md` says to verify Cursor discovery in your current Cursor version.\n- **Make the handbook map load at session start.** These hosts may not load it automatically. `skills/archlens/workflows/setup.md` (step 9) says to set `\"contextFile\": \"AGENTS.md\"` in `.archlens.json`. Then run `scripts/archlens.py context --root <project> --write`. The agent should ask before editing any agent instruction file.\n- **Track freshness.** Run `scripts/archlens.py sync --root <project> --all` to record the baseline. This needs Python 3.9+. Without it, freshness isn't tracked.\n- **Ongoing upkeep.** The `check` and `update` workflows are in `skills/archlens/workflows/`. `docs/automation.md` and `.pre-commit-hooks.yaml` cover automation.",
+      "inputTokens": 19699,
+      "uncachedInputTokens": 2821,
+      "cachedInputTokens": 16878,
+      "outputTokens": 902,
+      "turns": 5,
+      "costUsd": 0.021979799999999997,
+      "durationMs": 12530,
+      "error": false,
+      "grade": {
+        "covered": 1,
+        "total": 4,
+        "incorrect": 0,
+        "note": "Covers contextFile in .archlens.json (AGENTS.md) plus context --write, though it doesn't mention the managed archlens:context block, and it omits that plugin hooks don't run in other hosts and the specific stale-detection hooks (archlens-stale/archlens-check or CI status --fail-on-stale); it only vaguely mentions .pre-commit-hooks.yaml."
+      }
+    },
+    {
+      "condition": "handbook",
+      "question": "summary-limit",
+      "rep": 1,
+      "answer": "**Limit:** `--summary` output is capped at 6000 UTF-8 bytes. The `--summary` help text at `skills/archlens/scripts/archlens.py:908` says this, and `bounded_report` (line 928) sets it as `budget=6000`.\n\n**How it avoids silent drops** (`bounded_report`, `skills/archlens/scripts/archlens.py:928-951`):\n- **Whole records only:** It adds at most 8 items per collection (`findings`, `candidates`, `uncoveredFiles`, `changedFiles`, `needsSync`, `fresh`). After each item it re-serializes the report and measures its bytes. If the item pushes the report over budget, it pops that item, so no record is cut in half.\n- **Explicit counts:** `totals` holds the full count for each collection. `omitted` holds how many records were left out. A `detailHint` tells the reader to use `--json` redirected to a local file.\n- **Fallback:** If the metadata alone exceeds the budget, it returns a minimal object. That object has `command`, `ok`, `totals`, `omitted` (set equal to `totals`), the hint, and a `note` that the metadata exceeds the summary budget.\n\nLine 1034 also checks `len(message) > 600`, which looks like a separate limit on message length. I didn't read that code.",
+      "inputTokens": 21718,
+      "uncachedInputTokens": 3270,
+      "cachedInputTokens": 18448,
+      "outputTokens": 723,
+      "turns": 3,
+      "costUsd": 0.0221428,
+      "durationMs": 7755,
+      "error": false,
+      "grade": {
+        "covered": 4,
+        "total": 4,
+        "incorrect": 0,
+        "note": "The answer states the 6000 UTF-8 byte limit, whole-record retention, totals and omitted counts, and the --json local file hint."
+      }
+    },
+    {
+      "condition": "handbook",
+      "question": "summary-limit",
+      "rep": 0,
+      "answer": "**Limit:** `--summary` emits valid JSON of at most 6,000 UTF-8 bytes, excluding the final newline. This is stated in `docs/cli.md:97`. It is also the default `budget` in `bounded_report` (`skills/archlens/scripts/archlens.py:928`).\n\n**How it avoids silently dropping records** (`bounded_report`, same file, lines 928\u2013951):\n- It never cuts the JSON text. It keeps only whole records.\n- It adds a `totals` count for each collection: findings, candidates, uncoveredFiles, changedFiles, needsSync and fresh.\n- It adds an `omitted` count for each collection, which falls as records are added.\n- It includes at most 8 items per collection. After each addition it re-measures the encoded size. If the budget is exceeded, it removes that item and counts it as omitted.\n- It adds a `detailHint` telling the reader to use `--json` redirected to a local file.\n- If the metadata alone exceeds the budget, it returns a minimal object. That object has `totals`, `omitted` and a `note` saying to inspect the full report locally.\n\nI didn't check the summary tests in `tests/test_archlens.py`. A copy of the script also exists at `plugins/archlens/scripts/archlens.py`, and I didn't read it either.",
+      "inputTokens": 27753,
+      "uncachedInputTokens": 3184,
+      "cachedInputTokens": 24569,
+      "outputTokens": 1078,
+      "turns": 5,
+      "costUsd": 0.025956899999999998,
+      "durationMs": 10636,
+      "error": false,
+      "grade": {
+        "covered": 4,
+        "total": 4,
+        "incorrect": 0,
+        "note": "The answer states the 6,000 UTF-8 byte limit, whole-record retention, totals and omitted counts, and the --json local file hint."
+      }
+    },
+    {
+      "condition": "no-handbook",
+      "question": "summary-limit",
+      "rep": 1,
+      "answer": "**Limit:** `--summary` emits valid JSON of at most 6,000 UTF-8 bytes, excluding the final newline. This is the default `budget=6000` in `bounded_report` (`skills/archlens/scripts/archlens.py:928`). It is also documented in `docs/cli.md:97`.\n\n**How it avoids silently dropping records:**\n- It keeps whole records only, never cutting JSON mid-record. Per collection (findings, candidates, uncoveredFiles, and so on) it adds at most 8 items. After each addition it re-measures the encoded size, and if the budget is exceeded it removes that item.\n- It adds a `totals` object with the full count for each collection.\n- It adds an `omitted` object with the number of records left out of each collection. In the tests, `omitted + len(list) == total` (`tests/test_archlens.py:541`).\n- It adds a `detailHint` that points to `--json` for the complete report.\n- If the metadata alone exceeds the budget, it returns a minimal object. That object has `totals`, `omitted` set to all records, and a `note` saying the budget was exceeded (lines 945\u2013950).",
+      "inputTokens": 22042,
+      "uncachedInputTokens": 4142,
+      "cachedInputTokens": 17900,
+      "outputTokens": 660,
+      "turns": 3,
+      "costUsd": 0.024946000000000003,
+      "durationMs": 8385,
+      "error": false,
+      "grade": {
+        "covered": 3,
+        "total": 4,
+        "incorrect": 0,
+        "note": "Covers 6000 bytes, whole records, and totals/omitted counts; the detailHint points to --json but omits the 'saved to a local file' part, so it is only partially covered and not counted."
+      }
+    },
+    {
+      "condition": "no-handbook",
+      "question": "config-order",
+      "rep": 1,
+      "answer": "Archlens loads preferences in three layers, and the project file wins (`docs/configuration.md`, lines 3\u201314):\n\n1. **Bundled defaults:** `plugins/archlens/defaults.json`.\n2. **One user preference file.** The first of these that applies is used:\n   - the file named by `ARCHLENS_CONFIG`\n   - `archlens.json` under `CLAUDE_CONFIG_DIR`\n   - `archlens/config.json` under `XDG_CONFIG_HOME`, or `~/.config/archlens/config.json` if that isn't set\n   - the legacy `~/.claude/archlens.json`\n3. **`.archlens.json`** in the project root.\n\nLater layers replace earlier ones key by key, so `.archlens.json` takes precedence. Only one user file is read, and the user files are not merged with each other.\n\nEven so, no preference overrides repository instructions or permission policy.\n\nI read this from the docs only. I didn't check `skills/archlens/scripts/archlens.py` to confirm the code does the same.",
+      "inputTokens": 26702,
+      "uncachedInputTokens": 2758,
+      "cachedInputTokens": 23944,
+      "outputTokens": 771,
+      "turns": 4,
+      "costUsd": 0.021120400000000004,
+      "durationMs": 9849,
+      "error": false,
+      "grade": {
+        "covered": 4,
+        "total": 4,
+        "incorrect": 0,
+        "note": "Answer covers defaults first, the single user file with correct precedence order, project .archlens.json last and winning, and later-replaces-earlier with only one user file read."
+      }
+    },
+    {
+      "condition": "archlens",
+      "question": "summary-limit",
+      "rep": 0,
+      "answer": "**Limit:** `--summary` emits JSON of at most 6000 UTF-8 bytes. See `plugins/archlens/scripts/archlens.py:908`, and the `budget=6000` default in `bounded_report` at line 928.\n\n**How it avoids silently dropping records** (`bounded_report`, lines 928\u2013951):\n- It keeps only whole records. It never cuts the JSON text mid-record.\n- For each collection (`findings`, `candidates`, `uncoveredFiles`, `changedFiles`, `needsSync`, `fresh`), it adds at most 8 items. After each add it re-measures the serialized size, and it pops the item and stops if the size goes over budget.\n- It records `totals` (the full count per collection) and `omitted` (how many were left out), so the output states what is missing.\n- It adds a `detailHint` that points to `--json` redirected to a local file.\n- If the metadata alone exceeds the budget, it returns a minimal object. That object has the totals, `omitted` set equal to the totals, and a `note` saying to inspect the complete report locally.\n\nError messages in summary mode are cut at 600 characters (lines 1034\u20131037). They are flagged with `errorTruncated: true` and a `detailHint`.",
+      "inputTokens": 24688,
+      "uncachedInputTokens": 4387,
+      "cachedInputTokens": 20301,
+      "outputTokens": 805,
+      "turns": 4,
+      "costUsd": 0.0276161,
+      "durationMs": 10819,
+      "error": false,
+      "grade": {
+        "covered": 4,
+        "total": 4,
+        "incorrect": 0,
+        "note": "The answer states all four key facts: the 6000 UTF-8 byte limit, whole records kept, totals and omitted counts reported, and the detailHint pointing to --json saved to a local file."
+      }
+    },
+    {
+      "condition": "handbook",
+      "question": "config-order",
+      "rep": 2,
+      "answer": "Archlens loads preferences in three layers (`docs/configuration.md`, lines 3\u201314). Later layers override earlier ones.\n\n1. **Bundled defaults:** `plugins/archlens/defaults.json`.\n2. **One user preference file:** the first of these that applies is the only one read.\n   - the file named by `ARCHLENS_CONFIG`\n   - `archlens.json` under `CLAUDE_CONFIG_DIR`\n   - `archlens/config.json` under `XDG_CONFIG_HOME`, or `~/.config/archlens/config.json` if that isn't set\n   - the legacy `~/.claude/archlens.json`\n3. **Project file:** `.archlens.json` in the selected project root.\n\n**Which one wins:** the project `.archlens.json` wins. Later keys replace earlier keys. The docs say the user files aren't merged with each other, since only one is read.\n\nEven so, no preference overrides repository instructions or permission policy (line 50).\n\nI only read the docs. I didn't check `scripts/archlens.py` to confirm the code behaves the same way.",
+      "inputTokens": 26012,
+      "uncachedInputTokens": 2525,
+      "cachedInputTokens": 23487,
+      "outputTokens": 814,
+      "turns": 4,
+      "costUsd": 0.0205727,
+      "durationMs": 9018,
+      "error": false,
+      "grade": {
+        "covered": 4,
+        "total": 4,
+        "incorrect": 0,
+        "note": "Answer covers defaults first, the single user file with correct precedence, project file last, and later-overrides/only-one-user-file; the XDG detail is a minor paraphrase."
+      }
+    },
+    {
+      "condition": "no-handbook",
+      "question": "staleness",
+      "rep": 1,
+      "answer": "Archlens decides staleness by comparing file content hashes. It doesn't use git history or timestamps. The logic is in `freshness()` in `skills/archlens/scripts/archlens.py` (around lines 607\u2013631).\n\n- **Current state:** `project_files()` takes a content hash (git blob SHA) of every project file, truncated to 10 characters. Docs files and `.archlens.json` are excluded.\n- **Recorded state:** each page's record in the state file stores the hashes of its covered files from its last sync.\n- **Verdict:** for each page, the covered files are diffed against that record. Any file that is modified, added or removed makes the page `stale`. If nothing differs it is `fresh`. If the page has no record it is `unsynced`.\n\nA source change that was already committed still counts. The comparison is against the hashes recorded at sync, not against `HEAD`. The dirty-file handling at lines 560\u2013568 only refreshes hashes for uncommitted edits. So the page stays stale until you re-sync, whether or not the change is committed.\n\nThe tool's own wording is that stale means \"covered or linked files changed since the page was synced, not that its prose is wrong\" (line 638).",
+      "inputTokens": 27537,
+      "uncachedInputTokens": 3122,
+      "cachedInputTokens": 24415,
+      "outputTokens": 865,
+      "turns": 4,
+      "costUsd": 0.0235635,
+      "durationMs": 10126,
+      "error": false,
+      "grade": {
+        "covered": 4,
+        "total": 5,
+        "incorrect": 0,
+        "note": "Answer covers content-hash comparison against recorded state, committed changes counting, and stale meaning not-proof; it does not mention that covered files come from map.json covers globs plus linked files, and it names the state file only generically."
+      }
+    },
+    {
+      "condition": "handbook",
+      "question": "isolation",
+      "rep": 1,
+      "answer": "Most commands run in a forked task to keep exploration out of your main conversation. `docs/context-efficiency.md` and `docs/architecture/decisions/ADR-001.md` describe this as manual invocation plus a forked task. That gives explicit scope and a bounded result back in the parent session. The cost is that you must remember to run the command, and the worker has a startup cost.\n\nThe forked commands are `setup`, `check`, `explain`, `update` and `decide`. Each has `context: fork` in `plugins/archlens/skills/<name>/SKILL.md`.\n\nThe command that doesn't fork is `learn`. It runs inline so you can ask follow-up questions in the same conversation (`plugins/archlens/README.md`, `docs/architecture/README.md`).\n\nAn isolated task doesn't see your earlier conversation, so you have to supply decision evidence explicitly (`README.md`).",
+      "inputTokens": 13048,
+      "uncachedInputTokens": 2565,
+      "cachedInputTokens": 10483,
+      "outputTokens": 430,
+      "turns": 2,
+      "costUsd": 0.015600300000000001,
+      "durationMs": 5387,
+      "error": false,
+      "grade": {
+        "covered": 4,
+        "total": 4,
+        "incorrect": 0,
+        "note": "Covers keeping exploration out of the main context, bounded result, the worker lacking prior conversation (evidence must be supplied), and learn running inline for follow-ups; the list of forked commands is not contradicted by the key."
+      }
+    },
+    {
+      "condition": "handbook",
+      "question": "portable-sync",
+      "rep": 0,
+      "answer": "The native plugin in `plugins/archlens/` is the canonical source. The portable skill in `skills/archlens/` is generated from it.\n\n- **Generation:** `tools/sync_portable.py` copies `LICENSE`, `defaults.json`, `scripts/archlens.py` and `references/*.md` byte-for-byte. It builds `workflows/{setup,update,check,explain,decide,learn}.md` from the plugin's `skills/<name>/SKILL.md` files. It also rewrites Claude-specific placeholders. `${CLAUDE_PLUGIN_ROOT}` becomes `<skill-dir>`, and `$ARGUMENTS` becomes neutral wording. It raises an error if any placeholder is left over (`tools/sync_portable.py:14-43`).\n- **Verification:** `python tools/sync_portable.py --check` audits the output. It reports stale, missing, unexpected or symlinked files.\n- **Enforcement:**\n  - The pre-commit hook in `.pre-commit-config.yaml:53` runs the check.\n  - CI runs it at `.github/workflows/ci.yml:40`.\n  - `tests/test_distribution.py` tests the tool.\n  - The PR template and `CONTRIBUTING.md:70` tell contributors to run the sync and commit the result.\n\nI only read the first 60 lines of `tools/sync_portable.py`, so I didn't read the audit logic. The `--check` behavior comes from `benchmarks/questions/archlens.json`.",
+      "inputTokens": 19577,
+      "uncachedInputTokens": 3081,
+      "cachedInputTokens": 16496,
+      "outputTokens": 863,
+      "turns": 4,
+      "costUsd": 0.0225916,
+      "durationMs": 10142,
+      "error": false,
+      "grade": {
+        "covered": 4,
+        "total": 4,
+        "incorrect": 0,
+        "note": "Answer states plugin is canonical with sync_portable.py generating the skill, placeholder rewriting, --check reporting stale/missing/unexpected/symlinked files, and pre-commit/CI/tests enforcement."
+      }
+    },
+    {
+      "condition": "no-handbook",
+      "question": "other-agents",
+      "rep": 1,
+      "answer": "**Learning about the handbook**\n- Install the portable skill with skills.sh. For Codex, run `npx skills@1.7.6 add tushar-mahalya/archlens --skill archlens --agent codex --copy --yes` (`docs/installation.md`). Use `--agent cursor` for Cursor. The same doc says to verify discovery in your Cursor version. Codex uses the shared `.agents/skills` location.\n- The skill's workflows live in `skills/archlens/SKILL.md` and `skills/archlens/workflows/*.md`.\n\n**Keeping up with it**\n- Set `{ \"contextFile\": \"AGENTS.md\" }` in the config and run a sync. This writes the page map and stale flags into `AGENTS.md`, so any agent that reads it sees them every session (`docs/automation.md`). Each `sync` refreshes that block.\n- Ask the agent to run the Archlens update operation when pages are flagged stale.\n- Add the pre-commit `pre-push` hook (`.pre-commit-hooks.yaml`) so staleness is checked on push in any editor.\n- Optionally run a CI pull-request check.\n\nAutomatic updates after each turn (the Stop hook) are Claude Code only.",
+      "inputTokens": 19352,
+      "uncachedInputTokens": 1707,
+      "cachedInputTokens": 17645,
+      "outputTokens": 813,
+      "turns": 4,
+      "costUsd": 0.0167105,
+      "durationMs": 13244,
+      "error": false,
+      "grade": {
+        "covered": 4,
+        "total": 4,
+        "incorrect": 0,
+        "note": "Covers contextFile in config, sync writing the page map block into AGENTS.md, hooks being Claude Code only, and pre-commit/CI staleness checks; the pre-commit and CI mentions are slightly vague but acceptable."
+      }
+    },
+    {
+      "condition": "no-handbook",
+      "question": "portable-sync",
+      "rep": 2,
+      "answer": "The native plugin in `plugins/archlens/` is the canonical source. The portable skill in `skills/archlens/` is generated from it by `tools/sync_portable.py`.\n\n- **Generation:** The script copies `LICENSE`, `defaults.json`, `scripts/archlens.py` and `references/*.md` unchanged. It builds each `workflows/<op>.md` from the plugin's `skills/<op>/SKILL.md` (`tools/sync_portable.py:33-43`).\n- **Rewrites:** It replaces Claude-specific placeholders. `${CLAUDE_PLUGIN_ROOT}` becomes `<skill-dir>` and `$ARGUMENTS` becomes neutral wording. It also rewrites `/archlens:setup` and the session-start handbook-map text. It raises an error if a placeholder is left over (`tools/sync_portable.py:14-30`).\n- **Check mode:** `python tools/sync_portable.py --check` flags stale, missing, unexpected or symlinked files (`tools/sync_portable.py:57`).\n- **Enforcement:** Three places run the check:\n  - the pre-commit hook (`.pre-commit-config.yaml:53`)\n  - CI (`.github/workflows/ci.yml:40`)\n  - `tests/test_distribution.py`\n\n`CONTRIBUTING.md:70` and the PR template tell contributors to run the sync and commit the generated files.",
+      "inputTokens": 19863,
+      "uncachedInputTokens": 2352,
+      "cachedInputTokens": 17511,
+      "outputTokens": 828,
+      "turns": 4,
+      "costUsd": 0.0194271,
+      "durationMs": 7856,
+      "error": false,
+      "grade": {
+        "covered": 4,
+        "total": 4,
+        "incorrect": 0,
+        "note": "The answer covers canonical plugin and generation, placeholder rewrites, --check flagging stale/missing/unexpected/symlinked files, and enforcement via pre-commit, CI and tests."
+      }
+    },
+    {
+      "condition": "handbook",
+      "question": "json-map",
+      "rep": 0,
+      "answer": "The repo doesn't state an explicit rationale for choosing JSON over YAML frontmatter. What it does show:\n\n- `skills/archlens/references/configuration.md:48-49` says `map.json` is \"the machine-readable metadata\" and tells you not to duplicate it in page frontmatter. This keeps one source of truth.\n- `docs/cli.md:46` says the tool expects ordinary UTF-8 Markdown, and that frontmatter is \"skipped, not parsed\". The CLI never reads page frontmatter.\n- `skills/archlens/scripts/archlens.py:189-201` loads and strictly validates `map.json`. It requires exactly `version` and `pages`, and it checks each page entry. Line 372 flags any page that isn't listed in the map as `unmapped-page`.\n\nThe following reasons are my inference, not stated in the repo:\n\n- Python's standard library parses JSON, but not YAML. A script with no dependencies would need a YAML library to read frontmatter.\n- One central map lets the tool check coverage and list every page without opening each file.",
+      "inputTokens": 13348,
+      "uncachedInputTokens": 2016,
+      "cachedInputTokens": 11332,
+      "outputTokens": 478,
+      "turns": 2,
+      "costUsd": 0.013969200000000001,
+      "durationMs": 6601,
+      "error": false,
+      "grade": {
+        "covered": 1,
+        "total": 4,
+        "incorrect": 0,
+        "note": "The answer infers that the standard library parses JSON but not YAML, so a dependency-free script would need a YAML library, which matches the stdlib/no-dependency fact. It does not cover the custom-YAML-parser risk, the duplicate-key checks (it mentions only strict validation), or the authoring cost of maintaining a separate map."
+      }
+    },
+    {
+      "condition": "handbook",
+      "question": "json-map",
+      "rep": 1,
+      "answer": "The repo doesn't have a design doc on this. The rationale below comes mostly from `benchmarks/questions/archlens.json` (line 17), plus the code.\n\n- **No dependencies:** The checker in `skills/archlens/scripts/archlens.py` appears to use only the Python standard library. A YAML parser would be an extra install. A hand-written YAML-subset parser would be ambiguous and risky.\n- **Strict validation:** `archlens.py:189-201` loads one `map.json` and requires exactly `version` and `pages`. It also checks that `pages` is a non-empty list and reports each entry by index. Pages missing from the map get an `unmapped-page` error (line 372).\n- **One source of truth:** `skills/archlens/references/configuration.md:48-49` says `map.json` is the machine-readable metadata and must not be duplicated in page frontmatter.\n\nThe cost, per the same benchmark key, is that authors must maintain the separate map and its coverage patterns.",
+      "inputTokens": 13464,
+      "uncachedInputTokens": 2132,
+      "cachedInputTokens": 11332,
+      "outputTokens": 586,
+      "turns": 2,
+      "costUsd": 0.015513200000000001,
+      "durationMs": 6292,
+      "error": false,
+      "grade": {
+        "covered": 4,
+        "total": 4,
+        "incorrect": 0,
+        "note": "Answer covers stdlib-only, YAML parser dependency/ambiguous custom parser risk, single map.json with schema checks, and the maintenance cost of separate map and coverage patterns."
+      }
+    },
+    {
+      "condition": "archlens",
+      "question": "hook-safety",
+      "rep": 2,
+      "answer": "In both cases the hooks do nothing visible and never break the session. The hooks are registered in `plugins/archlens/hooks/hooks.json` and run `archlens.py hook session-start` and `archlens.py hook stop`.\n\n**No handbook:** A project counts as opted in only if `<docsRoot>/map.json` exists (`opted_in`, `plugins/archlens/scripts/archlens.py:820`).\n- **SessionStart:** `hook_session_start` returns an empty string, so nothing is printed.\n- **Stop:** `hook_stop` returns `None`, so no nudge or block is sent.\n- **Related cases:** The stop hook also returns `None` when `autoUpdate` is `off`, when the project isn't a git repo, or when nothing is dirty.\n\n**Malformed input:** `run_hook` (`archlens.py:878`) handles bad input in two ways.\n- **Non-object JSON:** If the payload parses but isn't a JSON object, it is replaced with `{}`.\n- **Any exception, including invalid JSON on stdin or a config error:** A blanket `except Exception` returns exit code 0 with no output.",
+      "inputTokens": 29905,
+      "uncachedInputTokens": 3897,
+      "cachedInputTokens": 26008,
+      "outputTokens": 908,
+      "turns": 5,
+      "costUsd": 0.0272528,
+      "durationMs": 10147,
+      "error": false,
+      "grade": {
+        "covered": 3,
+        "total": 3,
+        "incorrect": 0,
+        "note": "Answer covers silence, exit code 0 on errors/malformed input, and map.json opt-in gating; no contradictions."
+      }
+    },
+    {
+      "condition": "no-handbook",
+      "question": "hook-safety",
+      "rep": 2,
+      "answer": "The hooks do nothing visible in either case, and they always exit 0. The code is in `plugins/archlens/scripts/archlens.py`.\n\n**No handbook.** A project counts as opted in only if `<docsRoot>/map.json` exists (`opted_in`, lines 820\u2013824).\n- **Session-start:** `hook_session_start` returns an empty string, so nothing is printed (827\u2013830).\n- **Stop:** `hook_stop` returns `None`, so no nudge or block is emitted (835\u2013836). It also returns `None` if `autoUpdate` is off, the project isn't in git, or no files changed.\n\n**Malformed input.** `run_hook` (878\u2013897) handles bad input in three ways:\n- Empty stdin, or a TTY, is treated as an empty payload.\n- JSON that parses to a non-dict is replaced with `{}`.\n- Invalid JSON raises inside the `try` block. The blanket `except Exception` catches it and returns 0 with no output, so the session is never broken.\n\nIf a payload has no `cwd`, the project root falls back to `CLAUDE_PROJECT_DIR`, then to the current directory (813\u2013817).",
+      "inputTokens": 27550,
+      "uncachedInputTokens": 4015,
+      "cachedInputTokens": 23535,
+      "outputTokens": 1034,
+      "turns": 5,
+      "costUsd": 0.028737500000000003,
+      "durationMs": 9743,
+      "error": false,
+      "grade": {
+        "covered": 3,
+        "total": 3,
+        "incorrect": 0,
+        "note": "The answer covers silence, exit code 0, and the map.json opt-in gating for both session-start and stop hooks."
+      }
+    },
+    {
+      "condition": "handbook",
+      "question": "isolation",
+      "rep": 2,
+      "answer": "Most commands run forked so that exploration stays out of your main conversation, and only a short, bounded result returns to it.\n\n- **Why forked:** `docs/architecture/decisions/ADR-001.md` says the native plugin uses manual invocation plus a forked task. `README.md:102` gives the same reason. Each of the five commands (`setup`, `check`, `explain`, `decide` and `update`) sets `context: fork` in its `plugins/archlens/skills/*/SKILL.md`. `docs/context-efficiency.md:109` says each command starts one forked task. One consequence is that the isolated task doesn't see your earlier conversation (`README.md:71`), so you have to supply evidence explicitly.\n- **The exception:** `learn` runs inline. `plugins/archlens/README.md:10` says it does this \"for follow-up questions\", and `docs/architecture/README.md:4` confirms that five run isolated and `learn` runs inline.\n\nI didn't open the `learn` skill file itself, so the inline behaviour comes from the docs.",
+      "inputTokens": 13048,
+      "uncachedInputTokens": 1714,
+      "cachedInputTokens": 11334,
+      "outputTokens": 483,
+      "turns": 2,
+      "costUsd": 0.0128114,
+      "durationMs": 5592,
+      "error": false,
+      "grade": {
+        "covered": null,
+        "total": 4,
+        "incorrect": null,
+        "note": "unparsed: {\"covered\": 3, \"incorrect\": 0, \"note\": \"Covers keeping exploration out of the parent context, a bounded result, no prior conversation so evidence must be supplied, and learn inline; but it only says l"
+      }
+    },
+    {
+      "condition": "handbook",
+      "question": "hook-safety",
+      "rep": 2,
+      "answer": "They stay silent and never fail the session. The code is in `plugins/archlens/scripts/archlens.py`.\n\n**No handbook:** A project counts as opted in only if `<docsRoot>/map.json` exists (`opted_in`, line 820). Without that file:\n- `hook_session_start` returns `\"\"`, so nothing is printed (line 828).\n- `hook_stop` returns `None`, so nothing is printed (line 835).\n- The stop hook also returns `None` if the project isn't a git repo or `autoUpdate` is `off`.\n- An invalid `docsRoot` raises `ArchlensError`, which is treated as not opted in.\n\n**Malformed input:** `run_hook` (lines 878\u2013897) handles bad input in three ways:\n- Empty stdin, or stdin that is a TTY, gives an empty payload.\n- A JSON payload that isn't an object is replaced with `{}`.\n- Any exception, including a `json.loads` failure, is caught by a broad `except Exception`. The hook then returns exit code 0 with no output.",
+      "inputTokens": 28186,
+      "uncachedInputTokens": 3397,
+      "cachedInputTokens": 24789,
+      "outputTokens": 989,
+      "turns": 5,
+      "costUsd": 0.025940900000000003,
+      "durationMs": 9583,
+      "error": false,
+      "grade": {
+        "covered": 3,
+        "total": 3,
+        "incorrect": 0,
+        "note": "Answer covers silence, exit code 0, and map.json opt-in gating; no contradictions with the key."
+      }
+    },
+    {
+      "condition": "archlens",
+      "question": "other-agents",
+      "rep": 2,
+      "answer": "Plugin hooks only run in Claude Code, so Codex and Cursor need a file-based route instead (`docs/automation.md:37-50`, `docs/configuration.md:69-73`).\n\n**Learning about the handbook**\n- In `.archlens.json`, set `{ \"contextFile\": \"AGENTS.md\" }`.\n- Run `python plugins/archlens/scripts/archlens.py context --root <project> --write AGENTS.md` (`docs/cli.md:15`). You can also run `sync`.\n- Either command writes a managed `archlens:context` block into `AGENTS.md`. The block holds the compact page map and any stale flags. Codex and Cursor read that file.\n- If you also use Claude Code, put `@AGENTS.md` in `CLAUDE.md`. That avoids a duplicate map.\n\n**Keeping up with it**\n- Install the portable skill for your agent. For example, `codex` and `cursor` are listed in `docs/installation.md:143-144`. Cursor discovery should be verified on your version.\n- Ask the agent to run the Archlens update operation when pages are flagged stale.\n- Use the pre-commit hooks (`archlens-stale`, `archlens-check`), or run `status --fail-on-stale` in CI, to catch stale pages. These come from `benchmarks/questions/archlens.json:42`.",
+      "inputTokens": 23390,
+      "uncachedInputTokens": 4163,
+      "cachedInputTokens": 19227,
+      "outputTokens": 672,
+      "turns": 3,
+      "costUsd": 0.025282699999999998,
+      "durationMs": 8614,
+      "error": false,
+      "grade": {
+        "covered": 4,
+        "total": 4,
+        "incorrect": 0,
+        "note": "All four key facts are stated: contextFile in .archlens.json, context --write/sync writing the managed archlens:context block with the page map, plugin hooks being Claude Code-only, and pre-commit hooks or CI status --fail-on-stale for stale detection."
+      }
+    },
+    {
+      "condition": "no-handbook",
+      "question": "summary-limit",
+      "rep": 2,
+      "answer": "**Limit:** `--summary` emits valid JSON of at most 6,000 UTF-8 bytes, excluding the final newline (`docs/cli.md:97`; flag help at `skills/archlens/scripts/archlens.py:908`).\n\n**How it avoids silently dropping records:** `bounded_report` in `skills/archlens/scripts/archlens.py:928-951` does this:\n- It never cuts the JSON text. It adds only whole records.\n- It records `totals` (the full count per collection) and `omitted` (a count that starts equal to `totals`).\n- For each collection it tries up to 8 items. After each item it re-serializes the result. If that goes over the budget, it removes the item and stops adding to that collection. Each item kept lowers that collection's `omitted` count by one.\n- A `detailHint` tells the reader to use `--json` redirected to a local file.\n- If the metadata alone exceeds the budget, it returns a minimal object. That object has `totals`, `omitted` (equal to `totals`) and a `note` saying to inspect the full report locally.\n\nThe docs say preview order follows report order, not severity (`docs/cli.md:99`).",
+      "inputTokens": 27106,
+      "uncachedInputTokens": 2458,
+      "cachedInputTokens": 24648,
+      "outputTokens": 918,
+      "turns": 5,
+      "costUsd": 0.021460800000000002,
+      "durationMs": 10598,
+      "error": false,
+      "grade": {
+        "covered": 4,
+        "total": 4,
+        "incorrect": 0,
+        "note": "The answer states the 6000 UTF-8 byte limit, whole-record inclusion, totals and omitted counts, and the --json local-file hint."
+      }
+    },
+    {
+      "condition": "archlens",
+      "question": "other-agents",
+      "rep": 1,
+      "answer": "Codex and Cursor don't run the Claude Code plugin hooks, so they need a file-based route. `docs/automation.md` (lines 16 and 37\u201350) describes it.\n\n1. **Learn about the handbook.** Install the portable skill with the installer. Codex uses the shared `.agents/skills` location. Cursor discovery should be verified in your version (`docs/installation.md:143-144`).\n2. **Load the map.** Set `{ \"contextFile\": \"AGENTS.md\" }` in `.archlens.json` (`docs/configuration.md:70-73`). Then run `python plugins/archlens/scripts/archlens.py context --root <project> --write AGENTS.md` (`docs/cli.md:15`). This writes a managed block holding the compact page map, which these agents read at the start of a session. `docs/architecture/decisions/ADR-003.md:19` records the design.\n3. **Keep it current.** Ask the agent to run the Archlens update operation. Stale flags appear in the map block. Rerunning `context --write` or `sync` refreshes the block. You can also catch stale pages with pre-commit hooks or CI (`status --fail-on-stale`). The `docs/automation.md` table lists these options.",
+      "inputTokens": 23134,
+      "uncachedInputTokens": 3013,
+      "cachedInputTokens": 20121,
+      "outputTokens": 654,
+      "turns": 3,
+      "costUsd": 0.0205921,
+      "durationMs": 7733,
+      "error": false,
+      "grade": {
+        "covered": 4,
+        "total": 4,
+        "incorrect": 0,
+        "note": "Answer covers contextFile in .archlens.json, context --write managed block with page map, plugin hooks not running in other hosts, and pre-commit/CI status --fail-on-stale; no clear contradictions."
+      }
+    },
+    {
+      "condition": "archlens",
+      "question": "other-agents",
+      "rep": 0,
+      "answer": "Codex and Cursor don't run the Claude plugin hooks, so they need a file-based route instead.\n\n- **Learn about it:** Set `\"contextFile\": \"AGENTS.md\"` in `.archlens.json`. Then run `python plugins/archlens/scripts/archlens.py context --root <project> --write AGENTS.md`. This writes a managed block with the compact page map into `AGENTS.md`, which Codex, Cursor, Copilot and Gemini CLI read (`docs/configuration.md:69-73`, `docs/cli.md:15`, `docs/automation.md:37-42`).\n- **Keep up with it:** The map block carries stale flags. Ask the agent to run the Archlens update operation, which refreshes the block (`docs/automation.md:16`). The portable skill in `skills/archlens/SKILL.md` routes those operations. Install it for your agent, for example `codex` or `cursor`. Cursor discovery should be verified (`docs/installation.md:102-144`).\n- **Stale detection outside Claude:** The `archlens-stale` and `archlens-check` pre-commit hooks or CI can catch stale pages. I didn't open the files that define them, and the CI route comes from the benchmark answer key (`benchmarks/questions/archlens.json:42`). I didn't check either one.\n- **Design rationale:** `docs/architecture/decisions/ADR-003.md:19`.",
+      "inputTokens": 23134,
+      "uncachedInputTokens": 1486,
+      "cachedInputTokens": 21648,
+      "outputTokens": 721,
+      "turns": 3,
+      "costUsd": 0.015306799999999999,
+      "durationMs": 8821,
+      "error": false,
+      "grade": {
+        "covered": 4,
+        "total": 4,
+        "incorrect": 0,
+        "note": "Covers contextFile, managed block with page map via context --write, hooks not running in other hosts, and pre-commit hooks/CI for stale detection; the CI route is hedged but present, and the missing --fail-on-stale flag name is minor."
+      }
+    },
+    {
+      "condition": "archlens",
+      "question": "hook-safety",
+      "rep": 1,
+      "answer": "In both cases the hooks do nothing visible, and they don't break the session.\n\n**No handbook.** A project counts as opted in only if `<docsRoot>/map.json` exists (`opted_in`, `plugins/archlens/scripts/archlens.py:820`).\n- **SessionStart:** `hook_session_start` returns an empty string when the project isn't opted in. Nothing is printed, so no context is injected (`archlens.py:827`).\n- **Stop:** `hook_stop` returns `None`, so there is no nudge and no block (`archlens.py:833`). It does the same when `autoUpdate` is `\"off\"` or the project isn't in a git repo.\n\n**Malformed input.** `run_hook` (`archlens.py:878`) handles bad input in three ways:\n- Empty or non-JSON-object stdin is treated as `{}`. An interactive terminal also counts as empty input.\n- The whole hook body is wrapped in `except Exception: return 0`. Any parse, config or git error ends quietly with exit code 0 and no output.\n- A malformed config also lands in that `except`, so it fails silently too.\n\nThe hooks are registered in `plugins/archlens/hooks/hooks.json`, each with a 15-second timeout.",
+      "inputTokens": 29616,
+      "uncachedInputTokens": 3469,
+      "cachedInputTokens": 26147,
+      "outputTokens": 964,
+      "turns": 5,
+      "costUsd": 0.0261147,
+      "durationMs": 10256,
+      "error": false,
+      "grade": {
+        "covered": 3,
+        "total": 3,
+        "incorrect": 0,
+        "note": "The answer covers silence, exit code 0 via the except handler, and the map.json opt-in condition for both the session map and stop reminder."
+      }
+    },
+    {
+      "condition": "archlens",
+      "question": "summary-limit",
+      "rep": 2,
+      "answer": "**Limit:** `--summary` emits at most 6000 UTF-8 bytes of JSON. The flag is defined at `plugins/archlens/scripts/archlens.py:908`, and the default `budget=6000` is in `bounded_report` at line 928.\n\n**How it avoids silent drops** (`bounded_report`, lines 928\u2013951):\n- It never cuts the JSON text mid-record. It adds whole records one at a time, up to 8 per collection. Collections are `findings`, `candidates`, `uncoveredFiles`, `changedFiles`, `needsSync` and `fresh`. If adding a record pushes the output over budget, that record is removed.\n- It always reports `totals` (the full count per collection) and `omitted` (the count left out). A reader can see exactly what was dropped.\n- It includes a `detailHint` that tells the caller to use `--json` redirected to a local file.\n- If the metadata alone exceeds the budget, it returns a minimal object. That object has `totals`, `omitted` and a `note` saying to inspect the full report locally (lines 945\u2013950).\n\nLine 1034 also has a separate `len(message) > 600` check in the summary path. I didn't read that code.",
+      "inputTokens": 23372,
+      "uncachedInputTokens": 3019,
+      "cachedInputTokens": 20353,
+      "outputTokens": 840,
+      "turns": 4,
+      "costUsd": 0.0224993,
+      "durationMs": 8756,
+      "error": false,
+      "grade": {
+        "covered": 4,
+        "total": 4,
+        "incorrect": 0,
+        "note": "All four key facts are stated: 6000 UTF-8 bytes, whole records kept, totals and omitted reported, and a --json local-file hint. No claims contradict the key."
+      }
+    },
+    {
+      "condition": "no-handbook",
+      "question": "hook-safety",
+      "rep": 0,
+      "answer": "They do nothing and exit 0 in both cases. The hooks are registered in `plugins/archlens/hooks/hooks.json` and handled by `run_hook` in `plugins/archlens/scripts/archlens.py:878`.\n\n**No handbook:**\n- A project counts as opted in only if `<docsRoot>/map.json` exists (`opted_in`, line 820).\n- Without it, `hook_session_start` returns an empty string, so nothing is printed (lines 827\u2013830).\n- `hook_stop` returns `None`, so it emits nothing (lines 833\u2013835).\n- `hook_stop` also returns `None` when the project isn't a git repo or `autoUpdate` is `off`.\n\n**Malformed input:**\n- Empty or whitespace stdin is treated as `{}`.\n- A JSON value that isn't an object is replaced with `{}` (lines 881\u2013884).\n- Invalid JSON raises inside the `try`, and the broad `except Exception` returns 0 silently (lines 895\u2013896).\n- The code comment says a documentation hook must never break the agent session.\n- When the payload is empty, `hook_root` falls back to `CLAUDE_PROJECT_DIR`, then `cwd`, then `os.getcwd()`.",
+      "inputTokens": 27879,
+      "uncachedInputTokens": 3293,
+      "cachedInputTokens": 24586,
+      "outputTokens": 941,
+      "turns": 5,
+      "costUsd": 0.025024599999999998,
+      "durationMs": 9952,
+      "error": false,
+      "grade": {
+        "covered": 3,
+        "total": 3,
+        "incorrect": 0,
+        "note": "The answer covers silence, exit 0 so the session never breaks, and the map.json opt-in condition."
+      }
+    },
+    {
+      "condition": "no-handbook",
+      "question": "json-map",
+      "rep": 2,
+      "answer": "The repo has no design doc that states this reason outright. The closest statement is the benchmark answer key in `benchmarks/questions/archlens.json:16-17`, which I'm treating as the maintainers' stated rationale. The code is consistent with it.\n\n- **No dependencies:** the checker, `skills/archlens/scripts/archlens.py`, uses only the Python standard library. Python has a built-in JSON parser but no YAML one, so YAML would add a package install. Writing a custom YAML-subset parser would be ambiguous and risky.\n- **One explicit schema:** `archlens.py:189-201` loads a single `map.json`. It requires exactly `version` and `pages`, checks each page's schema, and flags unmapped pages (`archlens.py:372`).\n- **Frontmatter is ignored:** `docs/cli.md:46` says frontmatter is skipped, not parsed. `skills/archlens/references/configuration.md:48-49` says to keep metadata in `map.json` and not duplicate it in page frontmatter.\n- **Cost:** authors have to maintain a separate map and its coverage patterns (per the same answer key).",
+      "inputTokens": 13906,
+      "uncachedInputTokens": 3425,
+      "cachedInputTokens": 10481,
+      "outputTokens": 737,
+      "turns": 3,
+      "costUsd": 0.022110099999999997,
+      "durationMs": 7364,
+      "error": false,
+      "grade": {
+        "covered": 4,
+        "total": 4,
+        "incorrect": 0,
+        "note": "The answer covers stdlib-only, YAML dependency/custom parser risk, single explicit-schema map.json, and the maintenance cost; it cites the answer key as its source, which is odd but not contradictory."
+      }
+    },
+    {
+      "condition": "archlens",
+      "question": "json-map",
+      "rep": 1,
+      "answer": "Archlens uses `map.json` because the optional checker needs structured metadata and predictable errors. Normal plugin users shouldn't have to install a package to get them. This comes from `docs/architecture/decisions/ADR-002.md`, which is still marked \"proposed\" and awaiting maintainer review.\n\n- **YAML frontmatter:** It would keep metadata next to each page. But Python's standard library has no YAML parser, so it would need an external parser as a runtime dependency.\n- **Custom YAML-subset parser:** It would need no dependency. The ADR rejects it because the syntax would be ambiguous and the parser would be a maintenance risk.\n- **JSON map:** Python's built-in JSON parser handles it, and the checker adds duplicate-key and schema checks. The cost is a separate file that authors must keep up to date.\n\nThe ADR lists the consequences. Authors must register each page and maintain its coverage patterns. The single map can grow large, so the agent should query it instead of loading all of it. The ADR says to revisit the choice if map size or merge conflicts become a persistent problem.\n\nThe ADR points to `plugins/archlens/references/configuration.md`, `plugins/archlens/scripts/archlens.py` and `tests/test_archlens.py` as evidence.",
+      "inputTokens": 13127,
+      "uncachedInputTokens": 4,
+      "cachedInputTokens": 13123,
+      "outputTokens": 539,
+      "turns": 2,
+      "costUsd": 0.0067103,
+      "durationMs": 6021,
+      "error": false,
+      "grade": {
+        "covered": 4,
+        "total": 4,
+        "incorrect": 0,
+        "note": "Covers stdlib/no install, YAML dependency and ambiguous custom parser risk, single JSON map with duplicate-key/schema checks, and the authoring cost; the extra ADR details don't contradict the key."
+      }
+    },
+    {
+      "condition": "archlens",
+      "question": "config-order",
+      "rep": 2,
+      "answer": "Archlens merges three layers, in this order. Later keys replace earlier ones (`plugins/archlens/references/configuration.md`):\n\n1. **Bundled `defaults.json`** from the installed Archlens directory.\n2. **One user preference file.** Only the first match in this list is used:\n   - the file named by `ARCHLENS_CONFIG`, which must exist\n   - `archlens.json` in `CLAUDE_CONFIG_DIR`\n   - `archlens/config.json` under `XDG_CONFIG_HOME`, or `~/.config/archlens/config.json` if that isn't set\n   - the legacy `~/.claude/archlens.json`\n3. **`.archlens.json`** at the project root.\n\nThe project's `.archlens.json` wins. `docs/architecture/data.md` says the same: \"Project preferences override it.\"\n\nThe checker rejects malformed JSON, duplicate keys, unknown keys and invalid values. It does not fall back to defaults when it finds one. A missing default user or project file is fine.",
+      "inputTokens": 15590,
+      "uncachedInputTokens": 4122,
+      "cachedInputTokens": 11468,
+      "outputTokens": 559,
+      "turns": 3,
+      "costUsd": 0.023216800000000003,
+      "durationMs": 5142,
+      "error": false,
+      "grade": {
+        "covered": 4,
+        "total": 4,
+        "incorrect": 0,
+        "note": "Answer covers defaults, the ordered single user file list, project file, and later-overrides/only-one-user-file semantics; extra details about validation don't contradict the key."
+      }
+    },
+    {
+      "condition": "archlens",
+      "question": "staleness",
+      "rep": 1,
+      "answer": "Archlens marks a page stale when the content of any file it covers (or links to) no longer matches what was recorded at the last `sync`.\n\n- **Mechanism:** `sync` stores a content ID (fingerprint) for each covered and linked file on a page. `status` compares those IDs with the files' current content. The comparison logic is in the `freshness` function in `plugins/archlens/scripts/archlens.py`.\n- **Committed changes:** Yes, they still count. Content IDs don't depend on a base ref, so a page stays stale after the change is committed. It clears only when someone re-syncs the page. This is stated in `docs/architecture/runtime.md` and `docs/architecture/decisions/ADR-003.md`. `tests/test_archlens.py` covers it.\n- **Caveats:** A stale flag is path-level. It is a review candidate and doesn't prove the prose is wrong. Running `sync --all` without reviewing the pages hides real drift.\n\nI read the two docs but not the checker source or the tests. I'm relying on the docs' descriptions of them.",
+      "inputTokens": 14649,
+      "uncachedInputTokens": 3163,
+      "cachedInputTokens": 11486,
+      "outputTokens": 577,
+      "turns": 3,
+      "costUsd": 0.0195626,
+      "durationMs": 7567,
+      "error": false,
+      "grade": {
+        "covered": 4,
+        "total": 5,
+        "incorrect": 0,
+        "note": "The answer covers content IDs recorded at sync, the status comparison, committed changes still counting, and stale as a review candidate. It never mentions map.json covers globs as the source of covered files."
+      }
+    },
+    {
+      "condition": "handbook",
+      "question": "other-agents",
+      "rep": 0,
+      "answer": "**Learning about it:** Install the portable skill with skills.sh. For Codex, run `npx skills@1.7.6 add tushar-mahalya/archlens --skill archlens --agent codex --copy --yes`. Use `--agent cursor` for Cursor. The skill source is in `skills/archlens/SKILL.md`. Codex uses the shared `.agents/skills` location. The docs say to verify Cursor discovery in your Cursor version (`docs/installation.md`, lines 100\u2013147).\n\n**Keeping up:** Claude Code's Stop hook and `autoUpdate` don't apply to these agents (`docs/automation.md`). Instead:\n- Set `{ \"contextFile\": \"AGENTS.md\" }` in the Archlens config and run `sync` once. This writes the page map and stale flags into `AGENTS.md`. Every later `sync` refreshes that block, so the agent sees it each session.\n- When the map shows stale pages, ask the agent to run the Archlens update operation (`skills/archlens/workflows/update.md`).\n- Use the `pre-push` hook from pre-commit (`.pre-commit-hooks.yaml`), which works with any editor or agent.\n- Optionally add a CI pull request check (`docs/automation.md`).",
+      "inputTokens": 19930,
+      "uncachedInputTokens": 2001,
+      "cachedInputTokens": 17929,
+      "outputTokens": 902,
+      "turns": 5,
+      "costUsd": 0.0188049,
+      "durationMs": 8244,
+      "error": false,
+      "grade": {
+        "covered": 4,
+        "total": 4,
+        "incorrect": 0,
+        "note": "Answer covers contextFile in AGENTS.md with sync writing the page map block, hooks not applying outside Claude Code, and pre-commit/CI detection of stale pages; the pre-push hook and optional CI check are consistent with the key."
+      }
+    },
+    {
+      "condition": "handbook",
+      "question": "staleness",
+      "rep": 1,
+      "answer": "Archlens decides staleness by content hashes, not by git history. The logic is in `freshness()` in `skills/archlens/scripts/archlens.py:607-631`.\n\n- **Recorded state:** each sync stores a short blob hash for every file a page covers (its patterns and links). The hashes go in the docs state file, with `syncedAt` and `syncedCommit`.\n- **Comparison:** `status` hashes the current project files and compares them with that record for each page.\n  - A page is **stale** if any covered file is modified, added or removed.\n  - A page is **fresh** if nothing differs.\n  - A page is **unsynced** if it has no record.\n- **Committed changes:** they still count. The hashes come from file contents (`project_files`, around line 570-581), so it doesn't matter whether a change is committed, staged or uncommitted. A page only becomes fresh again after a re-sync records the new hashes.\n- **Commit hash:** `syncedCommit` is only reported. It isn't used in the comparison.\n- **Meaning of stale:** the tool's own note (line 638) says stale means covered files changed, not that the prose is wrong.",
+      "inputTokens": 27528,
+      "uncachedInputTokens": 3028,
+      "cachedInputTokens": 24500,
+      "outputTokens": 858,
+      "turns": 4,
+      "costUsd": 0.023126,
+      "durationMs": 9447,
+      "error": false,
+      "grade": {
+        "covered": 4,
+        "total": 5,
+        "incorrect": 0,
+        "note": "Covers blob hashes recorded at sync, comparison with current content, committed changes counting, and stale not meaning prose is wrong; it doesn't name .archlens-state.json or say covered files come from map.json covers globs plus linked files (only 'patterns and links')."
+      }
+    },
+    {
+      "condition": "archlens",
+      "question": "portable-sync",
+      "rep": 2,
+      "answer": "A generator script keeps them aligned. `tools/sync_portable.py` is listed in `docs/architecture/README.md` as the unit that \"keeps portable resources aligned with the native plugin\". The portable skill at `skills/archlens/SKILL.md` routes a single operation for other hosts. The native plugin lives under `plugins/archlens/`: its skills, its `references/` and its checker script `scripts/archlens.py`.\n\nI only read the README, so I haven't opened the sync tool to confirm how it copies or compares files.\n\nTests back this up. The README points to `tests/test_distribution.py` and `tests/test-skills-install.mjs` as test evidence. The checker also has a \"sync\" check, according to the README's unit table. `tools/prompt_budget.py` limits how much the instructions can grow.",
+      "inputTokens": 13891,
+      "uncachedInputTokens": 2415,
+      "cachedInputTokens": 11476,
+      "outputTokens": 376,
+      "turns": 2,
+      "costUsd": 0.0145596,
+      "durationMs": 5545,
+      "error": false,
+      "grade": {
+        "covered": 0,
+        "total": 4,
+        "incorrect": 0,
+        "note": "The answer names tools/sync_portable.py as aligning resources but doesn't say the plugin is canonical or that it generates the skill, nor placeholder rewriting or --check behavior; tests are mentioned only vaguely, not as CI/pre-commit sync enforcement."
+      }
+    },
+    {
+      "condition": "archlens",
+      "question": "isolation",
+      "rep": 0,
+      "answer": "**Why they fork:** `docs/architecture/decisions/ADR-001.md` says architecture work can need large source traces, and loading all of it into every coding session wastes context. The native commands are therefore manual and run as forked tasks. The parent session only gets a bounded result back. The cost is that the worker starts without the prior conversation and has its own startup cost.\n\n**The exception:** `learn`. In `plugins/archlens/skills/learn/SKILL.md`, line 5 is `disable-model-invocation: true`, but there's no `context: fork` line. `check`, `setup`, `explain` and `decide` each have both settings. `update` has `context: fork` but not `disable-model-invocation`.\n\nADR-001 says \"five explicit commands\", but there are six skills. I didn't find a written reason why `learn` isn't forked. That part is my reading of the frontmatter, not something the ADR states.",
+      "inputTokens": 21023,
+      "uncachedInputTokens": 2379,
+      "cachedInputTokens": 18644,
+      "outputTokens": 592,
+      "turns": 3,
+      "costUsd": 0.017288400000000002,
+      "durationMs": 7504,
+      "error": false,
+      "grade": {
+        "covered": 3,
+        "total": 4,
+        "incorrect": 0,
+        "note": "Covers context waste from large traces, bounded result, and worker lacking prior conversation; identifies learn as the exception but gives no reason (follow-up questions inline) and says it found no written reason."
+      }
+    },
+    {
+      "condition": "archlens",
+      "question": "isolation",
+      "rep": 2,
+      "answer": "**Why they fork:** `docs/architecture/decisions/ADR-001.md` says architecture work can need large source traces, and loading all of that guidance into every session wastes context. The native plugin therefore uses \"manual, isolated commands\". Each one runs as a forked task, so the parent conversation gets only a bounded result. The commands are also manual, so the user controls when documentation gets edited. The cost is that the worker doesn't see prior conversation history, and it has startup cost.\n\n**Which one doesn't:** `learn`. In `plugins/archlens/skills/learn/SKILL.md`, line 5 sets `disable-model-invocation: true` but there is no `context: fork`. The other four commands are `check`, `setup`, `explain` and `decide`, and each has `context: fork`.\n\n**One more difference:** `plugins/archlens/skills/update/SKILL.md` has `context: fork` but no `disable-model-invocation`. So `update` is forked but not manual-only.\n\nI didn't read `learn/SKILL.md` beyond that grep match, so I don't know why it skips the fork.",
+      "inputTokens": 21020,
+      "uncachedInputTokens": 1488,
+      "cachedInputTokens": 19532,
+      "outputTokens": 656,
+      "turns": 3,
+      "costUsd": 0.0144532,
+      "durationMs": 8409,
+      "error": false,
+      "grade": {
+        "covered": 3,
+        "total": 4,
+        "incorrect": 0,
+        "note": "Covers bounded result (parent gets only bounded result), worker lacks prior conversation, and learn as the exception; it mentions large source traces/context waste but not explicitly keeping exploration out of the parent, and omits that learn runs inline for follow-up questions. The extra claim about update appears to be an aside, not contradicting the key."
+      }
+    },
+    {
+      "condition": "handbook",
+      "question": "config-order",
+      "rep": 1,
+      "answer": "Per `docs/configuration.md`, Archlens loads preferences in this order:\n\n1. **Bundled defaults**: `plugins/archlens/defaults.json`.\n2. **One user preference file**, chosen by the first match in this list:\n   - the file named by `ARCHLENS_CONFIG`\n   - `archlens.json` under `CLAUDE_CONFIG_DIR`\n   - `archlens/config.json` under `XDG_CONFIG_HOME`, or `~/.config/archlens/config.json` if `XDG_CONFIG_HOME` isn't set\n   - the legacy `~/.claude/archlens.json`\n3. **`.archlens.json`** in the project root.\n\nLater keys replace earlier ones, so the project's `.archlens.json` wins. Only one user file is ever read, so user files aren't merged with each other.\n\nUnknown keys, duplicate keys, invalid types and malformed JSON are errors. An explicitly named config file must exist. Preferences never override repository instructions or permission policy.\n\nI read only the docs, not the loader code in `archlens.py`, so I haven't checked that the code matches this.",
+      "inputTokens": 26023,
+      "uncachedInputTokens": 1691,
+      "cachedInputTokens": 24332,
+      "outputTokens": 829,
+      "turns": 4,
+      "costUsd": 0.0174712,
+      "durationMs": 8839,
+      "error": false,
+      "grade": {
+        "covered": 4,
+        "total": 4,
+        "incorrect": 0,
+        "note": "The answer states the defaults, then the single user file in the correct fallback order, then the project file, and that later layers win with only one user file read. The XDG detail and the 'if present' condition are approximately covered."
+      }
+    },
+    {
+      "condition": "archlens",
+      "question": "staleness",
+      "rep": 0,
+      "answer": "Archlens marks a page stale when the content of a file it covers or links to differs from what was recorded at the last sync. Each page keeps a baseline of content fingerprints (content IDs). The check is the `freshness` logic in `plugins/archlens/scripts/archlens.py`. Which files a page covers comes from `map.json`.\n\nA source change that was already committed still counts. Content IDs don't depend on a base ref, so committing doesn't clear the flag. The page stays stale until someone runs update and syncs, which records the new baseline. This is documented in `docs/architecture/runtime.md` and tested in `tests/test_archlens.py`.\n\nA stale flag only marks a page as a candidate for review. It doesn't prove the prose is wrong.\n\nI read only `runtime.md` and didn't open the checker code, so this rests on the doc's description.",
+      "inputTokens": 13605,
+      "uncachedInputTokens": 1231,
+      "cachedInputTokens": 12374,
+      "outputTokens": 388,
+      "turns": 2,
+      "costUsd": 0.010033400000000001,
+      "durationMs": 5013,
+      "error": false,
+      "grade": {
+        "covered": 3,
+        "total": 5,
+        "incorrect": 0,
+        "note": "Covers status comparing recorded vs current content, committed changes still count (content not base ref), and stale as review candidate; doesn't name .archlens-state.json/sync recording or the covers globs plus linked files (only vaguely says map.json)."
+      }
+    },
+    {
+      "condition": "handbook",
+      "question": "portable-sync",
+      "rep": 1,
+      "answer": "The portable skill is generated from the Claude plugin, which is the canonical source, and a check mode catches drift.\n\n- **Generation:** `tools/sync_portable.py` is described as generating \"the portable Agent Skill from the canonical Claude plugin\". Running `python tools/sync_portable.py` regenerates the resources under `skills/archlens/` (`CONTRIBUTING.md:70`).\n- **Drift check:** `python tools/sync_portable.py --check` (`CONTRIBUTING.md:71`) audits the portable copy. CONTRIBUTING lists \"portable-skill drift\" among the checks run on contributions (`CONTRIBUTING.md:20`).\n- **Safety checks:** the audit reports a missing router and refuses linked or symlinked resources (`tools/sync_portable.py:62-90`).\n- **Router:** `skills/archlens/SKILL.md` is the one hand-edited file. You edit it directly when routing changes (`CONTRIBUTING.md:77`).\n- **Tests:** `tests/test_distribution.py` checks that the portable resources are current and self-contained. It also checks that `tools/prompt_budget.py` rejects a portable skill with a missing route.\n\nI didn't open `tools/sync_portable.py` beyond the lines above, so I haven't confirmed exactly which files it generates.",
+      "inputTokens": 18931,
+      "uncachedInputTokens": 1588,
+      "cachedInputTokens": 17343,
+      "outputTokens": 746,
+      "turns": 3,
+      "costUsd": 0.015534300000000001,
+      "durationMs": 7987,
+      "error": false,
+      "grade": {
+        "covered": 3,
+        "total": 4,
+        "incorrect": 0,
+        "note": "States plugin is canonical with sync_portable.py generating skills/archlens, --check reporting missing/linked resources, and CI/test checks; omits placeholder rewriting (${CLAUDE_PLUGIN_ROOT}, $ARGUMENTS)."
+      }
+    },
+    {
+      "condition": "no-handbook",
+      "question": "config-order",
+      "rep": 2,
+      "answer": "Archlens loads preferences in three layers (`docs/configuration.md:3-14`):\n\n1. **Bundled defaults**, in `plugins/archlens/defaults.json`.\n2. **One user preference file.** The first match in this list is used:\n   - the file named by `ARCHLENS_CONFIG`\n   - `archlens.json` under `CLAUDE_CONFIG_DIR`\n   - `archlens/config.json` under `XDG_CONFIG_HOME`, or `~/.config/archlens/config.json` if that variable isn't set\n   - the legacy `~/.claude/archlens.json`\n3. **`.archlens.json`** in the selected project root.\n\nLater keys replace earlier ones, so the project's `.archlens.json` wins. Only one user file is ever read, and the user files aren't merged with each other.\n\nAn explicitly named config file must exist. Unknown keys, duplicate keys, invalid types and malformed JSON are errors.",
+      "inputTokens": 19450,
+      "uncachedInputTokens": 1794,
+      "cachedInputTokens": 17656,
+      "outputTokens": 645,
+      "turns": 4,
+      "costUsd": 0.0153796,
+      "durationMs": 7104,
+      "error": false,
+      "grade": {
+        "covered": 4,
+        "total": 4,
+        "incorrect": 0,
+        "note": "Answer covers defaults first, the single user file with correct precedence order, project .archlens.json last and winning, and only one user file read; extra details about errors are not contradictory."
+      }
+    },
+    {
+      "condition": "archlens",
+      "question": "portable-sync",
+      "rep": 1,
+      "answer": "The portable skill is generated from the native plugin, not maintained by hand.\n\n- `tools/sync_portable.py` is the generator. `docs/architecture/README.md` describes it as the tool that keeps \"portable resources aligned with the native plugin\".\n- The native plugin is the source of truth: `plugins/archlens/skills`, `plugins/archlens/references` and `plugins/archlens/scripts/archlens.py`.\n- The portable skill is `skills/archlens/SKILL.md`. It routes one operation per call for other hosts.\n- `tests/test_distribution.py` is listed as distribution test evidence. I haven't read it, so I can't say whether it checks that the generated output matches the plugin.\n- `tools/prompt_budget.py` limits instruction growth and eager-loading additions.\n\nI read only the README, not the generator, so I haven't confirmed exactly how the sync works. `docs/architecture/runtime.md` or the tool itself may have more.",
+      "inputTokens": 13891,
+      "uncachedInputTokens": 1527,
+      "cachedInputTokens": 12364,
+      "outputTokens": 428,
+      "turns": 2,
+      "costUsd": 0.0116164,
+      "durationMs": 5418,
+      "error": false,
+      "grade": {
+        "covered": 1,
+        "total": 4,
+        "incorrect": 0,
+        "note": "States the plugin is canonical and tools/sync_portable.py generates the portable skill, but omits placeholder rewriting, the --check behavior, and CI/pre-commit usage (only vaguely mentions a test without confirming it)."
+      }
+    },
+    {
+      "condition": "handbook",
+      "question": "config-order",
+      "rep": 0,
+      "answer": "Archlens loads preferences in three layers (`docs/configuration.md:3-14`):\n\n1. **Bundled defaults**, in `plugins/archlens/defaults.json`.\n2. **One user preference file.** Only the first match in this list is used:\n   - the file named by `ARCHLENS_CONFIG`\n   - otherwise `archlens.json` under `CLAUDE_CONFIG_DIR`\n   - otherwise `archlens/config.json` under `XDG_CONFIG_HOME`, or `~/.config/archlens/config.json` if that isn't set\n   - otherwise the legacy `~/.claude/archlens.json`\n3. **`.archlens.json`** in the project root.\n\nLater keys replace earlier ones, so the project-level `.archlens.json` wins. The user-level files are not merged with each other. Only the one selected file is read.\n\nAn explicitly named config file must exist. Unknown keys, duplicate keys, invalid types and malformed JSON are errors.",
+      "inputTokens": 19262,
+      "uncachedInputTokens": 1793,
+      "cachedInputTokens": 17469,
+      "outputTokens": 607,
+      "turns": 3,
+      "costUsd": 0.014976900000000001,
+      "durationMs": 7297,
+      "error": false,
+      "grade": {
+        "covered": 4,
+        "total": 4,
+        "incorrect": 0,
+        "note": "The answer gives the defaults, then one user file in the right fallback order, then the project file, says later layers win, and states that only one user file is read."
+      }
+    },
+    {
+      "condition": "archlens",
+      "question": "isolation",
+      "rep": 1,
+      "answer": "The exception is `learn`, which has no `context: fork` line.\n\n**Why most run forked:** ADR-001 (`docs/architecture/decisions/ADR-001.md`) says architecture work can need large source traces, and loading all of it into every coding session wastes context. Each native command is therefore manual (`disable-model-invocation: true`) and forked (`context: fork`). That gives the user explicit control over doc edits and a bounded result returned to the parent. The cost is that the worker doesn't see prior conversation history, and it has startup cost.\n\n**Which doesn't fork:** `plugins/archlens/skills/learn/SKILL.md` sets only `disable-model-invocation: true`, so it runs in the main conversation. I didn't open that file, so I can't say why it was left unforked.\n\n`update` is a separate case. `plugins/archlens/skills/update/SKILL.md` has `context: fork` but no `disable-model-invocation`, so it forks but isn't manual-only. That's probably because ADR-003 adds hooks that trigger it, but I didn't check.",
+      "inputTokens": 21026,
+      "uncachedInputTokens": 532,
+      "cachedInputTokens": 20494,
+      "outputTokens": 652,
+      "turns": 3,
+      "costUsd": 0.010685400000000001,
+      "durationMs": 7901,
+      "error": false,
+      "grade": {
+        "covered": 3,
+        "total": 4,
+        "incorrect": 0,
+        "note": "Covers context-size rationale, bounded result, no prior conversation, and identifies learn as the exception, but does not say learn runs inline for follow-up questions."
+      }
+    },
+    {
+      "condition": "no-handbook",
+      "question": "isolation",
+      "rep": 0,
+      "answer": "Most commands (`setup`, `check`, `decide`, `explain`, `update`) set `context: fork` in their `SKILL.md` files under `plugins/archlens/skills/`. Each one starts a single forked task. `README.md:102` says this keeps exploration outside the parent conversation. `docs/context-efficiency.md` (lines 45 and 109) adds that each command gets one fork and no agent tree. Each skill is also capped at 2,600 UTF-8 bytes.\n\nThe exception is **`learn`**. `tools/prompt_budget.py:32` says it \"runs inline so the user can keep asking follow-up questions; it skips the contract.\" The same script enforces this. An inline skill must not contain `context: fork` (lines 94\u201395), and inline skills get no shared contract (lines 81 and 106).",
+      "inputTokens": 19090,
+      "uncachedInputTokens": 2171,
+      "cachedInputTokens": 16919,
+      "outputTokens": 567,
+      "turns": 4,
+      "costUsd": 0.016033900000000004,
+      "durationMs": 7011,
+      "error": false,
+      "grade": {
+        "covered": 2,
+        "total": 4,
+        "incorrect": 0,
+        "note": "Covers keeping exploration out of parent context and learn running inline for follow-ups; omits the bounded result and the worker not receiving prior conversation."
+      }
+    },
+    {
+      "condition": "archlens",
+      "question": "config-order",
+      "rep": 0,
+      "answer": "Archlens merges its configuration in three layers. Later layers replace earlier ones key by key, so the last layer wins.\n\n1. **Bundled `defaults.json`** in the installed Archlens directory is the base.\n2. **The user preference file** is a single selected file that can be shared across agents. Missing default user or project files are normal.\n3. **`.archlens.json`** at the project root is merged last, so **project overrides win**.\n\nThe checker rejects unknown keys and duplicate JSON keys. An empty `{}` project config opts the project in with the effective defaults.\n\nSources: `plugins/archlens/references/configuration.md` (lines 12\u201321) and `docs/architecture/data.md` (line 21).\n\nI didn't open `scripts/archlens.py` to check the merge code.",
+      "inputTokens": 23037,
+      "uncachedInputTokens": 2574,
+      "cachedInputTokens": 20463,
+      "outputTokens": 784,
+      "turns": 4,
+      "costUsd": 0.020170300000000002,
+      "durationMs": 7826,
+      "error": false,
+      "grade": {
+        "covered": 3,
+        "total": 4,
+        "incorrect": 0,
+        "note": "Correctly states defaults first, a single user file, then project .archlens.json winning with later layers replacing earlier keys; but omits the user-file precedence order (ARCHLENS_CONFIG, CLAUDE_CONFIG_DIR, XDG/~/.config, legacy ~/.claude)."
+      }
+    },
+    {
+      "condition": "handbook",
+      "question": "summary-limit",
+      "rep": 2,
+      "answer": "**Limit:** `--summary` output is capped at 6,000 UTF-8 bytes, excluding the final newline. This is stated in `docs/cli.md:97`. The flag is defined at `skills/archlens/scripts/archlens.py:908`, and `bounded_report` at line 928 takes `budget=6000`.\n\n**How it avoids silently dropping records** (`bounded_report`, `skills/archlens/scripts/archlens.py:928-951`):\n- Records are only ever added or left out whole. A record is never cut in half.\n- `totals` holds the full count for each collection (findings, candidates, uncoveredFiles, changedFiles, needsSync, fresh).\n- `omitted` holds how many records of each collection didn't fit. It is decremented as each record is added.\n- Each collection gets at most 8 records. A record is popped back out if adding it pushes the JSON over budget.\n- `detailHint` tells the reader to run `--json` and write the output to a local file.\n- If the metadata alone exceeds the budget, it returns a minimal report with `totals`, `omitted` and an explanatory `note`.\n\nThe same logic probably exists in `plugins/archlens/scripts/archlens.py`. I didn't open that copy.",
+      "inputTokens": 27468,
+      "uncachedInputTokens": 2340,
+      "cachedInputTokens": 25128,
+      "outputTokens": 1053,
+      "turns": 5,
+      "costUsd": 0.0223868,
+      "durationMs": 10960,
+      "error": false,
+      "grade": {
+        "covered": 4,
+        "total": 4,
+        "incorrect": 0,
+        "note": "The answer states the 6000 UTF-8 byte limit, whole-record inclusion, totals and omitted counts, and the --json local file hint."
+      }
+    },
+    {
+      "condition": "archlens",
+      "question": "config-order",
+      "rep": 1,
+      "answer": "Archlens merges its preference layers in this order, from first applied to last:\n\n1. **Bundled defaults**, in `plugins/archlens/defaults.json`.\n2. **User preferences**, which is one selected user file that can be shared across agents.\n3. **Project overrides**, which are the project's own preferences.\n\nLater layers replace earlier keys, so **project preferences win**. This comes from `docs/architecture/data.md`, which says \"Later preference layers replace earlier keys\u2026 Project preferences override it.\"\n\nAfter merging, the checker validates the result. It rejects unknown keys and duplicate JSON keys.\n\nI didn't open `plugins/archlens/scripts/archlens.py` or `plugins/archlens/references/configuration.md`, so I haven't checked the merge code or whether the replacement is per key or deeper.",
+      "inputTokens": 14289,
+      "uncachedInputTokens": 1933,
+      "cachedInputTokens": 12356,
+      "outputTokens": 579,
+      "turns": 3,
+      "costUsd": 0.0147496,
+      "durationMs": 5848,
+      "error": false,
+      "grade": {
+        "covered": 3,
+        "total": 4,
+        "incorrect": 0,
+        "note": "Correctly gives defaults, then one user file, then project, with later layers replacing earlier keys and project winning; it omits the user file's selection order (ARCHLENS_CONFIG, CLAUDE_CONFIG_DIR, XDG, legacy) and the specific filenames."
+      }
+    },
+    {
+      "condition": "no-handbook",
+      "question": "portable-sync",
+      "rep": 0,
+      "answer": "The native plugin in `plugins/archlens` is the canonical source. `skills/archlens` is generated from it, so the two can't drift apart without a check failing.\n\n- **Generation:** `tools/sync_portable.py` copies `LICENSE`, `defaults.json`, `scripts/archlens.py` and `references/*.md` from the plugin into the portable skill. It builds `workflows/{setup,update,check,explain,decide,learn}.md` from the plugin's `skills/<name>/SKILL.md` files (`tools/sync_portable.py:33-43`).\n- **Rewrites:** While generating the workflows, it replaces Claude-specific placeholders. `${CLAUDE_PLUGIN_ROOT}` becomes `<skill-dir>`, and `$ARGUMENTS` becomes a generic phrase. It raises an error if any placeholder is left over (`:14-30`).\n- **Verification:** Running it with `--check` audits the portable copy. According to `benchmarks/questions/archlens.json` it reports stale, missing, unexpected or symlinked files. I read only the start of the audit function, so I haven't confirmed that list myself.\n- **Enforcement:**\n  - CI runs the check in `.github/workflows/ci.yml:40`.\n  - A pre-commit hook runs it in `.pre-commit-config.yaml:53`.\n  - Tests cover it in `tests/test_distribution.py`.\n  - The PR template and `CONTRIBUTING.md:70` tell contributors to run the sync and commit the generated files.",
+      "inputTokens": 19866,
+      "uncachedInputTokens": 1821,
+      "cachedInputTokens": 18045,
+      "outputTokens": 865,
+      "turns": 4,
+      "costUsd": 0.0177265,
+      "durationMs": 8754,
+      "error": false,
+      "grade": {
+        "covered": 4,
+        "total": 4,
+        "incorrect": 0,
+        "note": "All four facts are stated: plugin canonical with generated skill, placeholder rewrites, --check reporting stale/missing/unexpected/symlinked files, and CI/pre-commit/tests enforcement."
+      }
+    },
+    {
+      "condition": "no-handbook",
+      "question": "isolation",
+      "rep": 1,
+      "answer": "Most native commands (setup, update, check, explain, decide) use `context: fork` in their `plugins/archlens/skills/*/SKILL.md` files. `docs/context-efficiency.md:107-112` says each command is \"one coherent task\" run in one forked general-purpose worker. That keeps exploration, file reads and tool output out of the parent conversation. It also limits duplicate setup and repeated instructions. `README.md:102` says the same.\n\nThe exception is **`learn`**. `tools/prompt_budget.py:32` says \"learn runs inline so the user can keep asking follow-up questions; it skips the contract.\" The same script (lines 94-95) fails the check if an inline skill sets `context: fork`.",
+      "inputTokens": 20477,
+      "uncachedInputTokens": 2706,
+      "cachedInputTokens": 17771,
+      "outputTokens": 668,
+      "turns": 4,
+      "costUsd": 0.0192691,
+      "durationMs": 8997,
+      "error": false,
+      "grade": {
+        "covered": 2,
+        "total": 4,
+        "incorrect": 0,
+        "note": "Covers keeping exploration out of parent context and learn running inline for follow-ups; omits bounded result returned to parent and that the worker gets no prior conversation."
+      }
+    },
+    {
+      "condition": "handbook",
+      "question": "staleness",
+      "rep": 2,
+      "answer": "Archlens decides staleness by comparing file contents, not commit status. The logic is in `freshness()` in `skills/archlens/scripts/archlens.py` (about lines 607\u2013632).\n\n- **Recorded state:** At each sync, a page's state file records a short Git blob hash for every source file the page covers. That's the `files` map in the page's record, along with `syncedAt` and `syncedCommit`.\n- **Current state:** `project_files()` (line 549) hashes the current files. It takes the staged and committed blob IDs from `git ls-files -s`. It then overlays dirty and untracked files, which it hashes directly.\n- **Stale test:** A page is `stale` if any covered file is modified, added or removed compared with the recorded hashes. Otherwise it's `fresh`. A page with no record is `unsynced`.\n\n**Does a committed change still count?** Yes. Committing doesn't reset anything, because the comparison is against the hashes recorded at the last sync. A change stays stale until the page is re-synced.",
+      "inputTokens": 28409,
+      "uncachedInputTokens": 3167,
+      "cachedInputTokens": 25242,
+      "outputTokens": 963,
+      "turns": 5,
+      "costUsd": 0.0248062,
+      "durationMs": 9944,
+      "error": false,
+      "grade": {
+        "covered": 3,
+        "total": 5,
+        "incorrect": 0,
+        "note": "Covers recorded blob hashes, comparison with current content, and committed changes still counting; misses that covered files come from map.json globs plus linked files, and that stale means a review candidate rather than proof of wrong prose."
+      }
+    },
+    {
+      "condition": "archlens",
+      "question": "portable-sync",
+      "rep": 0,
+      "answer": "The portable skill is kept aligned with the native plugin by a generator, `tools/sync_portable.py`. The architecture overview names it as the \"Generator\" that keeps portable resources aligned with the native plugin (`docs/architecture/README.md`, units table).\n\n- **Native side:** the plugin's skills and references live under `plugins/archlens/`.\n- **Portable side:** the portable skill is `skills/archlens/SKILL.md`. It routes one operation at a time for other hosts.\n- **Checking:** the checker has a sync check (`plugins/archlens/scripts/archlens.py`). Distribution tests in `tests/test_distribution.py` and installer tests in `tests/test-skills-install.mjs` also cover the packaging.\n- **Size control:** `tools/prompt_budget.py` stops instruction growth and eager-loading additions.\n\nI only read the README. I didn't open `tools/sync_portable.py`, so I can't say exactly how it copies or checks the files, or whether it runs in CI.",
+      "inputTokens": 13891,
+      "uncachedInputTokens": 4,
+      "cachedInputTokens": 13887,
+      "outputTokens": 446,
+      "turns": 2,
+      "costUsd": 0.005856700000000001,
+      "durationMs": 5289,
+      "error": false,
+      "grade": {
+        "covered": 1,
+        "total": 4,
+        "incorrect": 0,
+        "note": "Names tools/sync_portable.py as the generator aligning portable with the native plugin (partial credit for canonical/generation), but omits placeholder rewriting, --check semantics, and CI/pre-commit/tests; it explicitly admits not knowing."
+      }
+    },
+    {
+      "condition": "no-handbook",
+      "question": "isolation",
+      "rep": 2,
+      "answer": "**Why they fork:** Each native command (`setup`, `update`, `check`, `explain`, `decide`) sets `context: fork`, `agent: general-purpose` and `background: false` in its `plugins/archlens/skills/<name>/SKILL.md`. `docs/context-efficiency.md` (around line 109) says each command starts \"one forked task\". That keeps the exploration, the shared contract and the tool output out of the parent conversation. The parent gets only links and conclusions, at most 200 words, or 500 for `explain`. `README.md:102` makes the same point. The plugin doesn't build an agent tree, and it reuses the host's general-purpose agent instead of registering more agents.\n\n**The exception:** `learn` runs inline. `tools/prompt_budget.py:33` puts it in `INLINE = {\"learn\"}`. Its check requires the fork settings only for non-inline skills (line 87) and errors if an inline skill contains `context: fork` (line 94).\n\nI didn't open `learn/SKILL.md`, so I haven't confirmed why `learn` is inline.",
+      "inputTokens": 31291,
+      "uncachedInputTokens": 4173,
+      "cachedInputTokens": 27118,
+      "outputTokens": 1033,
+      "turns": 6,
+      "costUsd": 0.029717800000000003,
+      "durationMs": 9971,
+      "error": false,
+      "grade": {
+        "covered": 2,
+        "total": 4,
+        "incorrect": 0,
+        "note": "Covers keeping exploration out of parent context and returning a bounded result (200/500 words); misses that the worker lacks prior conversation, and learn is identified as inline but the follow-up-questions reason is explicitly not given."
+      }
+    },
+    {
+      "condition": "no-handbook",
+      "question": "staleness",
+      "rep": 2,
+      "answer": "Archlens marks a page stale by comparing file content, not git history. The logic is in `freshness()` in `skills/archlens/scripts/archlens.py:607-640`.\n\n- **Recorded state:** each sync stores a content ID for every file a page covers. These are saved per page in `.archlens-state.json` in the docs directory (`save_state`, line 594).\n- **Covered files:** `Coverage` works these out from the page's patterns in the map, plus the files the page links to.\n- **Comparison:** `status` recomputes the current content IDs and diffs them against the recorded ones. Any file that is modified, added or removed makes the page `stale`. A page with no record is `unsynced`. Otherwise it is `fresh`.\n\n**Committed changes still count.** The comparison is against the content recorded at the last sync, not against uncommitted changes or a base ref. A source change that was already committed still counts until you re-sync. `tests/test_archlens.py:450` (`test_unsynced_then_fresh_then_stale_after_commit`) covers this case.\n\nStale means \"review this page\", not \"the prose is wrong\" (line 638).",
+      "inputTokens": 22987,
+      "uncachedInputTokens": 3685,
+      "cachedInputTokens": 19302,
+      "outputTokens": 711,
+      "turns": 3,
+      "costUsd": 0.023768200000000003,
+      "durationMs": 8343,
+      "error": false,
+      "grade": {
+        "covered": 5,
+        "total": 5,
+        "incorrect": 0,
+        "note": "The answer states all five facts. It says content IDs are recorded in .archlens-state.json, covered files come from map patterns plus linked files, status compares recorded to current content, committed changes still count, and stale means review rather than proof the prose is wrong. It does not mention Git blob hashes or 'covers' by name, but 'content ID' is close enough."
+      }
+    },
+    {
+      "condition": "handbook",
+      "question": "isolation",
+      "rep": 0,
+      "answer": "Most native Archlens commands (setup, update, check, explain, decide) run as a forked task (`context: fork`, `agent: general-purpose`). The aim is to keep exploration out of the parent conversation. `docs/context-efficiency.md` says each command starts \"one coherent task\" in one fork, with no agent tree. That limits duplicate setup and repeated instructions, and the parent receives only links and conclusions. `README.md:102` and `docs/architecture/decisions/ADR-001.md:16` give the same reasoning.\n\nThe exception is **`learn`**. `tools/prompt_budget.py:33` lists it as `INLINE = {\"learn\"}`. The checker skips the fork requirement for inline skills and errors if one forks (lines 87\u201395). Inline skills are also not charged the shared contract bytes.\n\nI didn't open `learn`'s SKILL.md. The `plugins/archlens/skills/` grep for `context: fork` didn't list it.",
+      "inputTokens": 30925,
+      "uncachedInputTokens": 3845,
+      "cachedInputTokens": 27080,
+      "outputTokens": 930,
+      "turns": 5,
+      "costUsd": 0.027372,
+      "durationMs": 9439,
+      "error": false,
+      "grade": {
+        "covered": null,
+        "total": 4,
+        "incorrect": null,
+        "note": "unparsed: {\"covered\": 2, \"total\": 4, \"incorrect\": 0, \"note\": \"Covers keeping exploration out of the parent context and the parent receiving only links/conclusions, plus learn as the inline exception; it never s"
+      }
+    },
+    {
+      "condition": "no-handbook",
+      "question": "json-map",
+      "rep": 1,
+      "answer": "Archlens doesn't state the rationale outright. The evidence points to three reasons:\n\n1. **Standard library only.** `skills/archlens/scripts/archlens.py:6-17` imports only stdlib modules, including `json`. Python has no built-in YAML parser, so frontmatter would need a dependency or a hand-written parser. That is my inference, not something the repo says.\n2. **One strictly validated file.** `archlens.py:189-201` requires `map.json` to have exactly `version` and `pages`, and `skills/archlens/references/configuration.md:23` rejects duplicate keys. Pages stay plain Markdown. `docs/cli.md:46` says frontmatter is \"skipped, not parsed.\"\n3. **Metadata lives in one place.** `configuration.md:48-49` says `map.json` is the machine-readable metadata and tells authors not to duplicate it in page frontmatter. It also lets the tool report unmapped pages (`archlens.py:372`).\n\nThe cost is that authors must maintain a separate map and its coverage patterns.\n\nI also found `benchmarks/questions/archlens.json:16-17`, which holds this question and an answer key. I used it only to check my reading, not as the source.",
+      "inputTokens": 24194,
+      "uncachedInputTokens": 4624,
+      "cachedInputTokens": 19570,
+      "outputTokens": 1074,
+      "turns": 5,
+      "costUsd": 0.031181,
+      "durationMs": 10067,
+      "error": false,
+      "grade": {
+        "covered": 4,
+        "total": 4,
+        "incorrect": 0,
+        "note": "Covers stdlib-only, the YAML parser dependency (hand-written parser mentioned), single map.json with schema and duplicate-key checks, and the maintenance cost; the answer also says it read the benchmark answer key, which is not a factual contradiction."
+      }
+    },
+    {
+      "condition": "handbook",
+      "question": "other-agents",
+      "rep": 1,
+      "answer": "Codex and Cursor can learn the handbook in two steps.\n\n1. **Install the portable skill.** Run `npx skills@1.7.6 add tushar-mahalya/archlens --skill archlens --agent codex --copy --yes`. Use `--agent cursor` for Cursor. Codex uses the shared `.agents/skills` location. The docs say to verify that Cursor discovers the skill in your version. See `docs/installation.md:100-144`. The skill's entry point is `skills/archlens/SKILL.md`.\n\n2. **Keep the handbook current through a context file.** Set `{ \"contextFile\": \"AGENTS.md\" }` in the Archlens config. Then run `python <skill-dir>/scripts/archlens.py context --root . --write`. The agent sees the page map and stale flags in every session. Each `sync` refreshes that block (`docs/automation.md:37-51`).\n\nTo update, ask the agent to run the Archlens update operation (`docs/automation.md:16`). The `/archlens:update` slash command is Claude Code only.",
+      "inputTokens": 27457,
+      "uncachedInputTokens": 2448,
+      "cachedInputTokens": 25009,
+      "outputTokens": 1027,
+      "turns": 6,
+      "costUsd": 0.022546899999999998,
+      "durationMs": 9791,
+      "error": false,
+      "grade": {
+        "covered": 2,
+        "total": 4,
+        "incorrect": 0,
+        "note": "Covers contextFile=AGENTS.md and the context --write/sync managed block with page map; omits that plugin hooks don't run in other hosts (only notes the slash command is Claude-only) and omits pre-commit/CI stale detection."
+      }
+    },
+    {
+      "condition": "no-handbook",
+      "question": "config-order",
+      "rep": 0,
+      "answer": "Archlens loads preferences in three layers (`docs/configuration.md:3-14`):\n\n1. **Bundled defaults**, from `plugins/archlens/defaults.json`.\n2. **One user preference file.** The first match in this list is used:\n   - the file named by `ARCHLENS_CONFIG`\n   - `archlens.json` under `CLAUDE_CONFIG_DIR`\n   - `archlens/config.json` under `XDG_CONFIG_HOME`, or `~/.config/archlens/config.json` if that variable isn't set\n   - the legacy `~/.claude/archlens.json`\n3. **`.archlens.json`** in the selected project root.\n\nLater layers replace earlier ones key by key, so the project's `.archlens.json` wins. Only one user file is ever read. The user-level files aren't merged with each other.\n\nThe doc doesn't say that a preference can override repository instructions or permission policy (`docs/configuration.md:50`). I didn't check `archlens.py` to confirm the code matches the doc.",
+      "inputTokens": 25752,
+      "uncachedInputTokens": 1579,
+      "cachedInputTokens": 24173,
+      "outputTokens": 793,
+      "turns": 4,
+      "costUsd": 0.0166473,
+      "durationMs": 8798,
+      "error": false,
+      "grade": {
+        "covered": 4,
+        "total": 4,
+        "incorrect": 0,
+        "note": "All four facts are covered: defaults first, the one-user-file precedence list, the project file last, and later layers overriding with only one user file read."
+      }
+    },
+    {
+      "condition": "no-handbook",
+      "question": "summary-limit",
+      "rep": 0,
+      "answer": "**Limit:** `--summary` output is capped at 6,000 UTF-8 bytes, excluding the final newline. This is stated in `docs/cli.md:97` and in the `--summary` help text (`skills/archlens/scripts/archlens.py:908`).\n\n**How it avoids silent drops:** `bounded_report()` (`skills/archlens/scripts/archlens.py:928`) only ever keeps whole records. It never cuts the JSON mid-record.\n- **Totals:** it adds a `totals` count for each collection: findings, candidates, uncoveredFiles, changedFiles, needsSync and fresh.\n- **Omitted counts:** it adds an `omitted` count for each collection, which falls as records are included.\n- **Size check:** it adds up to 8 records per collection, re-measuring the size after each one. If a record would push the output over budget, it removes that record and adds it back to `omitted`.\n- **Hint:** `detailHint` tells the reader to use `--json` redirected to a local file and query the omitted records in batches.\n- **Fallback:** if the metadata alone exceeds the budget, it returns a minimal report with `totals`, `omitted` and a `note` saying to inspect the full report locally (lines 945\u2013950).\n\nA copy of the script is also at `plugins/archlens/scripts/archlens.py`. I didn't read it.",
+      "inputTokens": 27559,
+      "uncachedInputTokens": 3118,
+      "cachedInputTokens": 24441,
+      "outputTokens": 1067,
+      "turns": 5,
+      "costUsd": 0.0255701,
+      "durationMs": 10968,
+      "error": false,
+      "grade": {
+        "covered": 4,
+        "total": 4,
+        "incorrect": 0,
+        "note": "The answer states the 6000-byte limit, whole-record retention, totals and omitted counts, and the hint to use --json saved to a local file."
+      }
+    },
+    {
+      "condition": "no-handbook",
+      "question": "json-map",
+      "rep": 0,
+      "answer": "Archlens keeps page metadata in one JSON file mainly because its checker uses only the Python standard library. The standard library can parse JSON but not YAML.\n\n- **No extra dependency:** Reading YAML frontmatter would mean installing a parser. The alternative is a hand-written parser for a subset of YAML. The benchmark answer key says that approach is ambiguous and risky (`benchmarks/questions/archlens.json:17`). I didn't find the reasoning written out in the docs. This part comes from that key, and I didn't check it against the code.\n- **Strict validation:** `load_map` in `skills/archlens/scripts/archlens.py:187-209` checks a fixed schema. It allows exactly the `version` and `pages` keys. It also checks each page for missing and unknown keys, and it tracks duplicate paths and IDs.\n- **Docs are consistent with this:** `skills/archlens/references/configuration.md:48-49` calls `map.json` the machine-readable metadata. It says not to duplicate that metadata in page frontmatter. `docs/cli.md:46` says frontmatter is skipped, not parsed.\n- **Cost:** Authors have to maintain the separate map and its coverage patterns. This is also from the benchmark answer key.",
+      "inputTokens": 23869,
+      "uncachedInputTokens": 4193,
+      "cachedInputTokens": 19676,
+      "outputTokens": 922,
+      "turns": 4,
+      "costUsd": 0.0279476,
+      "durationMs": 10166,
+      "error": false,
+      "grade": {
+        "covered": 4,
+        "total": 4,
+        "incorrect": 0,
+        "note": "Answer covers stdlib-only, YAML parser dependency/risky custom subset, single map.json with schema and duplicate checks, and the maintenance cost; no contradictions."
+      }
+    },
+    {
+      "condition": "archlens",
+      "question": "staleness",
+      "rep": 2,
+      "answer": "Archlens records what each page was last checked against (the last sync). It flags a page as stale when the content of a file that page covers, or links to, differs from that baseline. The coverage globs come from `map.json`. The logic is in `freshness` in `plugins/archlens/scripts/archlens.py`.\n\nA source change that was already committed still counts. Staleness is judged by comparing content IDs to the last sync, and these IDs don't depend on a base ref. A page therefore stays stale after the commit until someone runs the update skill and syncs the reviewed pages. This is stated in `docs/architecture/runtime.md` and covered by the freshness tests in `tests/test_archlens.py`.\n\nA stale flag only marks a page for review. It doesn't prove the prose is wrong.\n\nI read only `runtime.md`. I didn't open `archlens.py` or the tests to confirm this.",
+      "inputTokens": 13605,
+      "uncachedInputTokens": 4,
+      "cachedInputTokens": 13601,
+      "outputTokens": 397,
+      "turns": 2,
+      "costUsd": 0.0053381,
+      "durationMs": 4948,
+      "error": false,
+      "grade": {
+        "covered": 3,
+        "total": 5,
+        "incorrect": 0,
+        "note": "Covers status comparing content to the baseline, committed changes still count (no base ref), and stale meaning review only; it omits the .archlens-state.json/Git blob hashes detail and only partially states covered files (globs from map.json but not the linked-files part is mentioned loosely)."
+      }
+    },
+    {
+      "condition": "no-handbook",
+      "question": "hook-safety",
+      "rep": 1,
+      "answer": "They do nothing and don't fail the session.\n\n**No handbook:** Both hooks check `opted_in` (`plugins/archlens/scripts/archlens.py:820`). That check looks for `<docsRoot>/map.json`. If the file is missing, or `docsRoot` escapes the project, the check returns false.\n- `hook_session_start` returns `\"\"`, so nothing is printed.\n- `hook_stop` returns `None`, so nothing is printed.\n- The Stop hook also returns `None` if `autoUpdate` is `off` or the project isn't a git repo.\n\n**Malformed input:** `run_hook` (lines 878\u2013897) handles bad input as follows:\n- Empty or whitespace-only stdin, or a TTY, becomes an empty payload `{}`.\n- Valid JSON that isn't an object also becomes `{}`.\n- Invalid JSON raises inside the `try`. A blanket `except Exception` catches it and the hook returns exit code 0 with no output.\n- With an empty payload, the project root falls back to `CLAUDE_PROJECT_DIR`, then `cwd`, via `hook_root` (line 813).\n\nThe hook wiring is in `plugins/archlens/hooks/hooks.json`.",
+      "inputTokens": 27890,
+      "uncachedInputTokens": 2859,
+      "cachedInputTokens": 25031,
+      "outputTokens": 938,
+      "turns": 5,
+      "costUsd": 0.0233031,
+      "durationMs": 10567,
+      "error": false,
+      "grade": {
+        "covered": 3,
+        "total": 3,
+        "incorrect": 0,
+        "note": "Answer covers silence, exit code 0 (never fails session), and map.json opt-in check; no contradictions."
+      }
+    },
+    {
+      "condition": "handbook",
+      "question": "portable-sync",
+      "rep": 2,
+      "answer": "The portable skill in `skills/archlens/` is generated from the native plugin in `plugins/archlens/`. The plugin is the canonical source. A script keeps the two in sync, and CI checks it.\n\n- **Generator:** `tools/sync_portable.py` copies these files from the plugin into the portable skill:\n  - `LICENSE`\n  - `defaults.json`\n  - `scripts/archlens.py`\n  - `references/*.md`\n- **Workflow files:** `workflows/{setup,update,check,explain,decide,learn}.md` are built from each native `plugins/archlens/skills/<name>/SKILL.md`. The script strips the frontmatter. It rewrites Claude-specific placeholders such as `${CLAUDE_PLUGIN_ROOT}` and `$ARGUMENTS`, and it raises an error if any remain.\n- **Hand-written file:** `skills/archlens/SKILL.md` is the portable router. The script requires it to exist but doesn't generate it.\n- **Verification:** `python tools/sync_portable.py --check` reports missing, stale or unexpected files. It also rejects symlinks. CI runs it at `.github/workflows/ci.yml:40`. `tests/test_distribution.py` tests it, and `CONTRIBUTING.md:70` documents the workflow.",
+      "inputTokens": 27369,
+      "uncachedInputTokens": 3068,
+      "cachedInputTokens": 24301,
+      "outputTokens": 854,
+      "turns": 4,
+      "costUsd": 0.0232261,
+      "durationMs": 10597,
+      "error": false,
+      "grade": {
+        "covered": 4,
+        "total": 4,
+        "incorrect": 0,
+        "note": "Covers plugin as canonical source with generator script, placeholder rewriting, --check reporting missing/stale/unexpected files and symlinks, and CI/tests enforcement."
+      }
+    }
+  ]
+}
