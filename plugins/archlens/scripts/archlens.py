@@ -614,6 +614,18 @@ def python_symbols(text: str) -> list[tuple[str, int, int, ast.AST]]:
     return found
 
 
+def canonical(node) -> str:
+    """Version-stable syntax-tree text. ast.dump changes across Python releases, and new
+    releases add optional fields, so empty fields and positions are left out."""
+    if isinstance(node, ast.AST):
+        fields = [f"{name}={canonical(value)}" for name, value in ast.iter_fields(node)
+                  if value is not None and value != []]
+        return f"{type(node).__name__}({','.join(fields)})"
+    if isinstance(node, list):
+        return "[" + ",".join(canonical(item) for item in node) + "]"
+    return repr(node)
+
+
 def short_hash(value: str) -> str:
     return hashlib.sha1(value.encode("utf-8", "surrogateescape")).hexdigest()[:10]
 
@@ -644,7 +656,7 @@ def fingerprint_anchor(root: Path, path: str, first: int, last: int) -> dict:
         if spans:
             name, start, end, node = min(spans, key=lambda s: s[2] - s[1])
             record.update(symbol=name, symbolLines=[start, end],
-                          digest=short_hash(ast.dump(node, include_attributes=False)))
+                          digest=short_hash(canonical(node)))
             return record
     lines = text.splitlines()
     if last <= len(lines):
@@ -669,7 +681,7 @@ def check_anchor(root: Path, record: dict) -> dict | None:
             return dict(base, change="symbol-removed")
         _, start, end, node = match[0]
         shift = start - record["symbolLines"][0]
-        if short_hash(ast.dump(node, include_attributes=False)) != record.get("digest"):
+        if short_hash(canonical(node)) != record.get("digest"):
             moved = {"newLines": [first + shift, last + shift]} if shift else {}
             return dict(base, change="evidence-changed", **moved)
         if shift:

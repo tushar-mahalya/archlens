@@ -599,6 +599,18 @@ class AnchorTests(Fixture):
     def write(self, name, text):
         (self.root / name).write_text(text, encoding="utf-8")
 
+    def test_fingerprint_is_identical_on_every_python_version(self):
+        source = (
+            "@cache\n"
+            "async def load(key: str, *, retries=3) -> dict:\n"
+            "    \"\"\"Load one key.\"\"\"\n"
+            "    return {key: [x async for x in feed(key)]}\n"
+        )
+        (self.root / "src/stable.py").write_text(source, encoding="utf-8")
+        record = archlens.fingerprint_anchor(self.root, "src/stable.py", 2, 4)
+        self.assertEqual(record["symbol"], "load")
+        self.assertEqual(record["digest"], "30f06669a4")
+
     def test_records_python_symbol(self):
         record = archlens.load_state(self.root / "docs/architecture")["pages"]["INDEX"]["anchors"]
         self.assertEqual([a.get("symbol") for a in record], [None, "validate"])
