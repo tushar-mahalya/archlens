@@ -14,8 +14,10 @@ metadata:
 
 Task context: $ARGUMENTS
 
-Read `${CLAUDE_PLUGIN_ROOT}/references/contract.md` and
-`${CLAUDE_PLUGIN_ROOT}/references/configuration.md`.
+Read `${CLAUDE_PLUGIN_ROOT}/references/contract.md`. Read only the "Document map" and
+"Freshness and agent context" sections of `${CLAUDE_PLUGIN_ROOT}/references/configuration.md`.
+With Python 3.9+, resolve preferences with the bundled `scripts/archlens.py config --root <project> --summary`.
+Without Python, also read that reference's first section.
 Read only the "Initial coverage" and "Trace execution and data" sections of
 `${CLAUDE_PLUGIN_ROOT}/references/workflow.md`.
 Load the relevant section of `${CLAUDE_PLUGIN_ROOT}/references/templates.md` only
@@ -33,7 +35,13 @@ Do not assume conversation history is available.
    Existing documents can be mapped without rewriting them.
 6. Draft decisions only when evidence supports a significant design choice.
    Mark missing historical rationale as unknown.
-7. Check links and diagrams with available local tools. Follow the contract's handoff.
+7. Check links and diagrams with available local tools.
+8. With Python 3.9+, run the bundled `scripts/archlens.py sync --root <project> --all`
+   to record the freshness baseline. Without it, state that freshness is not tracked.
+9. Claude Code loads a short handbook map at session start. For other agents,
+   offer to set `"contextFile": "AGENTS.md"` in `.archlens.json`, then run
+   `context --root <project> --write`. Ask before you edit any agent instruction file.
+   Follow the contract's handoff.
 
 Do not install packages, change application source, commit, or publish.
 If the project contains multiple systems, ask which to document first.

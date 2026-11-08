@@ -6,9 +6,10 @@ Read `<skill-dir>/references/contract.md`.
 Do not edit files, install tools, or run commands that update snapshots.
 
 Use the checker to resolve configuration. Read the index, then the requested pages and evidence.
-If Python 3.10+ exists, run:
+If Python 3.9+ exists, run:
 `python "<skill-dir>/scripts/archlens.py" check --root <project> --summary`.
 The script checks the whole mapped handbook; keep semantic review within the requested scope.
+Also run `status --root <project> --summary` and report stale or unsynced pages.
 If Python is absent, read the configuration reference and perform manual structural checks.
 State which automated checks were unavailable.
 Report a failed checker explicitly.

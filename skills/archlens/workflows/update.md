@@ -1,27 +1,34 @@
 # Update architecture documents
 
-Comparison ref: the relevant part of the user's request
+Request: the relevant part of the user's request
 
 Read `<skill-dir>/references/contract.md`.
-Use the checker below to resolve config and select candidate pages.
 Read `<skill-dir>/references/configuration.md` only without Python,
 or when changing map metadata. Read only the relevant template section for a new page.
-
 Require an existing handbook or project `.archlens.json`. Otherwise suggest the Archlens setup operation.
-Use the supplied ref's merge base with HEAD, plus staged, unstaged, and untracked changes.
-Without a ref, inspect working-tree changes only and state that limit.
 Do not assume a branch name, fetch a remote, or run shell text from arguments.
 
-If Python 3.10+ exists, run the bundled script as a normal shell command:
-`python "<skill-dir>/scripts/archlens.py" impact --root <project> --base <ref> --summary`.
-Omit `--base` when none was supplied. Quote paths and refs as distinct arguments.
-If Python is absent, use local Git and the document map manually; disclose that limitation.
+If Python 3.9+ exists, find candidates with the bundled script:
+`python "<skill-dir>/scripts/archlens.py" status --root <project> --summary`.
+It compares cited evidence and covered files with the last sync, including commits.
+`stale` pages cite evidence that changed or moved; fix these first. A moved anchor
+reports its new lines: update the link. `review` pages only had other covered files
+change; confirm them quickly. If the request names page IDs, limit work to them.
+If it names a local ref, also run `impact --root <project> --base <ref> --summary`
+and triage uncovered files. Quote paths and refs as distinct arguments.
+Without Python, use local Git and the document map manually; disclose that limit.
 A checker failure is not permission to silently use a fallback.
 
-Trace affected contracts and consumers. Path matches are review candidates, not proof of stale prose.
-Update only affected views and map entries. Include deleted and renamed source references.
-If no architecture content changed, give an evidence-based no-impact reason.
-Do not mark documents reviewed or decisions accepted without authorized evidence.
-If the report omits records, save full `--json` output locally and inspect it in batches.
+For each candidate, read the page and the changed files' diffs in bounded ranges.
+Use `git diff <syncedCommit> -- <file>` when the report gives a commit.
+Trace affected contracts and consumers. Path matches are candidates, not proof of stale prose.
+Change only prose the change made wrong or incomplete. Keep unrelated prose stable.
+Add, rename, or remove map entries and source links when files moved.
+If a page needs no change, give an evidence-based no-impact reason.
 For uncertain execution, read only "Trace execution and data" in the workflow reference.
-Validate the update and return the contract's concise handoff.
+
+After you verify a page against current source, run
+`sync --root <project> --page <ID>` for that page. Repeat `--page` for several pages.
+Never sync a page you did not review. Sync also refreshes the configured context file.
+Do not mark documents reviewed or decisions accepted without authorized evidence.
+Run `check --root <project> --summary` and return the contract's concise handoff.

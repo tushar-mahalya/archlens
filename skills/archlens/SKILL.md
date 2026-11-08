@@ -1,6 +1,6 @@
 ---
 name: archlens
-description: "Create or maintain evidence-based architecture documentation, trace execution and data flows, explain design tradeoffs, or audit a handbook. Use when asked for architecture views, Mermaid diagrams, decisions, or a code-backed system explanation."
+description: "Create, refresh, or audit evidence-based architecture docs that stay in sync with code; trace execution and data flows; record decisions; or tutor the user on the codebase. Use for architecture docs, stale-doc updates, Mermaid diagrams, ADRs, or learning how a project works."
 license: MIT
 ---
 
@@ -15,6 +15,7 @@ Select one operation from the user's request:
 | Audit existing documents without editing | [check](workflows/check.md) |
 | Explain one execution or data scenario without editing | [explain](workflows/explain.md) |
 | Draft an architecture decision record | [decide](workflows/decide.md) |
+| Learn the codebase: questions, tour, quiz, recent changes | [learn](workflows/learn.md) |
 
 If the intended operation is unclear, ask the user. Do not create a handbook
 or decision record merely because the user asked for an explanation.
@@ -23,8 +24,8 @@ Use any supplied scenario, local base ref, or decision evidence in that operatio
 The skill directory is the folder containing this `SKILL.md`, not the user's
 project directory. In bundled instructions, replace `<skill-dir>` with its
 actual absolute path and use the host's path separator and quoting.
-Read [the task contract](references/contract.md) once, then read only the
-selected workflow. If that workflow also names the contract, do not read it again.
+Read [the task contract](references/contract.md) once, except for learn, then read
+only the selected workflow. If that workflow also names the contract, do not read it again.
 Read detailed references or template sections only when the workflow requires them.
 
 Keep all work inside the selected project. Respect host permissions and project
