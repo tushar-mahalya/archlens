@@ -39,8 +39,8 @@ In other projects, both hooks print nothing.
 |---|---|---|
 | A linked file, or the Python function or class around a cited line range, changed | Page is stale | [page_changes](../../plugins/archlens/scripts/archlens.py) |
 | A cited function or text block moved | Stop hook rewrites the line link without a model; `fix-anchors` does the same on demand | [fix_anchors](../../plugins/archlens/scripts/archlens.py) |
-| Only other covered files changed, or comments and formatting inside cited code | Page needs review, not stale | [Anchor tests](../../tests/test_archlens.py) |
-| Change was already committed | Still stale; content IDs do not depend on a base ref | [Freshness tests](../../tests/test_archlens.py) |
+| Only other covered files changed, or comments and formatting inside cited code | Page needs review, not stale | [Anchor tests](../../tests/test_archlens.py#L571-L647) |
+| Change was already committed | Still stale; content IDs do not depend on a base ref | [Freshness tests](../../tests/test_archlens.py#L431-L567) |
 | Same stale set seen in this session | Stop hook stays silent | [hook_stop](../../plugins/archlens/scripts/archlens.py) |
 | `autoUpdate` is `auto` and the hook has not already blocked | Agent is asked to run update | [hook_stop](../../plugins/archlens/scripts/archlens.py) |
 | `contextFile` is set | Sync rewrites the managed block, without stale flags | [write_context](../../plugins/archlens/scripts/archlens.py) |
