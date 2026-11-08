@@ -5,6 +5,7 @@ import json
 import os
 from pathlib import Path
 import shutil
+import stat
 import subprocess
 import tempfile
 import unittest
@@ -491,7 +492,11 @@ class FreshnessTests(Fixture):
         self.assertIn("archlens:context:start", (self.root / "AGENTS.md").read_text(encoding="utf-8"))
 
     def test_non_git_projects_use_content_ids(self):
-        shutil.rmtree(self.root / ".git")
+        def writable(function, path, _):
+            os.chmod(path, stat.S_IWRITE)
+            function(path)
+
+        shutil.rmtree(self.root / ".git", onerror=writable)
         archlens.sync_pages(self.root, self.config, [], True)
         (self.root / "src/a.py").write_text("a = 3\n", encoding="utf-8")
         self.assertEqual(self.state()["counts"]["review"], 1)
