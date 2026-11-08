@@ -5,7 +5,6 @@ import json
 import os
 from pathlib import Path
 import shutil
-import stat
 import subprocess
 import tempfile
 import unittest
@@ -492,16 +491,14 @@ class FreshnessTests(Fixture):
         self.assertIn("archlens:context:start", (self.root / "AGENTS.md").read_text(encoding="utf-8"))
 
     def test_non_git_projects_use_content_ids(self):
-        def writable(function, path, _):
-            os.chmod(path, stat.S_IWRITE)
-            function(path)
-
-        shutil.rmtree(self.root / ".git", onerror=writable)
-        archlens.sync_pages(self.root, self.config, [], True)
-        (self.root / "src/a.py").write_text("a = 3\n", encoding="utf-8")
-        self.assertEqual(self.state()["counts"]["review"], 1)
-        (self.root / "lib/helper.py").write_text("h = 3\n", encoding="utf-8")
-        self.assertEqual(self.state()["counts"]["stale"], 1)
+        with tempfile.TemporaryDirectory(prefix="archlens-plain-") as folder:
+            root = Path(folder).resolve()
+            shutil.copytree(self.root, root, dirs_exist_ok=True, ignore=shutil.ignore_patterns(".git"))
+            archlens.sync_pages(root, self.config, [], True)
+            (root / "src/a.py").write_text("a = 3\n", encoding="utf-8")
+            self.assertEqual(archlens.freshness(root, self.config)["counts"]["review"], 1)
+            (root / "lib/helper.py").write_text("h = 3\n", encoding="utf-8")
+            self.assertEqual(archlens.freshness(root, self.config)["counts"]["stale"], 1)
 
     def test_nested_project_with_uncommitted_changes(self):
         nested = self.root / "nested"
