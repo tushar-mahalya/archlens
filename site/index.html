@@ -1,0 +1,914 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Archlens: architecture docs that stay in sync with your code</title>
+<meta name="description" content="Archlens keeps architecture docs in sync with code, gives your coding agent a page map of the whole project in a few hundred tokens, and teaches you the codebase while you work. Claude Code plugin and portable Agent Skill.">
+<link rel="canonical" href="https://tushar-mahalya.github.io/archlens/">
+<meta name="theme-color" content="#F2EEE4" media="(prefers-color-scheme: light)">
+<meta name="theme-color" content="#0B1C33" media="(prefers-color-scheme: dark)">
+<meta name="color-scheme" content="light dark">
+<meta property="og:type" content="website">
+<meta property="og:site_name" content="Archlens">
+<meta property="og:title" content="Archlens: architecture docs that stay in sync with your code">
+<meta property="og:description" content="A page map of the whole project in a few hundred tokens. Stale pages flagged by a local script, refreshed by an isolated update. Claude Code plugin and portable Agent Skill.">
+<meta property="og:url" content="https://tushar-mahalya.github.io/archlens/">
+<meta property="og:image" content="https://tushar-mahalya.github.io/archlens/og.png">
+<meta property="og:image:width" content="1200">
+<meta property="og:image:height" content="630">
+<meta property="og:image:alt" content="Archlens drawing sheet: a page marked STALE, then SYNCED.">
+<meta name="twitter:card" content="summary_large_image">
+<meta name="twitter:title" content="Archlens: architecture docs that stay in sync with your code">
+<meta name="twitter:description" content="A page map of the whole project in a few hundred tokens. Stale pages flagged by a local script, refreshed by an isolated update.">
+<meta name="twitter:image" content="https://tushar-mahalya.github.io/archlens/og.png">
+<link rel="icon" href="favicon.svg" type="image/svg+xml">
+<script>try{var t=localStorage.getItem("archlens-theme");if(t==="light"||t==="dark")document.documentElement.setAttribute("data-theme",t)}catch(e){}document.documentElement.classList.add("js")</script>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Big+Shoulders+Display:wght@600;800;900&amp;family=IBM+Plex+Mono:wght@400;500;600&amp;family=IBM+Plex+Sans:ital,wght@0,400;0,500;0,600;1,400&amp;display=swap">
+<link rel="stylesheet" href="styles.css">
+<script src="main.js" defer></script>
+</head>
+<body>
+<a class="skip" href="#main">Skip to content</a>
+
+<header class="topbar">
+  <a class="brand" href="#a-000" aria-label="Archlens, cover sheet">
+    <svg class="brand-mark" viewBox="0 0 32 32" aria-hidden="true"><circle cx="14" cy="16" r="10"/><path d="M4 16h20"/><path class="brand-arrow" d="M24 9l7 7-7 7z"/></svg>
+    <span class="brand-word">Archlens</span>
+    <span class="brand-rev">Rev 0.3.0</span>
+  </a>
+  <nav class="sheet-nav" aria-label="Sheet index">
+    <ol>
+      <li><a href="#a-000"><span class="no">A-000</span><span class="nm">Cover</span></a></li>
+      <li><a href="#a-101"><span class="no">A-101</span><span class="nm">Problem</span></a></li>
+      <li><a href="#a-201"><span class="no">A-201</span><span class="nm">Loop</span></a></li>
+      <li><a href="#a-301"><span class="no">A-301</span><span class="nm">Evidence</span></a></li>
+      <li><a href="#s-401"><span class="no">S-401</span><span class="nm">Survey</span></a></li>
+      <li><a href="#a-501"><span class="no">A-501</span><span class="nm">Learn</span></a></li>
+      <li><a href="#i-601"><span class="no">I-601</span><span class="nm">Install</span></a></li>
+    </ol>
+  </nav>
+  <div class="topbar-tools">
+    <button class="theme-toggle" type="button" id="theme-toggle" hidden>
+      <svg viewBox="0 0 20 20" aria-hidden="true"><circle cx="10" cy="10" r="7.5"/><path d="M10 2.5a7.5 7.5 0 0 1 0 15z"/></svg>
+      <span class="theme-label">Blueprint</span>
+    </button>
+    <a class="gh" href="https://github.com/tushar-mahalya/archlens">GitHub<span class="vh"> repository</span></a>
+  </div>
+</header>
+
+<main id="main">
+
+<!-- ============ A-000 COVER ============ -->
+<section class="sheet" id="a-000" aria-labelledby="h-a-000">
+<div class="frame">
+  <div class="zones" aria-hidden="true"><span>1</span><span>2</span><span>3</span><span>4</span><span>5</span><span>6</span></div>
+
+  <div class="cover">
+    <p class="kicker"><span class="kicker-no">A-000</span> Cover sheet · A drawing set for your codebase</p>
+    <h1 id="h-a-000" class="cover-title">Architecture docs that stay <span class="cloud-word" data-cloud>in sync</span><span class="delta" aria-hidden="true">3</span> with your code.</h1>
+    <div class="cover-body">
+      <p class="lede">Archlens keeps a small architecture handbook in step with your code, gives your coding agent a map of the whole project in a few hundred tokens, and teaches you the codebase while you work. It runs as a Claude Code plugin and as a portable Agent Skill for Codex, Cursor, GitHub Copilot, Gemini CLI, OpenCode, and other agents.</p>
+      <div class="cta">
+        <a class="btn btn-ink" href="#i-601">Install <span class="btn-ref">see I-601</span></a>
+        <a class="btn" href="https://github.com/tushar-mahalya/archlens">Read the source on GitHub</a>
+      </div>
+    </div>
+    <aside class="cover-side">
+      <div class="general-notes">
+        <h2 class="label">General notes</h2>
+        <ol>
+          <li>Every claim links to source, tests, or decisions. Unknowns stay unknown.</li>
+          <li>Drift detection is a local Python script. It uses no model tokens.</li>
+          <li>No server, no telemetry, no network calls. Python 3.9+ enables hooks and checks.</li>
+          <li>MIT licensed. Independent project.</li>
+        </ol>
+      </div>
+      <div class="sheet-index">
+        <h2 class="label">Sheet index</h2>
+        <ol>
+          <li><a href="#a-101"><span>A-101</span>The problem</a></li>
+          <li><a href="#a-201"><span>A-201</span>The loop</a></li>
+          <li><a href="#a-301"><span>A-301</span>Evidence</a></li>
+          <li><a href="#s-401"><span>S-401</span>Field survey</a></li>
+          <li><a href="#a-501"><span>A-501</span>Learn</a></li>
+          <li><a href="#i-601"><span>I-601</span>Install</a></li>
+        </ol>
+      </div>
+    </aside>
+  </div>
+
+  <figure class="detail coupling" id="coupling" aria-labelledby="coupling-title" data-state="synced">
+    <figcaption class="detail-head">
+      <span class="bubble" aria-hidden="true"><span>1</span><span>A-000</span></span>
+      <span class="detail-title" id="coupling-title">Detail 1: code and page, coupled</span>
+      <span class="detail-note">Real files from <a href="https://github.com/tushar-mahalya/archlens/tree/main/examples/order-service">examples/order-service</a></span>
+    </figcaption>
+
+    <div class="coupling-grid">
+      <div class="panel panel-code">
+        <p class="panel-head"><span class="panel-kind">Source</span><span class="panel-path">order_service.py</span><span class="panel-meta">lines 20–38</span></p>
+        <pre class="code" aria-label="order_service.py, lines 20 to 38"><span class="l" data-n="20"><span class="k">def</span> <span class="f">submit_order</span>(connection, request_key, sku, quantity):</span>
+<span class="l" data-n="21">    <span class="k">if not</span> isinstance(request_key, str) <span class="k">or not</span> request_key.strip():</span>
+<span class="l" data-n="22">        <span class="k">raise</span> ValueError(<span class="s">"request_key must be a non-empty string"</span>)</span>
+<span class="l" data-n="23">    <span class="k">if not</span> isinstance(sku, str) <span class="k">or not</span> sku.strip():</span>
+<span class="l" data-n="24">        <span class="k">raise</span> ValueError(<span class="s">"sku must be a non-empty string"</span>)</span>
+<span class="hot" id="hot"><span class="hot-old"><span class="l" data-n="25">    <span class="k">if</span> type(quantity) <span class="k">is not</span> int <span class="k">or</span> quantity &lt;= <span class="n">0</span>:</span>
+<span class="l" data-n="26">        <span class="k">raise</span> ValueError(<span class="s">"quantity must be a positive integer"</span>)</span></span><span class="hot-new" hidden><span class="l" data-n="25">    <span class="k">if</span> type(quantity) <span class="k">is not</span> int <span class="k">or not</span> <span class="n">1</span> &lt;= quantity &lt;= <span class="n">100</span>:</span>
+<span class="l" data-n="26">        <span class="k">raise</span> ValueError(<span class="s">"quantity must be an integer from 1 to 100"</span>)</span></span></span>
+<span class="l" data-n="27">    <span class="k">with</span> connection:</span>
+<span class="l" data-n="28">        connection.execute(</span>
+<span class="l" data-n="29">            <span class="s">"INSERT INTO orders (request_key, sku, quantity) VALUES (?, ?, ?) "</span></span>
+<span class="l" data-n="30">            <span class="s">"ON CONFLICT(request_key) DO NOTHING"</span>,</span>
+<span class="l" data-n="31">            (request_key, sku, quantity),</span>
+<span class="l" data-n="32">        )</span>
+<span class="l" data-n="33">        order_id, existing_sku, existing_quantity = connection.execute(</span>
+<span class="l" data-n="34">            <span class="s">"SELECT id, sku, quantity FROM orders WHERE request_key = ?"</span>, (request_key,)</span>
+<span class="l" data-n="35">        ).fetchone()</span>
+<span class="l" data-n="36">        <span class="k">if</span> (existing_sku, existing_quantity) != (sku, quantity):</span>
+<span class="l" data-n="37">            <span class="k">raise</span> RequestConflict(<span class="s">"request_key already identifies different order data"</span>)</span>
+<span class="l" data-n="38">    <span class="k">return</span> order_id</span></pre>
+      </div>
+
+      <div class="coupler" aria-hidden="true">
+        <span class="coupler-line"></span>
+        <span class="coupler-label">cites #L20-L38</span>
+      </div>
+
+      <div class="panel panel-doc">
+        <p class="panel-head"><span class="panel-kind">Page</span><span class="panel-path">docs/architecture/runtime/submit-order.md</span><span class="panel-meta">FLOW-001</span></p>
+        <div class="doc">
+          <h3 class="doc-title">What happens when the caller submits an order?</h3>
+          <p>The library validates the input before it starts a write. It creates an order or finds the order with the same request key. It rejects a repeated key whose SKU or quantity differs.</p>
+          <div class="table-scroll">
+            <table class="doc-table">
+              <thead><tr><th scope="col">Rule order</th><th scope="col">Condition</th><th scope="col">Result</th><th scope="col">Side effect</th></tr></thead>
+              <tbody>
+                <tr><td>1</td><td>Empty or non-string key</td><td>ValueError</td><td>None</td></tr>
+                <tr><td>2</td><td>Empty or non-string SKU</td><td>ValueError</td><td>None</td></tr>
+                <tr class="row-hot"><td>3</td><td><span class="redline" id="redline"><span class="redline-old">Quantity is not a positive integer</span><span class="redline-new" aria-hidden="true"></span></span></td><td>ValueError</td><td>None</td></tr>
+                <tr><td>4</td><td>Existing key has different data</td><td>RequestConflict</td><td>Transaction rolls back</td></tr>
+                <tr><td>5</td><td>New key or matching repeated key</td><td>Order ID</td><td>New record commits, or existing record remains</td></tr>
+              </tbody>
+            </table>
+          </div>
+        </div>
+        <div class="stamp" id="stamp" data-state="synced" aria-hidden="true">
+          <span class="stamp-word">Synced</span>
+          <span class="stamp-sub">FLOW-001 · baseline recorded</span>
+        </div>
+      </div>
+
+      <div class="panel panel-map">
+        <p class="panel-head"><span class="panel-kind">Page map</span><span class="panel-path">loaded at session start</span><span class="panel-meta"><span id="map-bytes">1,131</span> bytes</span></p>
+<pre class="map" id="map-text"><span class="map-h">## Architecture handbook (Archlens)</span>
+Pages live in `docs/architecture/` (6 pages, <span id="map-count">0 stale</span>). Use them to find the right code fast and to learn why it is built this way. Pages summarize; source is authoritative: confirm names, limits, and behavior in the linked source before you answer or change code. STALE means evidence the page cites changed after the last doc sync. After an architectural change, update the affected pages.
+
+- `README.md` Understand the order example: The library stores an order and returns its ID. [covers order_service.py]<span class="map-flag" data-flag=" STALE: 1 cited change"></span>
+- `context.md` What are the main parts?: The caller runs in the same process as the order library. [covers order_service.py]<span class="map-flag" data-flag=" STALE: 2 cited changes"></span>
+- <span class="map-focus">`runtime/submit-order.md` What happens when the caller submits an order?: The library validates the input before it starts a write. [covers order_service.py]</span><span class="map-flag" data-flag=" STALE: 1 cited change"></span>
+- `data.md` Where does order data go?: The caller supplies the input. [covers order_service.py]<span class="map-flag" data-flag=" STALE: 1 cited change"></span>
+- `glossary.md` Glossary: These are local project definitions, not an official STE vocabulary.
+- `decisions/ADR-001.md` ADR-001: Identify repeated submissions with a request key [covers order_service.py]<span class="map-flag" data-flag=" STALE: 1 cited change"></span></pre>
+        <div class="dimline" id="map-dim" style="--used:1131;--max:3000">
+          <div class="dim dim-budget"><span class="dim-text">≤ 3,000 bytes · default <code>contextBudget</code></span></div>
+          <div class="dim dim-used"><span class="dim-text"><span id="map-bytes-dim">1,131</span> B</span></div>
+        </div>
+      </div>
+    </div>
+
+    <div class="coupling-controls" id="coupling-controls" hidden>
+      <div class="controls-row">
+        <button class="btn btn-ink" type="button" id="btn-edit"><span class="btn-key" aria-hidden="true">1</span> Edit the code</button>
+        <button class="btn" type="button" id="btn-update" disabled><span class="btn-key" aria-hidden="true">2</span> Run update</button>
+        <button class="btn btn-ghost" type="button" id="btn-reset">Reset</button>
+      </div>
+      <p class="log" id="coupling-log" role="status" aria-live="polite"><span class="log-k">status</span> 6 pages, 0 stale. Click <em>Edit the code</em> or the marked lines 25–26.</p>
+    </div>
+    <p class="fineprint">Page text, map lines, byte counts, and the Stop hook message are real output of <code>archlens.py</code> on the order example. The quantity limit is a hypothetical edit, simulated in your browser.</p>
+  </figure>
+
+  <div class="title-block" aria-hidden="true">
+    <div><b>Project</b>Archlens</div><div><b>Title</b>Cover</div><div><b>Sheet</b><i>A-000</i></div><div><b>Rev</b>0.3.0</div>
+    <div><b>Drawn</b>agent</div><div><b>Checked</b>you</div><div class="tb-wide"><b>Scale</b>1 page = 1 question</div>
+  </div>
+</div>
+</section>
+
+<!-- ============ A-101 PROBLEM ============ -->
+<section class="sheet" id="a-101" aria-labelledby="h-a-101">
+<div class="frame">
+  <div class="zones" aria-hidden="true"><span>1</span><span>2</span><span>3</span><span>4</span><span>5</span><span>6</span></div>
+  <header class="sheet-head">
+    <p class="sheet-id"><span class="sheet-no">A-101</span><span class="sheet-name">The problem</span></p>
+    <div class="sheet-heading">
+      <h2 id="h-a-101">Docs go stale a week after they are written. Agents start from zero every session.</h2>
+      <p class="lede">Nothing says which architecture page drifted, and nothing tells a coding agent where to look, so it explores the repository again. Archlens answers both with one small handbook and a baseline for every page.</p>
+    </div>
+  </header>
+
+  <div class="schedule-wrap">
+    <h3 class="label">Schedule of problems</h3>
+    <div class="table-scroll">
+      <table class="schedule schedule-measured">
+        <thead><tr><th scope="col">Mark</th><th scope="col">What goes wrong today</th><th scope="col">What Archlens does</th><th scope="col">Measured</th></tr></thead>
+        <tbody>
+          <tr><td class="mark">P1</td><th scope="row">Docs go stale a week after they are written</th><td>Fingerprints the exact functions and line ranges each page cites, and flags the page when that code changes, even after a commit</td><td class="measured">Checks 50,000 files in <b>0.22&nbsp;s</b></td></tr>
+          <tr><td class="mark">P2</td><th scope="row">Moved code breaks every <code>#L120</code> link</th><td>Rewrites links whose cited code only moved. No model, no tokens</td><td class="measured">Automatic after each Claude turn</td></tr>
+          <tr><td class="mark">P3</td><th scope="row">Agents re-explore the repository every session</th><td>Loads a compact page map at session start, or writes it into <code>AGENTS.md</code></td><td class="measured"><b>408 tokens</b> for this repo; capped at 3,000 bytes</td></tr>
+          <tr><td class="mark">P4</td><th scope="row">Context files bloat every turn</th><td>One model-visible description; everything else loads only when used</td><td class="measured"><b>178 bytes</b> in every session</td></tr>
+          <tr><td class="mark">P5</td><th scope="row">AI wikis invent plausible details</th><td>Every claim links to source, tests, or decisions. Unknowns stay unknown. A checker catches dead links, moved anchors, and vanished symbols</td><td class="measured"><b>0.04</b> wrong claims per answer in the benchmark</td></tr>
+          <tr><td class="mark">P6</td><th scope="row">You ship code you do not understand</th><td><code>/archlens:learn</code> answers questions, gives a tour, quizzes you, and explains your branch</td><td class="measured">Inline, so you can ask follow-ups</td></tr>
+        </tbody>
+      </table>
+    </div>
+  </div>
+
+  <div class="split">
+    <figure class="detail tree-detail" aria-labelledby="tree-title">
+      <figcaption class="detail-head">
+        <span class="bubble" aria-hidden="true"><span>2</span><span>A-101</span></span>
+        <span class="detail-title" id="tree-title">Detail 2: what setup draws</span>
+      </figcaption>
+<pre class="tree"><b>docs/architecture/</b>
+  README.md              <span>Reading path, coverage table, and known gaps</span>
+  context.md             <span>Users, boundaries, and external systems</span>
+  runtime/               <span>Important flows: branches, failures, and recovery</span>
+  data.md                <span>Ownership, lifecycle, and retention</span>
+  decisions/ADR-*.md     <span>Why the design is this way, with alternatives</span>
+  glossary.md            <span>One term per concept</span>
+  map.json               <span>Which code each page covers</span>
+  .archlens-state.json   <span>Freshness baseline written by sync</span></pre>
+    </figure>
+    <div class="split-notes">
+      <p>Archlens starts small: context, main units, and one important journey, then grows by risk. Pages use Mermaid diagrams, short sentences, and plain words.</p>
+      <p>Pages cite evidence, often a line range such as <code>order_service.py#L20-L38</code>. <code>sync</code> records a baseline of every cited range and covered file. For Python, the baseline is the syntax tree of the function around the range, so comments and formatting do not count and a moved function is followed.</p>
+      <p>Cited evidence that changed makes a page <code>stale</code>. Changes elsewhere in covered files only mark it for <code>review</code>.</p>
+      <p class="note-strong">A stale flag means “check this page”. It does not prove the prose is wrong.</p>
+    </div>
+  </div>
+
+  <div class="title-block" aria-hidden="true">
+    <div><b>Project</b>Archlens</div><div><b>Title</b>The problem</div><div><b>Sheet</b><i>A-101</i></div><div><b>Rev</b>0.3.0</div>
+    <div><b>Drawn</b>agent</div><div><b>Checked</b>you</div><div class="tb-wide"><b>Scale</b>1 page = 1 question</div>
+  </div>
+</div>
+</section>
+
+<!-- ============ A-201 LOOP ============ -->
+<section class="sheet" id="a-201" aria-labelledby="h-a-201">
+<div class="frame">
+  <div class="zones" aria-hidden="true"><span>1</span><span>2</span><span>3</span><span>4</span><span>5</span><span>6</span></div>
+  <header class="sheet-head">
+    <p class="sheet-id"><span class="sheet-no">A-201</span><span class="sheet-name">The loop</span></p>
+    <div class="sheet-heading">
+      <h2 id="h-a-201">Detecting drift costs no tokens. Rewriting prose happens only where it drifted.</h2>
+      <p class="lede">Archlens separates two jobs. A local script compares the code each page cites with the baseline recorded at its last sync, and rewrites links whose code only moved: no model, no tokens. An agent then reviews only the stale pages, edits what changed, and syncs the pages it verified.</p>
+    </div>
+  </header>
+
+  <div class="loop" id="loop">
+    <figure class="loop-figure" aria-labelledby="loop-title">
+      <figcaption class="detail-head">
+        <span class="bubble" aria-hidden="true"><span>3</span><span>A-201</span></span>
+        <span class="detail-title" id="loop-title">Detail 3: the freshness loop</span>
+        <span class="detail-note">Hover or focus a callout</span>
+      </figcaption>
+      <svg class="loop-svg loop-wide" viewBox="0 0 960 470" role="img" aria-labelledby="loop-wide-t loop-wide-d">
+        <title id="loop-wide-t">The Archlens freshness loop</title>
+        <desc id="loop-wide-d">Session start loads the page map with stale flags. The agent works and edits covered code. The Stop hook flags stale pages. Update reviews them in an isolated task. Sync records the new baseline for the next session.</desc>
+        <g class="dimg">
+          <path class="ln thin" pathLength="1" d="M24 52V22M244 52V22M24 30H244"/>
+          <path class="ln" pathLength="1" d="M19 35l10-10M239 35l10-10"/>
+          <text class="t-dim" x="134" y="20" text-anchor="middle">≤ 3,000 B</text>
+        </g>
+        <g class="node script" data-step="1">
+          <path class="ln box" pathLength="1" d="M24 56h220v104H24z"/><path class="ln thin" pathLength="1" d="M30 62h208v92H30z"/>
+          <text class="t-title" x="46" y="98">Session start</text>
+          <text class="t-mono" x="46" y="122">Hook prints the page map</text>
+          <text class="t-mono" x="46" y="140">with stale flags</text>
+        </g>
+        <g class="node" data-step="2">
+          <path class="ln box" pathLength="1" d="M716 56h220v104H716z"/>
+          <text class="t-title" x="738" y="98">Agent works</text>
+          <text class="t-mono" x="738" y="122">Opened files name</text>
+          <text class="t-mono" x="738" y="140">their page once</text>
+        </g>
+        <g class="node script" data-step="3">
+          <path class="ln box" pathLength="1" d="M716 336h220v104H716z"/><path class="ln thin" pathLength="1" d="M722 342h208v92H722z"/>
+          <text class="t-title" x="738" y="378">Stop hook</text>
+          <text class="t-mono" x="738" y="402">Fixes moved links,</text>
+          <text class="t-mono" x="738" y="420">flags cited changes</text>
+        </g>
+        <g class="node" data-step="4">
+          <path class="ln box" pathLength="1" d="M370 336h220v104H370z"/>
+          <text class="t-title" x="392" y="378">Update</text>
+          <text class="t-mono" x="392" y="402">Isolated task reviews</text>
+          <text class="t-mono" x="392" y="420">only the stale pages</text>
+        </g>
+        <g class="node script" data-step="5">
+          <path class="ln box" pathLength="1" d="M24 336h220v104H24z"/><path class="ln thin" pathLength="1" d="M30 342h208v92H30z"/>
+          <text class="t-title" x="46" y="378">Sync</text>
+          <text class="t-mono" x="46" y="402">Records each reviewed</text>
+          <text class="t-mono" x="46" y="420">page’s new baseline</text>
+        </g>
+        <g class="edges">
+          <path class="ln" pathLength="1" d="M244 108H704"/><path class="head" d="M716 108l-14-4.5v9z"/>
+          <path class="ln" pathLength="1" d="M826 160V324"/><path class="head" d="M826 336l-4.5-14h9z"/>
+          <path class="ln" pathLength="1" d="M716 388H602"/><path class="head" d="M590 388l14-4.5v9z"/>
+          <path class="ln" pathLength="1" d="M370 388H256"/><path class="head" d="M244 388l14-4.5v9z"/>
+          <path class="ln" pathLength="1" d="M134 336V172"/><path class="head" d="M134 160l-4.5 14h9z"/>
+          <text class="t-edge" x="480" y="98" text-anchor="middle">page map + stale flags</text>
+          <text class="t-edge" x="814" y="252" text-anchor="end">turn ends</text>
+          <text class="t-edge" x="653" y="376" text-anchor="middle">remind | auto</text>
+          <text class="t-edge" x="307" y="376" text-anchor="middle">verified pages</text>
+          <text class="t-edge" x="146" y="252">next session</text>
+        </g>
+        <g class="legend">
+          <path class="ln" pathLength="1" d="M330 206h40v26h-40z"/><path class="ln thin" pathLength="1" d="M334 210h32v18h-32z"/>
+          <text class="t-mono" x="384" y="224">local script · no model tokens</text>
+          <path class="ln" pathLength="1" d="M330 254h40v26h-40z"/>
+          <text class="t-mono" x="384" y="272">agent work · uses tokens</text>
+        </g>
+        <g class="bubbles">
+          <g class="bubble-svg" data-step="1" tabindex="0" role="button" aria-label="Callout 1, session start" aria-describedby="note-1"><circle cx="24" cy="56" r="16"/><text x="24" y="61" text-anchor="middle">1</text></g>
+          <g class="bubble-svg" data-step="2" tabindex="0" role="button" aria-label="Callout 2, agent works" aria-describedby="note-2"><circle cx="716" cy="56" r="16"/><text x="716" y="61" text-anchor="middle">2</text></g>
+          <g class="bubble-svg" data-step="3" tabindex="0" role="button" aria-label="Callout 3, stop hook" aria-describedby="note-3"><circle cx="936" cy="336" r="16"/><text x="936" y="341" text-anchor="middle">3</text></g>
+          <g class="bubble-svg" data-step="4" tabindex="0" role="button" aria-label="Callout 4, update" aria-describedby="note-4"><circle cx="590" cy="336" r="16"/><text x="590" y="341" text-anchor="middle">4</text></g>
+          <g class="bubble-svg" data-step="5" tabindex="0" role="button" aria-label="Callout 5, sync" aria-describedby="note-5"><circle cx="244" cy="336" r="16"/><text x="244" y="341" text-anchor="middle">5</text></g>
+        </g>
+      </svg>
+
+      <svg class="loop-svg loop-tall" viewBox="0 0 340 830" role="img" aria-labelledby="loop-tall-t">
+        <title id="loop-tall-t">The Archlens freshness loop, vertical layout: session start, agent works, stop hook, update, sync, then back to session start.</title>
+        <g class="dimg">
+          <path class="ln thin" pathLength="1" d="M60 56V26M300 56V26M60 34H300"/>
+          <path class="ln" pathLength="1" d="M55 39l10-10M295 39l10-10"/>
+          <text class="t-dim" x="180" y="24" text-anchor="middle">≤ 3,000 B</text>
+        </g>
+        <g class="node script" data-step="1"><path class="ln box" pathLength="1" d="M60 60h240v100H60z"/><path class="ln thin" pathLength="1" d="M66 66h228v88H66z"/><text class="t-title" x="84" y="100">Session start</text><text class="t-mono" x="84" y="124">Hook prints the page map</text><text class="t-mono" x="84" y="142">with stale flags</text></g>
+        <g class="node" data-step="2"><path class="ln box" pathLength="1" d="M60 210h240v100H60z"/><text class="t-title" x="84" y="250">Agent works</text><text class="t-mono" x="84" y="274">Opened files name</text><text class="t-mono" x="84" y="292">their page once</text></g>
+        <g class="node script" data-step="3"><path class="ln box" pathLength="1" d="M60 360h240v100H60z"/><path class="ln thin" pathLength="1" d="M66 366h228v88H66z"/><text class="t-title" x="84" y="400">Stop hook</text><text class="t-mono" x="84" y="424">Fixes moved links,</text><text class="t-mono" x="84" y="442">flags cited changes</text></g>
+        <g class="node" data-step="4"><path class="ln box" pathLength="1" d="M60 510h240v100H60z"/><text class="t-title" x="84" y="550">Update</text><text class="t-mono" x="84" y="574">Isolated task reviews</text><text class="t-mono" x="84" y="592">only the stale pages</text></g>
+        <g class="node script" data-step="5"><path class="ln box" pathLength="1" d="M60 660h240v100H60z"/><path class="ln thin" pathLength="1" d="M66 666h228v88H66z"/><text class="t-title" x="84" y="700">Sync</text><text class="t-mono" x="84" y="724">Records each reviewed</text><text class="t-mono" x="84" y="742">page’s new baseline</text></g>
+        <g class="edges">
+          <path class="ln" pathLength="1" d="M180 160V198"/><path class="head" d="M180 210l-4.5-14h9z"/>
+          <path class="ln" pathLength="1" d="M180 310V348"/><path class="head" d="M180 360l-4.5-14h9z"/>
+          <path class="ln" pathLength="1" d="M180 460V498"/><path class="head" d="M180 510l-4.5-14h9z"/>
+          <path class="ln" pathLength="1" d="M180 610V648"/><path class="head" d="M180 660l-4.5-14h9z"/>
+          <path class="ln" pathLength="1" d="M60 710H26V110H48"/><path class="head" d="M60 110l-14-4.5v9z"/>
+          <text class="t-edge" x="192" y="190">map + stale flags</text>
+          <text class="t-edge" x="192" y="340">turn ends</text>
+          <text class="t-edge" x="192" y="490">remind | auto</text>
+          <text class="t-edge" x="192" y="640">verified pages</text>
+          <text class="t-edge" x="18" y="410" text-anchor="middle" transform="rotate(-90 18 410)">next session</text>
+        </g>
+        <g class="legend">
+          <path class="ln" pathLength="1" d="M60 784h36v22h-36z"/><path class="ln thin" pathLength="1" d="M64 788h28v14h-28z"/><text class="t-mono" x="106" y="800">local script · no tokens</text>
+          <path class="ln" pathLength="1" d="M60 814h36v14h-36z"/><text class="t-mono" x="106" y="826">agent work · uses tokens</text>
+        </g>
+        <g class="bubbles">
+          <g class="bubble-svg" data-step="1" tabindex="0" role="button" aria-label="Callout 1, session start" aria-describedby="note-1"><circle cx="300" cy="60" r="16"/><text x="300" y="65" text-anchor="middle">1</text></g>
+          <g class="bubble-svg" data-step="2" tabindex="0" role="button" aria-label="Callout 2, agent works" aria-describedby="note-2"><circle cx="300" cy="210" r="16"/><text x="300" y="215" text-anchor="middle">2</text></g>
+          <g class="bubble-svg" data-step="3" tabindex="0" role="button" aria-label="Callout 3, stop hook" aria-describedby="note-3"><circle cx="300" cy="360" r="16"/><text x="300" y="365" text-anchor="middle">3</text></g>
+          <g class="bubble-svg" data-step="4" tabindex="0" role="button" aria-label="Callout 4, update" aria-describedby="note-4"><circle cx="300" cy="510" r="16"/><text x="300" y="515" text-anchor="middle">4</text></g>
+          <g class="bubble-svg" data-step="5" tabindex="0" role="button" aria-label="Callout 5, sync" aria-describedby="note-5"><circle cx="300" cy="660" r="16"/><text x="300" y="665" text-anchor="middle">5</text></g>
+        </g>
+      </svg>
+    </figure>
+
+    <div class="keyed-notes">
+      <h3 class="label">Keyed notes</h3>
+      <ol>
+        <li id="note-1" data-step="1"><b>Session start.</b> In a project with a handbook, a SessionStart hook prints the page map: one line per page, with stale flags. The budget is 3,000 bytes by default; this repository’s map is 1,630 bytes, about 408 tokens. Projects without a handbook get nothing.</li>
+        <li id="note-2" data-step="2"><b>Agent works.</b> The map says where to look. When the agent reads or edits a documented file, a hook names that file’s page, once per page per session. Pages summarize; source is authoritative.</li>
+        <li id="note-3" data-step="3"><b>Stop hook.</b> When a turn ends, a local script compares cited evidence with its baseline. Code that only moved gets its line links rewritten. Code that changed makes the page stale, and you see one line per new set of stale pages. 328&nbsp;ms on a 50,000-file repository.</li>
+        <li id="note-4" data-step="4"><b>Update.</b> With <code>"autoUpdate": "remind"</code> (default) you get the reminder. With <code>"auto"</code>, the agent runs the update itself in an isolated task. It fixes stale pages first, confirms review pages, and changes only prose the change made wrong.</li>
+        <li id="note-5" data-step="5"><b>Sync.</b> <code>sync</code> records the reviewed pages’ new baseline and refreshes the context file. It trusts the caller, so only pages someone checked against current source get synced.</li>
+      </ol>
+    </div>
+  </div>
+
+  <div class="where">
+    <h3 class="label">Where the loop runs</h3>
+    <div class="table-scroll">
+      <table class="schedule schedule-compact">
+        <thead><tr><th scope="col">Where</th><th scope="col">Detects drift</th><th scope="col">Rewrites prose</th><th scope="col">Setup</th></tr></thead>
+        <tbody>
+          <tr><th scope="row">Claude Code plugin</th><td>Stop hook, after each turn that changes covered files</td><td><code>autoUpdate: "auto"</code> runs isolated update</td><td>Install the plugin</td></tr>
+          <tr><th scope="row">Any agent that reads <code>AGENTS.md</code></th><td>The map block tells the agent to run the <code>status</code> check before relying on a page</td><td>Ask the agent to run the Archlens update operation</td><td><code>contextFile</code></td></tr>
+          <tr><th scope="row">Git, any editor or agent</th><td><code>pre-push</code> hook</td><td>Developer or agent</td><td>pre-commit</td></tr>
+          <tr><th scope="row">CI</th><td>Pull request check</td><td>Optional agent job</td><td>Workflow, see <span class="nowrap">I-601</span></td></tr>
+        </tbody>
+      </table>
+    </div>
+  </div>
+
+  <div class="split split-even">
+    <div>
+      <h3 class="label">Six commands</h3>
+      <div class="table-scroll">
+        <table class="schedule schedule-compact commands">
+          <thead><tr><th scope="col">Command</th><th scope="col">What it does</th><th scope="col">Changes files?</th></tr></thead>
+          <tbody>
+            <tr><th scope="row"><code>/archlens:setup</code></th><td>Writes a small handbook from source evidence and records the baseline</td><td>Docs only</td></tr>
+            <tr><th scope="row"><code>/archlens:update</code></th><td>Fixes stale pages first, confirms review pages, then syncs them</td><td>Docs only</td></tr>
+            <tr><th scope="row"><code>/archlens:check</code></th><td>Audits evidence, links, anchors, diagrams, stale references, and freshness</td><td>No</td></tr>
+            <tr><th scope="row"><code>/archlens:explain</code></th><td>Traces one flow with a diagram and a source-linked step table</td><td>No</td></tr>
+            <tr><th scope="row"><code>/archlens:decide</code></th><td>Drafts a decision record with options, tradeoffs, and a review trigger</td><td>Docs only</td></tr>
+            <tr><th scope="row"><code>/archlens:learn</code></th><td>Tutors you: questions, <code>tour</code>, <code>quiz</code>, or <code>changes</code></td><td>No</td></tr>
+          </tbody>
+        </table>
+      </div>
+      <p class="small">Five run in an isolated task, so exploration never fills your conversation. <code>learn</code> runs inline so you can keep asking. In other agents, ask for the same operations by name.</p>
+    </div>
+
+    <div>
+      <h3 class="label">What loads, and when</h3>
+      <div class="dims" style="--max:10500">
+        <div class="dim-row">
+          <p class="dim-k"><b><code>update</code> description</b><span>Every Claude session</span></p>
+          <div class="dim-track"><span class="dim" style="--from:0;--to:178"></span><span class="dim-v" style="--at:0">178 B</span></div>
+        </div>
+        <div class="dim-row dim-row-key">
+          <p class="dim-k"><b>Page map</b><span>Session start, only with a handbook</span></p>
+          <div class="dim-track"><span class="dim" style="--from:0;--to:1630"></span><span class="dim dim-ext" style="--from:1630;--to:3000"></span><span class="dim-v" style="--at:0">1,630 B in this repository · ≤ 3,000 budget</span></div>
+        </div>
+        <div class="dim-row">
+          <p class="dim-k"><b>File pointer</b><span>After reading a documented file</span></p>
+          <div class="dim-track"><span class="dim-v" style="--at:0">one line per page per session</span></div>
+        </div>
+        <div class="dim-row">
+          <p class="dim-k"><b>Stop hook</b><span>After each turn</span></p>
+          <div class="dim-track"><span class="dim-v" style="--at:0">nothing, unless cited evidence changed</span></div>
+        </div>
+        <div class="dim-row">
+          <p class="dim-k"><b><code>learn</code></b><span>Inline, for follow-ups</span></p>
+          <div class="dim-track"><span class="dim dim-ext" style="--from:0;--to:2200"></span><span class="dim-v" style="--at:0">≤ 2,200 B cold load</span></div>
+        </div>
+        <div class="dim-row">
+          <p class="dim-k"><b>Other commands</b><span>Inside an isolated task</span></p>
+          <div class="dim-track"><span class="dim dim-ext" style="--from:0;--to:5000"></span><span class="dim dim-ext" style="--from:5000;--to:10500"></span><span class="dim-v" style="--at:0">≤ 5,000 B · setup ≤ 10,500 B</span></div>
+        </div>
+        <div class="dim-axis" aria-hidden="true"><span style="--at:0">0</span><span style="--at:3000">3 KB</span><span style="--at:6000">6 KB</span><span style="--at:10500">10.5 KB</span></div>
+      </div>
+      <p class="small">Solid lines are measured; dashed lines are limits that CI enforces. Byte counts are not exact tokens (roughly bytes/4). Source reads and outputs are extra.</p>
+    </div>
+  </div>
+
+  <div class="title-block" aria-hidden="true">
+    <div><b>Project</b>Archlens</div><div><b>Title</b>The loop</div><div><b>Sheet</b><i>A-201</i></div><div><b>Rev</b>0.3.0</div>
+    <div><b>Drawn</b>agent</div><div><b>Checked</b>you</div><div class="tb-wide"><b>Scale</b>1 page = 1 question</div>
+  </div>
+</div>
+</section>
+
+<!-- ============ A-301 EVIDENCE ============ -->
+<section class="sheet" id="a-301" aria-labelledby="h-a-301">
+<div class="frame">
+  <div class="zones" aria-hidden="true"><span>1</span><span>2</span><span>3</span><span>4</span><span>5</span><span>6</span></div>
+  <header class="sheet-head">
+    <p class="sheet-id"><span class="sheet-no">A-301</span><span class="sheet-name">Evidence</span></p>
+    <div class="sheet-heading">
+      <h2 id="h-a-301">Answers at least as good. About a third cheaper.</h2>
+      <p class="lede">72 real Claude Code sessions (Sonnet; Read, Grep, and Glob only) answered eight architecture questions about this repository, three times each, under three conditions. A separate model graded every answer blind against a fixed key. Raw answers, grades, and usage are in the repository.</p>
+    </div>
+  </header>
+
+  <div class="stats">
+    <div class="stat">
+      <p class="stat-n">31<span>%</span></p>
+      <p class="stat-l">fewer input tokens</p>
+      <div class="cmp" style="--r:.6915">
+        <span class="cmp-k">no handbook</span><span class="cmp-bar"></span><span class="cmp-v">24,952</span>
+        <span class="cmp-k">archlens</span><span class="cmp-bar cmp-part"></span><span class="cmp-v">17,253</span>
+      </div>
+    </div>
+    <div class="stat">
+      <p class="stat-n">26<span>%</span></p>
+      <p class="stat-l">fewer turns</p>
+      <div class="cmp" style="--r:.7381">
+        <span class="cmp-k">no handbook</span><span class="cmp-bar"></span><span class="cmp-v">4.2</span>
+        <span class="cmp-k">archlens</span><span class="cmp-bar cmp-part"></span><span class="cmp-v">3.1</span>
+      </div>
+    </div>
+    <div class="stat">
+      <p class="stat-n">32<span>%</span></p>
+      <p class="stat-l">lower cost per answer</p>
+      <div class="cmp" style="--r:.6818">
+        <span class="cmp-k">no handbook</span><span class="cmp-bar"></span><span class="cmp-v">$0.022</span>
+        <span class="cmp-k">archlens</span><span class="cmp-bar cmp-part"></span><span class="cmp-v">$0.015</span>
+      </div>
+    </div>
+    <div class="stat">
+      <p class="stat-n">27<span>%</span></p>
+      <p class="stat-l">less time per answer</p>
+      <div class="cmp" style="--r:.7292">
+        <span class="cmp-k">no handbook</span><span class="cmp-bar"></span><span class="cmp-v">9.6 s</span>
+        <span class="cmp-k">archlens</span><span class="cmp-bar cmp-part"></span><span class="cmp-v">7.0 s</span>
+      </div>
+    </div>
+  </div>
+
+  <div class="split">
+    <figure class="ci" aria-labelledby="ci-title">
+      <figcaption>
+        <h3 class="label" id="ci-title">Key-fact recall, with 95% confidence intervals</h3>
+        <p class="small">The intervals overlap. With 24 answers per condition, differences below about 8 points are noise.</p>
+      </figcaption>
+      <div class="ci-plot" style="--lo:70;--hi:100">
+        <div class="ci-row"><span class="ci-k">no handbook</span><span class="ci-track"><span class="ci-range" style="--a:79;--b:94"></span><span class="ci-pt" style="--p:86"></span></span><span class="ci-v">86% <small>(79–94)</small></span></div>
+        <div class="ci-row"><span class="ci-k">handbook only</span><span class="ci-track"><span class="ci-range" style="--a:76;--b:92"></span><span class="ci-pt" style="--p:84"></span></span><span class="ci-v">84% <small>(76–92)</small></span></div>
+        <div class="ci-row ci-key"><span class="ci-k">archlens</span><span class="ci-track"><span class="ci-range" style="--a:82;--b:95"></span><span class="ci-pt" style="--p:89"></span></span><span class="ci-v">89% <small>(82–95)</small></span></div>
+        <div class="ci-axis" aria-hidden="true"><span style="--p:70">70%</span><span style="--p:80">80%</span><span style="--p:90">90%</span><span style="--p:100">100%</span></div>
+      </div>
+    </figure>
+
+    <aside class="callout-nomap">
+      <p class="label">The handbook alone</p>
+      <p class="callout-big">saved almost nothing.</p>
+      <p>With the handbook present but nothing pointing to it, the agent used 23,778 input tokens against 24,952 without a handbook. It rarely looked for the pages. The always-loaded map made the difference.</p>
+    </aside>
+  </div>
+
+  <h3 class="label">Per condition, mean per answer</h3>
+  <div class="table-scroll">
+    <table class="data-table">
+      <thead><tr><th scope="col">Condition</th><th scope="col">Key-fact recall (95% CI)</th><th scope="col">Wrong claims / answer</th><th scope="col">Input tokens</th><th scope="col">Uncached input</th><th scope="col">Output</th><th scope="col">Turns</th><th scope="col">Cost</th><th scope="col">Time</th></tr></thead>
+      <tbody>
+        <tr><th scope="row">no-handbook</th><td>86% (79%–94%)</td><td>0.12</td><td>24,952</td><td>4,184</td><td>861</td><td>4.2</td><td>$0.022</td><td>9.6 s</td></tr>
+        <tr><th scope="row">handbook</th><td>84% (76%–92%)</td><td>0</td><td>23,778</td><td>3,493</td><td>858</td><td>3.9</td><td>$0.020</td><td>9.3 s</td></tr>
+        <tr class="row-key"><th scope="row">archlens</th><td>89% (82%–95%)</td><td>0.04</td><td>17,253</td><td>2,579</td><td>651</td><td>3.1</td><td>$0.015</td><td>7.0 s</td></tr>
+      </tbody>
+    </table>
+  </div>
+  <p class="small">The <code>archlens</code> sessions also had the file-pointer hook, which names a file’s page when the agent opens it. The first grading used an answer key written before the <code>review</code> tier existed; the corrected key re-graded every stored answer without re-running a session. Grades moved by up to 4 points per condition, which shows the size of judge noise.</p>
+  <details class="more">
+    <summary>Recall per question</summary>
+    <div class="table-scroll">
+      <table class="data-table">
+        <thead><tr><th scope="col">Question</th><th scope="col">no-handbook</th><th scope="col">handbook</th><th scope="col">archlens</th></tr></thead>
+        <tbody>
+          <tr><th scope="row">config-order</th><td>100%</td><td>100%</td><td>100%</td></tr>
+          <tr><th scope="row">hook-safety</th><td>100%</td><td>100%</td><td>78%</td></tr>
+          <tr><th scope="row">isolation</th><td>83%</td><td>92%</td><td>75%</td></tr>
+          <tr><th scope="row">json-map</th><td>92%</td><td>67%</td><td>100%</td></tr>
+          <tr><th scope="row">other-agents</th><td>58%</td><td>75%</td><td>100%</td></tr>
+          <tr><th scope="row">portable-sync</th><td>92%</td><td>75%</td><td>100%</td></tr>
+          <tr><th scope="row">staleness</th><td>67%</td><td>67%</td><td>60%</td></tr>
+          <tr><th scope="row">summary-limit</th><td>100%</td><td>100%</td><td>100%</td></tr>
+        </tbody>
+      </table>
+    </div>
+  </details>
+
+  <div class="split split-even redline-split">
+    <aside class="redline-note" aria-labelledby="first-run">
+      <p class="redline-tag"><span class="delta delta-inline" aria-hidden="true">1</span> Revision note</p>
+      <h3 id="first-run">What the first run taught us</h3>
+      <p>The first map told agents to <del>“read pages before source”</del>. They treated a page summary as the whole answer. One answer said it had “only read the README” and never opened the generator. Recall fell to <strong>80%</strong>, against 90% without a handbook. That run is published too.</p>
+      <p>Two fixes closed the gap:</p>
+      <ol>
+        <li>The map now says <ins>“Pages summarize; source is authoritative.”</ins></li>
+        <li>The run exposed a real coverage gap: one table row covered how the portable skill is generated. A distribution page now covers it, and <code>portable-sync</code> recall rose from 17% to 100%.</li>
+      </ol>
+      <p class="redline-moral">A thin page can make an agent less thorough than no page.</p>
+    </aside>
+
+    <div class="speed">
+      <h3 class="label">Drift detection at scale</h3>
+      <p class="speed-big"><span>222</span>&nbsp;ms</p>
+      <p class="small"><code>status</code> on a synthetic repository of 50,000 files and 300 pages, after changing 25 files. Every page cites a line-range anchor, so the time includes anchor checks. Median of three runs, Apple Silicon laptop, Python 3.9.6.</p>
+      <div class="speed-bars" style="--max:4.1">
+        <div class="speed-row speed-old"><span class="speed-k">first implementation</span><span class="speed-track"><span class="speed-bar" style="--v:4.1"></span></span><span class="speed-v">4.1 s</span></div>
+        <div class="speed-row"><span class="speed-k">sorted prefix ranges</span><span class="speed-track"><span class="speed-bar" style="--v:.222"></span></span><span class="speed-v">0.22 s</span></div>
+      </div>
+      <p class="small">The first version scanned every file for every page. Sorted prefix ranges made it fast enough for a hook after every turn.</p>
+    </div>
+  </div>
+
+  <details class="more">
+    <summary>Speed on all three synthetic repositories</summary>
+    <div class="table-scroll">
+      <table class="data-table">
+        <thead><tr><th scope="col">Synthetic repo</th><th scope="col">sync</th><th scope="col">status</th><th scope="col">context</th><th scope="col">Stop hook</th><th scope="col">check</th><th scope="col">Map bytes</th><th scope="col">State file</th></tr></thead>
+        <tbody>
+          <tr><th scope="row">1,000 files, 20 pages</th><td>63 ms</td><td>49 ms</td><td>51 ms</td><td>82 ms</td><td>11 ms</td><td>2,069</td><td>36,215</td></tr>
+          <tr><th scope="row">10,000 files, 100 pages</th><td>92 ms</td><td>83 ms</td><td>89 ms</td><td>117 ms</td><td>36 ms</td><td>2,510</td><td>357,086</td></tr>
+          <tr><th scope="row">50,000 files, 300 pages</th><td>257 ms</td><td>222 ms</td><td>245 ms</td><td>328 ms</td><td>75 ms</td><td>2,982</td><td>1,828,468</td></tr>
+        </tbody>
+      </table>
+    </div>
+    <p class="small">The map stays inside its 3,000-byte budget at 300 pages: it drops summaries first, then coverage, then lists how many pages it left out.</p>
+  </details>
+
+  <div class="limits">
+    <h3 class="label">Limits of this evidence</h3>
+    <ol>
+      <li>One small repository, about 100 files. Agents can search it quickly without help, so savings on large repositories are likely larger, but they are not measured here.</li>
+      <li>24 answers per condition. Differences in recall below about 8 points are noise.</li>
+      <li>The judge is a model. It is blind to the condition, but it can be strict or lenient.</li>
+      <li>Questions are about architecture and rationale. This does not measure coding tasks.</li>
+      <li>The final run cost $1.36 for 72 answers, plus about $0.30 for each grading pass. Rerun it before you rely on it.</li>
+    </ol>
+  </div>
+
+  <div class="code-block">
+<pre><code>python tools/benchmark.py
+python tools/model_benchmark.py --questions benchmarks/questions/archlens.json --reps 3
+python tools/model_benchmark.py --report benchmarks/results/model-sonnet.json
+python tools/render_charts.py</code></pre>
+  </div>
+  <p class="small">Method, raw results, and questions: <a href="https://github.com/tushar-mahalya/archlens/blob/main/docs/benchmarks.md">docs/benchmarks.md</a>. The model benchmark spends real usage; start with <code>--reps 1</code>.</p>
+
+  <div class="title-block" aria-hidden="true">
+    <div><b>Project</b>Archlens</div><div><b>Title</b>Evidence</div><div><b>Sheet</b><i>A-301</i></div><div><b>Rev</b>0.3.0</div>
+    <div><b>Drawn</b>agent</div><div><b>Checked</b>you</div><div class="tb-wide"><b>Scale</b>1 page = 1 question</div>
+  </div>
+</div>
+</section>
+
+<!-- ============ S-401 FIELD SURVEY ============ -->
+<section class="sheet" id="s-401" aria-labelledby="h-s-401">
+<div class="frame">
+  <div class="zones" aria-hidden="true"><span>1</span><span>2</span><span>3</span><span>4</span><span>5</span><span>6</span></div>
+  <header class="sheet-head">
+    <p class="sheet-id"><span class="sheet-no">S-401</span><span class="sheet-name">Field survey</span></p>
+    <div class="sheet-heading">
+      <h2 id="h-s-401">How other tools stay current, and what they cost.</h2>
+      <p class="lede">Reviewed on 8 November 2026 from each project’s own documentation and files. Vendor claims are as published, not verified by the Archlens project.</p>
+    </div>
+  </header>
+
+  <p class="survey-flag"><span>From published docs and files</span><span>not measured answer quality</span></p>
+  <div class="table-scroll">
+    <table class="data-table survey" id="survey-table">
+      <thead><tr><th scope="col">Tool</th><th scope="col">How it stays current</th><th scope="col">Always-loaded cost</th><th scope="col">Accuracy safeguards</th><th scope="col">Agents</th></tr></thead>
+      <tbody id="survey-body"></tbody>
+    </table>
+  </div>
+  <noscript><p class="small">The survey table is drawn by script. Read the same table in <a href="https://github.com/tushar-mahalya/archlens/blob/main/docs/benchmarks.md#1-how-archlens-compares">docs/benchmarks.md, section 1</a>.</p></noscript>
+  <p class="small">The model benchmark on A-301 compares Archlens with no handbook, not with these tools.</p>
+
+  <div class="split split-even survey-notes">
+    <div>
+      <h3 class="label">What no reviewed tool combines</h3>
+      <p>A hard always-loaded budget enforced in CI, model-free drift detection on cited symbols, published answer-quality benchmarks including a failed run, and a built-in tutor for the human (<code>/archlens:learn</code>).</p>
+    </div>
+    <div>
+      <h3 class="label">Where others are ahead</h3>
+      <p>OpenWiki and repowise have far larger communities. Code-graph tools answer “who calls this” questions that a handbook does not. Swimm couples individual tokens, not just functions and line ranges.</p>
+    </div>
+  </div>
+  <script type="application/json" id="survey-data">
+{
+  "reviewed": "2026-11-08",
+  "source": "https://github.com/tushar-mahalya/archlens/blob/main/docs/benchmarks.md#1-how-archlens-compares",
+  "columns": ["current", "always", "safeguards", "agents"],
+  "rows": [
+    {"self": true, "links": [["Archlens", "https://github.com/tushar-mahalya/archlens"]],
+     "current": "Local fingerprints of cited functions, line ranges, and covered files. Hooks, pre-commit, or CI flag drift; an isolated task rewrites",
+     "always": "178 B description, plus a map of at most 3 KB only where a handbook exists",
+     "safeguards": "Evidence links, symbol-level drift, moved-anchor detection, stale prose references, \"unknown\" rule",
+     "agents": "Claude plugin with hooks; portable skill; `AGENTS.md` block"},
+    {"links": [["OpenWiki", "https://github.com/langchain-ai/openwiki"]],
+     "current": "Claims tied to line-range evidence; clean updates skip model work. Manual run or scheduled CI PR",
+     "always": "A managed `AGENTS.md` block; size not stated",
+     "safeguards": "Grounded claims with versioned evidence",
+     "agents": "Runs through the host agent's session or its own provider"},
+    {"links": [["repowise", "https://github.com/repowise-dev/repowise"]],
+     "current": "Per-commit incremental index; path, symbol, and command drift checks",
+     "always": "Up to 10 MCP tools",
+     "safeguards": "Symbol findings need proof from Git",
+     "agents": "MCP clients"},
+    {"links": [["Fiberplane drift", "https://github.com/fiberplane/drift"]],
+     "current": "Doc anchors to `file#Symbol` with a normalized AST hash; CI fails when stale",
+     "always": "Near zero",
+     "safeguards": "Symbol-level, ignores reformatting",
+     "agents": "Skill; detection only"},
+    {"links": [["Swimm", "https://docs.swimm.io/"]],
+     "current": "Docs coupled to code snippets and tokens; auto-sync check on PRs",
+     "always": "Not stated",
+     "safeguards": "Element-level coupling",
+     "agents": "IDE and MCP; commercial"},
+    {"links": [["deepwiki-skill", "https://github.com/natsu1211/deepwiki-skill"]],
+     "current": "Model-driven `--update`",
+     "always": "About 526 B descriptions; 3.7 KB skill plus up to 70 KB references per task",
+     "safeguards": "Line citations, Mermaid validation",
+     "agents": "Skill hosts"},
+    {"links": [["claude-code-auto-memory", "https://github.com/severity1/claude-code-auto-memory"]],
+     "current": "Starts an updater agent at turn end whenever files changed",
+     "always": "About 784 B descriptions plus managed `CLAUDE.md` sections",
+     "safeguards": "None stated",
+     "agents": "Claude Code"},
+    {"links": [["DeepWiki", "https://docs.devin.ai/work-with-devin/deepwiki"]],
+     "current": "Hosted regeneration",
+     "always": "MCP tools, on demand",
+     "safeguards": "Code links; users report stale and wrong pages",
+     "agents": "Web and MCP"},
+    {"links": [["Aider repo map", "https://aider.chat/docs/repomap.html"], ["CodeGraph", "https://github.com/colbymchenry/codegraph"], ["Serena", "https://github.com/oraios/serena"]],
+     "current": "Recomputed from code",
+     "always": "Symbol maps or MCP tools",
+     "safeguards": "Deterministic, but no rationale or design history",
+     "agents": "Varies"}
+  ]
+}
+  </script>
+
+  <div class="title-block" aria-hidden="true">
+    <div><b>Project</b>Archlens</div><div><b>Title</b>Field survey</div><div><b>Sheet</b><i>S-401</i></div><div><b>Rev</b>0.3.0</div>
+    <div><b>Drawn</b>agent</div><div><b>Checked</b>you</div><div class="tb-wide"><b>Scale</b>1 page = 1 question</div>
+  </div>
+</div>
+</section>
+
+<!-- ============ A-501 LEARN ============ -->
+<section class="sheet" id="a-501" aria-labelledby="h-a-501">
+<div class="frame">
+  <div class="zones" aria-hidden="true"><span>1</span><span>2</span><span>3</span><span>4</span><span>5</span><span>6</span></div>
+  <header class="sheet-head">
+    <p class="sheet-id"><span class="sheet-no">A-501</span><span class="sheet-name">Learn</span></p>
+    <div class="sheet-heading">
+      <h2 id="h-a-501">Understand the code, not just ship it.</h2>
+      <p class="lede"><code>/archlens:learn</code> is a patient tutor. It answers from handbook pages first, reads source to confirm or fill a gap, cites both, and labels inference and unknowns. It runs inline, so you can ask follow-ups.</p>
+    </div>
+  </header>
+
+  <div class="split learn">
+    <div class="learn-modes">
+      <h3 class="label">Four modes</h3>
+      <dl>
+        <div><dt><code>/archlens:learn how are duplicate orders prevented?</code></dt><dd>Answers from the handbook first, with source links, in at most 150 words. Then one real trace or snippet.</dd></div>
+        <div><dt><code>/archlens:learn tour</code></dt><dd>Walks the reading path one stop per turn and waits before the next.</dd></div>
+        <div><dt><code>/archlens:learn quiz data flow</code></dt><dd>One question at a time about real behavior here. Grades each answer against evidence. Stops after five with a score and the pages to reread.</dd></div>
+        <div><dt><code>/archlens:learn changes</code></dt><dd>Explains what the current branch changes, which flow or data it affects, and why it matters.</dd></div>
+      </dl>
+      <p class="small">While a long task runs, Claude Code’s <code>/btw</code> can answer from the page map already in context.</p>
+    </div>
+
+    <figure class="quiz" id="quiz" aria-labelledby="quiz-title">
+      <figcaption class="detail-head">
+        <span class="bubble" aria-hidden="true"><span>4</span><span>A-501</span></span>
+        <span class="detail-title" id="quiz-title">Detail 4: a quiz on the order example</span>
+      </figcaption>
+      <p class="illustration-flag">Illustration · scripted in this page, not a live model</p>
+      <div class="transcript">
+        <p class="turn turn-you"><span class="who">you</span><code>/archlens:learn quiz data flow</code></p>
+        <div class="turn turn-tutor" id="quiz-turn">
+          <span class="who">archlens</span>
+          <div class="quiz-body" id="quiz-body">
+            <p class="q-count">Question 1 of 3</p>
+            <p class="q">A caller submits request key <code>request-1</code> twice, both times with SKU <code>BOOK</code> and quantity 2. What does the second call return?</p>
+            <ol class="choices-static" type="A">
+              <li>A new order ID</li>
+              <li>The same order ID as the first call</li>
+              <li>It raises <code>RequestConflict</code></li>
+              <li>It raises <code>ValueError</code></li>
+            </ol>
+            <details class="static-answer"><summary>Show the graded answer</summary>
+              <p><b>B.</b> The insert uses <code>ON CONFLICT(request_key) DO NOTHING</code>, then reads the row for that key. The data matches, so the function returns the existing ID. See <a href="https://github.com/tushar-mahalya/archlens/blob/main/examples/order-service/docs/architecture/runtime/submit-order.md">runtime/submit-order.md</a>, rule 5.</p>
+            </details>
+          </div>
+        </div>
+      </div>
+    </figure>
+  </div>
+
+  <div class="title-block" aria-hidden="true">
+    <div><b>Project</b>Archlens</div><div><b>Title</b>Learn</div><div><b>Sheet</b><i>A-501</i></div><div><b>Rev</b>0.3.0</div>
+    <div><b>Drawn</b>agent</div><div><b>Checked</b>you</div><div class="tb-wide"><b>Scale</b>1 page = 1 question</div>
+  </div>
+</div>
+</section>
+
+<!-- ============ I-601 INSTALL ============ -->
+<section class="sheet" id="i-601" aria-labelledby="h-i-601">
+<div class="frame">
+  <div class="zones" aria-hidden="true"><span>1</span><span>2</span><span>3</span><span>4</span><span>5</span><span>6</span></div>
+  <header class="sheet-head">
+    <p class="sheet-id"><span class="sheet-no">I-601</span><span class="sheet-name">Install</span></p>
+    <div class="sheet-heading">
+      <h2 id="h-i-601">Three lines in Claude Code. One line everywhere else.</h2>
+      <p class="lede">No API key, Node installation, or server is required for the Claude Code plugin. Python 3.9+ on <code>PATH</code> as <code>python3</code> enables the hooks and checks (the macOS system Python works); the commands still run without it. Your agent’s normal subscription or API usage still applies.</p>
+    </div>
+  </header>
+
+  <div class="tabs" id="install-tabs">
+    <div class="tablist" role="tablist" aria-label="Install targets" hidden>
+      <button role="tab" type="button" id="tab-claude" aria-controls="panel-claude" aria-selected="true"><span class="tab-no">01</span>Claude Code</button>
+      <button role="tab" type="button" id="tab-skills" aria-controls="panel-skills" aria-selected="false" tabindex="-1"><span class="tab-no">02</span>Other agents</button>
+      <button role="tab" type="button" id="tab-git" aria-controls="panel-git" aria-selected="false" tabindex="-1"><span class="tab-no">03</span>Git hooks</button>
+      <button role="tab" type="button" id="tab-ci" aria-controls="panel-ci" aria-selected="false" tabindex="-1"><span class="tab-no">04</span>CI</button>
+    </div>
+
+    <div class="tabpanel" id="panel-claude" role="tabpanel" aria-labelledby="tab-claude" tabindex="0">
+      <h3 class="tabpanel-title">Claude Code plugin</h3>
+      <p>Run these <strong>inside Claude Code</strong>. Choose <strong>user scope</strong> when asked, so Archlens works in every project.</p>
+      <div class="code-block"><pre><code>/plugin marketplace add tushar-mahalya/archlens
+/plugin install archlens@archlens
+/archlens:setup</code></pre></div>
+      <p>That is all. Setup writes a handbook under <code>docs/architecture/</code>, records a freshness baseline, and from then on the plugin keeps it in step with your edits.</p>
+      <p class="small">From a terminal, the install equivalent is <code>claude plugin marketplace add tushar-mahalya/archlens</code> then <code>claude plugin install archlens@archlens --scope user</code>. Choose either the native plugin or the portable skill for Claude Code, not both.</p>
+    </div>
+
+    <div class="tabpanel" id="panel-skills" role="tabpanel" aria-labelledby="tab-skills" tabindex="0">
+      <h3 class="tabpanel-title">Codex, Cursor, Copilot, Gemini CLI, and others</h3>
+      <p>The portable Agent Skill installs with skills.sh. In the project directory, with Node.js 22.20+ and Git:</p>
+      <div class="code-block"><pre><code>npx skills@1.7.6 add tushar-mahalya/archlens --skill archlens --agent codex --copy --yes</code></pre></div>
+      <p>Replace <code>codex</code> with <code>cursor</code>, <code>github-copilot</code>, <code>gemini-cli</code>, <code>opencode</code>, <code>roo</code>, or <code>devin</code>, or add <code>--global</code> for a user-level installation. Then ask your agent:</p>
+      <blockquote class="prompt">Use the Archlens skill to set up architecture documentation for this project.</blockquote>
+      <p>Setup offers to write the page map into <code>AGENTS.md</code>, which these agents read every session. To write it yourself, set <code>{ "contextFile": "AGENTS.md" }</code> in <code>.archlens.json</code> and run:</p>
+      <div class="code-block"><pre><code>python &lt;skill-dir&gt;/scripts/archlens.py context --root . --write</code></pre></div>
+      <p class="small">Every <code>sync</code> refreshes the block. The written block has no stale flags, because freshness changes between commits; it tells the agent to run the <code>status</code> check before relying on a page. Portable hosts do not necessarily provide Claude’s isolated, manual-only behavior. The skills CLI has its own telemetry; set <code>DISABLE_TELEMETRY=1</code> to opt out. See <a href="https://github.com/tushar-mahalya/archlens/blob/main/docs/installation.md">installation</a> for adapters and caveats.</p>
+    </div>
+
+    <div class="tabpanel" id="panel-git" role="tabpanel" aria-labelledby="tab-git" tabindex="0">
+      <h3 class="tabpanel-title">Git hooks with pre-commit</h3>
+      <p>Works with any editor or agent. Add Archlens to <code>.pre-commit-config.yaml</code>:</p>
+      <div class="code-block"><pre><code>repos:
+  - repo: https://github.com/tushar-mahalya/archlens
+    rev: v0.3.0
+    hooks:
+      - id: archlens-check   # links, anchors, diagrams, stale references
+      - id: archlens-stale   # on pre-push: fail while cited code changed</code></pre></div>
+      <p>Install both stages:</p>
+      <div class="code-block"><pre><code>pre-commit install --hook-type pre-commit --hook-type pre-push</code></pre></div>
+      <p class="small"><code>archlens-check</code> runs on every commit and fails on structural errors. <code>archlens-stale</code> runs on <code>pre-push</code> and fails while covered source changed after the last sync.</p>
+    </div>
+
+    <div class="tabpanel" id="panel-ci" role="tabpanel" aria-labelledby="tab-ci" tabindex="0">
+      <h3 class="tabpanel-title">CI check on pull requests</h3>
+      <p>This GitHub Actions job fails a pull request whose code changes leave pages stale. Copy <code>archlens.py</code> into your repository first, for example as <code>tools/archlens.py</code>, or check out the Archlens repository in the job.</p>
+      <div class="code-block"><pre><code>name: architecture-docs
+on: pull_request
+permissions:
+  contents: read
+jobs:
+  freshness:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v7
+      - uses: actions/setup-python@v7
+        with:
+          python-version: "3.13"
+      - run: python tools/archlens.py check --root . --summary
+      - run: python tools/archlens.py status --root . --fail-on-stale</code></pre></div>
+      <p class="small">To rewrite stale pages in CI, run your coding agent’s headless mode with the Archlens update operation and open a pull request for human review. Never let an automated job mark pages <code>reviewed</code> or decisions <code>accepted</code>.</p>
+    </div>
+  </div>
+
+  <div class="trust">
+    <h3 class="label">Trust and limits</h3>
+    <ul>
+      <li>A stale flag means “check this page”. It does not prove the prose is wrong.</li>
+      <li>Code shows what happens, not why a person chose it. Decisions stay <code>proposed</code> until a human accepts them.</li>
+      <li>Python files get symbol-level fingerprints; other languages use normalized line-range text.</li>
+      <li>The benchmark covers one small repository; large-repository and coding-task results are not measured yet.</li>
+      <li>Archlens has no server, no telemetry, and no network calls. Your agent’s provider policy still applies.</li>
+      <li>The writing style is STE-inspired, not certified ASD-STE100.</li>
+    </ul>
+  </div>
+
+  <div class="title-block" aria-hidden="true">
+    <div><b>Project</b>Archlens</div><div><b>Title</b>Install</div><div><b>Sheet</b><i>I-601</i></div><div><b>Rev</b>0.3.0</div>
+    <div><b>Drawn</b>agent</div><div><b>Checked</b>you</div><div class="tb-wide"><b>Scale</b>1 page = 1 question</div>
+  </div>
+</div>
+</section>
+
+</main>
+
+<footer class="site-foot" aria-labelledby="foot-title">
+  <div class="foot-block">
+    <div class="fb-cell fb-name">
+      <b>Project</b>
+      <p id="foot-title" class="fb-word">Archlens</p>
+      <p>Architecture docs that stay in sync with your code.</p>
+    </div>
+    <div class="fb-cell"><b>Drawing set</b><p>Public site, 7 sheets</p></div>
+    <div class="fb-cell"><b>Revision</b><p>0.3.0 · 2026-11-08</p></div>
+    <div class="fb-cell"><b>Drawn</b><p>agent</p></div>
+    <div class="fb-cell"><b>Checked</b><p>you</p></div>
+    <div class="fb-cell"><b>Scale</b><p>1 page = 1 question</p></div>
+    <div class="fb-cell"><b>License</b><p><a href="https://github.com/tushar-mahalya/archlens/blob/main/LICENSE">MIT</a></p></div>
+    <nav class="fb-cell fb-links" aria-label="Project links">
+      <b>Reference</b>
+      <ul>
+        <li><a href="https://github.com/tushar-mahalya/archlens">GitHub repository</a></li>
+        <li><a href="https://github.com/tushar-mahalya/archlens/blob/main/docs/installation.md">Installation</a></li>
+        <li><a href="https://github.com/tushar-mahalya/archlens/blob/main/docs/automation.md">Automation</a></li>
+        <li><a href="https://github.com/tushar-mahalya/archlens/blob/main/docs/benchmarks.md">Benchmarks</a></li>
+        <li><a href="https://github.com/tushar-mahalya/archlens/blob/main/docs/context-efficiency.md">Context budgets</a></li>
+        <li><a href="https://github.com/tushar-mahalya/archlens/blob/main/docs/architecture/README.md">How Archlens works</a></li>
+        <li><a href="https://github.com/tushar-mahalya/archlens/blob/main/examples/order-service/README.md">Order example</a></li>
+        <li><a href="https://github.com/tushar-mahalya/archlens/blob/main/CHANGELOG.md">Changelog</a></li>
+        <li><a href="https://github.com/tushar-mahalya/archlens/blob/main/SECURITY.md">Security policy</a></li>
+      </ul>
+    </nav>
+    <div class="fb-cell fb-legal"><b>Notes</b><p>Independent project; not affiliated with Anthropic or ASD. No analytics on this site.</p></div>
+  </div>
+</footer>
+</body>
+</html>

@@ -1,0 +1,69 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Sheet not found · Archlens</title>
+<meta name="description" content="This sheet is not in the Archlens drawing set.">
+<meta name="robots" content="noindex">
+<meta name="theme-color" content="#F2EEE4" media="(prefers-color-scheme: light)">
+<meta name="theme-color" content="#0B1C33" media="(prefers-color-scheme: dark)">
+<meta name="color-scheme" content="light dark">
+<script>try{var t=localStorage.getItem("archlens-theme");if(t==="light"||t==="dark")document.documentElement.setAttribute("data-theme",t)}catch(e){}</script>
+<link rel="icon" href="/archlens/favicon.svg" type="image/svg+xml">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Big+Shoulders+Display:wght@800;900&amp;family=IBM+Plex+Mono:wght@500;600&amp;family=IBM+Plex+Sans:wght@400;600&amp;display=swap">
+<style>
+  :root { --paper: #F2EEE4; --paper-3: #F8F6F0; --ink: #16130F; --ink-2: #5A5247; --rule: rgba(22,19,15,.2); --stale: #E8431A; --stale-text: #B8320D; --g1: rgba(22,19,15,.045); --g2: rgba(22,19,15,.085); --blend: multiply; }
+  @media (prefers-color-scheme: dark) {
+    :root:not([data-theme="light"]) { --paper: #0B1C33; --paper-3: #0D2140; --ink: #D7E9F2; --ink-2: #9FC0D6; --rule: rgba(160,205,230,.26); --stale: #FF6B3D; --stale-text: #FF7A50; --g1: rgba(140,200,235,.06); --g2: rgba(140,200,235,.12); --blend: screen; }
+  }
+  :root[data-theme="dark"] { --paper: #0B1C33; --paper-3: #0D2140; --ink: #D7E9F2; --ink-2: #9FC0D6; --rule: rgba(160,205,230,.26); --stale: #FF6B3D; --stale-text: #FF7A50; --g1: rgba(140,200,235,.06); --g2: rgba(140,200,235,.12); --blend: screen; }
+  * { box-sizing: border-box; }
+  body {
+    margin: 0; min-height: 100vh; display: grid; place-items: center; padding: 24px 16px;
+    background-color: var(--paper); color: var(--ink); font: 400 17px/1.55 "IBM Plex Sans", "Helvetica Neue", Arial, sans-serif;
+    background-image: linear-gradient(var(--g2) 1px, transparent 1px), linear-gradient(90deg, var(--g2) 1px, transparent 1px), linear-gradient(var(--g1) 1px, transparent 1px), linear-gradient(90deg, var(--g1) 1px, transparent 1px);
+    background-size: 120px 120px, 120px 120px, 24px 24px, 24px 24px;
+  }
+  main { position: relative; width: min(760px, 100%); border: 2px solid var(--ink); outline: 1px solid var(--ink); outline-offset: 5px; padding: clamp(24px, 5vw, 48px); background: var(--paper); }
+  .k { font: 600 12px "IBM Plex Mono", monospace; text-transform: uppercase; letter-spacing: .08em; color: var(--ink-2); margin: 0 0 14px; }
+  h1 { font: 900 clamp(3.4rem, 12vw, 7rem)/.84 "Big Shoulders Display", "Arial Narrow", sans-serif; text-transform: uppercase; margin: 0 0 22px; }
+  p { margin: 0 0 16px; max-width: 52ch; }
+  code { font: 500 .88em "IBM Plex Mono", monospace; }
+  .stamp {
+    position: absolute; top: clamp(18px, 4vw, 36px); right: clamp(14px, 4vw, 36px);
+    padding: 6px 14px 7px; border: 3px solid var(--stale); border-radius: 5px; color: var(--stale);
+    box-shadow: inset 0 0 0 2px var(--paper), inset 0 0 0 3.5px var(--stale);
+    font: 900 clamp(28px, 6vw, 44px)/.9 "Big Shoulders Display", "Arial Narrow", sans-serif; letter-spacing: .08em; text-transform: uppercase;
+    transform: rotate(-8deg); mix-blend-mode: var(--blend);
+  }
+  .links { display: flex; flex-wrap: wrap; gap: 16px; margin-top: 26px; }
+  a.btn { display: inline-flex; align-items: center; min-height: 46px; padding: 10px 18px; border: 1.5px solid var(--ink); color: var(--ink); background: var(--paper); text-decoration: none; font: 600 14px "IBM Plex Mono", monospace; box-shadow: 4px 4px 0 var(--ink); }
+  a.btn.ink { background: var(--ink); color: var(--paper); }
+  a:focus-visible { outline: 2px solid #1F5BD8; outline-offset: 3px; }
+  .tb { display: grid; grid-template-columns: repeat(3, 1fr); margin: 34px calc(-1 * clamp(24px, 5vw, 48px)) calc(-1 * clamp(24px, 5vw, 48px)); border-top: 1.5px solid var(--ink); font-size: 13px; }
+  .tb div { padding: 7px 12px; border-right: 1px solid var(--rule); }
+  .tb div:last-child { border-right: 0; }
+  .tb b { display: block; font: 500 9.5px "IBM Plex Mono", monospace; text-transform: uppercase; letter-spacing: .08em; color: var(--ink-2); }
+  @media (max-width: 520px) { .stamp { position: static; display: inline-block; margin-bottom: 18px; } .tb { grid-template-columns: 1fr 1fr; } }
+</style>
+</head>
+<body>
+<main>
+  <p class="k">Sheet X-404 · not in this drawing set</p>
+  <div class="stamp" aria-hidden="true">Stale</div>
+  <h1>Sheet not found</h1>
+  <p>This page is STALE. The sheet you asked for is not in the set, or it moved after the last sync.</p>
+  <p>A stale flag means “review this page”. Here it means: go back to the index.</p>
+  <div class="links">
+    <a class="btn ink" href="/archlens/">Back to the cover sheet</a>
+    <a class="btn" href="https://github.com/tushar-mahalya/archlens">Archlens on GitHub</a>
+  </div>
+  <div class="tb" aria-hidden="true">
+    <div><b>Project</b>Archlens</div><div><b>Sheet</b>X-404</div><div><b>Rev</b>0.3.0</div>
+  </div>
+</main>
+</body>
+</html>
