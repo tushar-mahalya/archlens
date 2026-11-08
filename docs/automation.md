@@ -13,7 +13,7 @@ Pick the automation level that matches your workflow.
 | Where | Detects drift | Rewrites prose | Setup |
 |---|---|---|---|
 | Claude Code plugin | Stop hook, after each turn that changes covered files | `autoUpdate: "auto"` runs isolated update | Install the plugin |
-| Any agent that reads `AGENTS.md` | Stale flags in the map block | Ask the agent to run the Archlens update operation | `contextFile` |
+| Any agent that reads `AGENTS.md` | The map block tells the agent to run `status`; pair it with pre-commit or CI | Ask the agent to run the Archlens update operation | `contextFile` |
 | Git (any editor or agent) | `pre-push` hook | Developer or agent | pre-commit |
 | CI | Pull request check | Optional agent job | Workflow below |
 
