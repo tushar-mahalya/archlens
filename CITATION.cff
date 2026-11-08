@@ -1,0 +1,24 @@
+cff-version: 1.2.0
+message: If you use Archlens in your work, please cite it using these metadata.
+type: software
+title: Archlens
+abstract: >-
+  Architecture docs that stay in sync with code, a compact project map for coding
+  agents, and an interactive tutor for the codebase. Distributed as a Claude Code
+  plugin and a portable Agent Skill.
+authors:
+  - given-names: Tushar
+    family-names: Sharma
+    alias: tushar-mahalya
+repository-code: https://github.com/tushar-mahalya/archlens
+url: https://github.com/tushar-mahalya/archlens
+license: MIT
+version: 0.3.0
+date-released: "2026-11-08"
+keywords:
+  - architecture
+  - documentation
+  - living documentation
+  - mermaid
+  - architecture decision records
+  - coding agents

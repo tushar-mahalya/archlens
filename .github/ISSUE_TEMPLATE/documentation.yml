@@ -1,0 +1,47 @@
+name: Documentation problem
+description: Report missing, unclear, or incorrect documentation, examples, or command help.
+title: "docs: "
+labels: [documentation, triage]
+body:
+  - type: markdown
+    attributes:
+      value: |
+        For a usage question, ask in [Q&A](https://github.com/tushar-mahalya/archlens/discussions/categories/q-a) instead.
+  - type: input
+    id: location
+    attributes:
+      label: Location
+      description: URL or path of the page, section, or command.
+      placeholder: "docs/installation.md#native-claude-plugin"
+    validations:
+      required: true
+  - type: dropdown
+    id: kind
+    attributes:
+      label: Problem type
+      options:
+        - Incorrect or outdated
+        - Missing information
+        - Unclear or hard to follow
+        - Broken link, anchor, or diagram
+        - Other
+    validations:
+      required: true
+  - type: textarea
+    id: problem
+    attributes:
+      label: What is wrong or missing?
+    validations:
+      required: true
+  - type: textarea
+    id: suggestion
+    attributes:
+      label: Suggested change
+      description: Optional. Proposed wording or structure.
+  - type: checkboxes
+    id: checks
+    attributes:
+      label: Checks
+      options:
+        - label: I searched existing issues and discussions.
+          required: true

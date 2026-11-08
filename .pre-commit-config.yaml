@@ -34,6 +34,9 @@ repos:
     hooks:
       - id: check-github-workflows
       - id: check-dependabot
+      - id: check-github-issue-forms
+      - id: check-github-issue-config
+      - id: check-citation-file-format
 
   - repo: https://github.com/rhysd/actionlint
     rev: 914e7df21a07ef503a81201c76d2b11c789d3fca # frozen: v1.7.12
@@ -45,6 +48,22 @@ repos:
     hooks:
       - id: conventional-pre-commit
         stages: [commit-msg]
+        # Keep types and scopes in sync with .github/workflows/pr-title.yml and CONTRIBUTING.md.
+        # Options must come before the types.
+        args:
+          - --scopes
+          - plugin,skill,checker,docs,site,ci,deps,bench
+          - build
+          - chore
+          - ci
+          - docs
+          - feat
+          - fix
+          - perf
+          - refactor
+          - revert
+          - style
+          - test
 
   - repo: local
     hooks:
@@ -66,6 +85,13 @@ repos:
         language: python
         pass_filenames: false
         files: ^(docs/|plugins/archlens/scripts/)
+      - id: archlens-handbook-freshness
+        name: archlens handbook freshness
+        entry: python plugins/archlens/scripts/archlens.py status --root . --fail-on-stale
+        language: python
+        pass_filenames: false
+        always_run: true
+        stages: [pre-push]
       - id: archlens-example-check
         name: archlens example check
         entry: python plugins/archlens/scripts/archlens.py check --root examples/order-service --strict

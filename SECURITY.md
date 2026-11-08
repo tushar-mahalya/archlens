@@ -4,7 +4,7 @@
 
 | Version | Supported |
 | --- | --- |
-| 0.2.x (latest release) | Yes |
+| 0.3.x (latest release) | Yes |
 | Earlier releases | No. Upgrade to the latest release. |
 
 ## Report a vulnerability
@@ -39,5 +39,20 @@ Keep normal permission prompts and organizational policies in place.
 
 - Secret scanning and push protection are enabled.
 - Dependabot security and version updates cover GitHub Actions, npm, and pre-commit hooks.
+- Dependency review blocks pull requests that add dependencies with high or critical advisories.
 - CodeQL code scanning and OpenSSF Scorecard run on the default branch.
 - Workflow actions are pinned to full commit SHAs and use least-privilege permissions.
+  Workflows triggered by `pull_request_target` never check out pull request code.
+- Release archives have signed build provenance attestations.
+
+## Verify a release
+
+Each release publishes `archlens-<version>.zip` and `SHA256SUMS.txt`. Check the checksum and the
+provenance attestation, which proves the archive was built by this repository's release workflow:
+
+```text
+sha256sum --check SHA256SUMS.txt          # macOS: shasum -a 256 --check SHA256SUMS.txt
+gh attestation verify archlens-<version>.zip --repo tushar-mahalya/archlens
+```
+
+Releases up to 0.2.0 have checksums but no attestation.

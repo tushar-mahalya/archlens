@@ -1,0 +1,23 @@
+
+
+# type(scope)!: imperative subject, lowercase, no period, <= 72 chars
+#
+# Body: what changed and why, not how. Wrap at 72 characters.
+#
+# Footers, one per line:
+#   Closes #123
+#   Refs #45
+#   BREAKING CHANGE: what breaks and how to migrate
+#   Co-authored-by: Name <email@example.com>
+#
+# Types:  feat fix docs refactor perf test build ci chore style revert
+# Scopes: plugin skill checker docs site ci deps bench (optional)
+# "!" after the type or scope marks a breaking change.
+#
+# Examples:
+#   fix(checker): reject local links that escape the project root
+#   feat(checker)!: exit with code 2 on configuration errors
+#   docs: explain the release verification steps
+#
+# Use this template: git config commit.template .gitmessage
+# Lines starting with "#" are removed. See CONTRIBUTING.md.

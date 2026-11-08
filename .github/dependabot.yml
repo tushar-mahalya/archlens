@@ -1,29 +1,41 @@
+# Version updates are grouped per ecosystem and wait 7 days after a release (cooldown).
+# Security updates are not delayed. Commit prefixes follow Conventional Commits with the
+# "deps" scope (CONTRIBUTING.md). There is no pip ecosystem: the checker has no dependencies.
 version: 2
 updates:
   - package-ecosystem: github-actions
     directory: /
     schedule:
       interval: weekly
+    cooldown:
+      default-days: 7
     groups:
       actions:
         patterns: ["*"]
     commit-message:
-      prefix: ci
+      prefix: ci(deps)
+    labels: [dependencies, "area: ci"]
   - package-ecosystem: npm
     directory: /
     schedule:
       interval: weekly
+    cooldown:
+      default-days: 7
     groups:
       dev-dependencies:
         patterns: ["*"]
     commit-message:
-      prefix: build
+      prefix: build(deps)
+    labels: [dependencies, "area: deps"]
   - package-ecosystem: pre-commit
     directory: /
     schedule:
       interval: monthly
+    cooldown:
+      default-days: 7
     groups:
       hooks:
         patterns: ["*"]
     commit-message:
-      prefix: chore
+      prefix: chore(deps)
+    labels: [dependencies, "area: ci"]

@@ -1,0 +1,17 @@
+# Hooks for projects that use Archlens. Works with any coding agent or editor.
+# See docs/automation.md for setup.
+- id: archlens-check
+  name: Archlens handbook structure
+  description: Check the handbook map, links, anchors, and Mermaid fences.
+  entry: skills/archlens/scripts/archlens.py check --root .
+  language: script
+  pass_filenames: false
+  always_run: true
+- id: archlens-stale
+  name: Archlens stale handbook pages
+  description: Fail when source covered by a handbook page changed since that page was synced.
+  entry: skills/archlens/scripts/archlens.py status --root . --fail-on-stale
+  language: script
+  pass_filenames: false
+  always_run: true
+  stages: [pre-push, manual]

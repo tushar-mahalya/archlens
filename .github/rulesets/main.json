@@ -6,11 +6,9 @@
     "ref_name": { "include": ["~DEFAULT_BRANCH"], "exclude": [] }
   },
   "bypass_actors": [
-    { "actor_id": 5, "actor_type": "RepositoryRole", "bypass_mode": "pull_request" }
+    { "actor_id": 5, "actor_type": "RepositoryRole", "bypass_mode": "always" }
   ],
   "rules": [
-    { "type": "deletion" },
-    { "type": "non_fast_forward" },
     { "type": "required_linear_history" },
     {
       "type": "pull_request",
