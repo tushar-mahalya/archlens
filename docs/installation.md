@@ -65,12 +65,14 @@ This loads the plugin for that session only.
 ### First use
 
 1. Open a small project in Claude Code.
-2. Run `/archlens:setup`.
-3. Review the generated handbook and its evidence.
+2. Run `/archlens:setup`. If the project already has architecture docs, setup adopts
+   them in place and fixes what the code contradicts. Use `/archlens:setup new` for a separate handbook.
+3. Review the generated pages, the edits to existing docs (`git diff`), and their evidence.
 4. Run `/archlens:explain` with a specific journey.
-5. Change some covered code. The stop hook reports the stale pages.
-6. Run `/archlens:update`, then `/archlens:check`.
-7. Try `/archlens:learn tour`.
+5. Ask Claude to change some covered code. The stop hook reports the stale pages.
+6. Ask Claude to commit. Archlens holds the commit once, the update runs in an isolated task,
+   and the docs land in the same commit. You can also run `/archlens:update` at any time.
+7. Run `/archlens:check`, then try `/archlens:learn tour`.
 
 The supplied [order example](../examples/order-service/README.md) is a safe place to start.
 Setup is a writing task. Check, explain, and learn are read-only by instruction.

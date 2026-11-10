@@ -10,10 +10,12 @@ Commands: `/archlens:setup`, `/archlens:update`, `/archlens:check`,
 Five commands run in an isolated task. `learn` runs inline for follow-up questions.
 Only `update` can be chosen by the model, and it also runs isolated.
 
-Two hooks run the bundled Python script. In a project with an Archlens handbook,
-the session-start hook loads a compact page map (3,000 bytes at most by default).
-The stop hook reminds you once when your edits make pages stale.
-In other projects, both hooks print nothing. There are no MCP servers or API credentials.
+Four hooks run the bundled Python script. In a project with an Archlens handbook,
+the session-start hook loads a compact page map (3,000 bytes at most by default),
+and opening a documented file names its page once. The stop hook rewrites moved line
+links and tells you once when your edits make pages stale. When Claude commits, the
+commit gate holds the commit once so the stale pages are updated in the same commit.
+In other projects, the hooks print nothing. There are no MCP servers or API credentials.
 The hooks and checks need Python 3.9+ as `python3` on `PATH`; the skills work without it.
 
 Install inside Claude Code:
