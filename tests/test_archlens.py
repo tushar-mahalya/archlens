@@ -572,6 +572,14 @@ class FreshnessTests(Fixture):
         self.assertEqual([e["page"] for e in report["needsSync"]], ["docs/GUIDE.md"])
         self.assertEqual(report["needsSync"][0]["state"], "stale")
 
+    def test_outline_state_from_before_per_name_hashes_still_compares(self):
+        archlens.sync_pages(self.root, self.config, [], True)
+        state = archlens.load_state(self.docs)
+        state["pages"]["INDEX"]["outlines"] = {"lib/helper.py": archlens.short_hash("h")}
+        archlens.save_state(self.docs, state)
+        (self.root / "lib/helper.py").write_text("h = 5\n", encoding="utf-8")
+        self.assertEqual(self.state()["needsSync"][0]["state"], "review")
+
     def test_linked_document_change_is_review_not_stale(self):
         (self.root / "docs/API.md").write_text("# API\n", encoding="utf-8")
         (self.docs / "README.md").write_text("# Overview\n\nSee [helper](../../lib/helper.py) and [API](../API.md).\n", encoding="utf-8")

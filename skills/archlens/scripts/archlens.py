@@ -900,6 +900,11 @@ def span_digest(lines: list[tuple[int, str]]) -> str:
 def outline(path: str, text: str) -> list[str] | None:
     """Short hashes of a code file's declared names: top-level symbols and constants, plus
     Python class members. Editing a body does not change them."""
+    names = declared_names(path, text)
+    return None if names is None else sorted({short_hash(name)[:8] for name in names})
+
+
+def declared_names(path: str, text: str) -> set[str] | None:
     symbols = code_symbols(path, text)
     if symbols is None:
         return None
@@ -909,7 +914,7 @@ def outline(path: str, text: str) -> list[str] | None:
         for node in ast.parse(text).body:
             targets = node.targets if isinstance(node, ast.Assign) else [getattr(node, "target", None)]
             declared.update(t.id for t in targets if isinstance(t, ast.Name))
-    return sorted({short_hash(name)[:8] for name in declared})
+    return declared
 
 
 def canonical(node) -> str:
@@ -1144,7 +1149,13 @@ def page_changes(root: Path, coverage: Coverage, page_id: str, current: dict, re
                 text = read_source(root / path)
                 now = outline(path, text) if text is not None else None
                 recorded = outlines[path]
-                if now is not None and (set(recorded) <= set(now) if isinstance(recorded, list) else False):
+                if isinstance(recorded, str):
+                    # State written before per-name outlines: one hash of all names.
+                    names = declared_names(path, text) if text is not None else None
+                    same = names is not None and short_hash("\n".join(sorted(names))) == recorded
+                else:
+                    same = now is not None and set(recorded) <= set(now)
+                if same:
                     level = "review"
                 else:
                     changes.append({"path": path, "change": "outline-changed", "severity": "stale"})
