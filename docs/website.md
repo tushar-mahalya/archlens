@@ -2,22 +2,20 @@
 
 The website is the static `site/` folder: HTML, CSS, and dependency-free JavaScript.
 It is served at **https://archlens-docs.pages.dev/** from Cloudflare Pages (project `archlens-docs`).
-The old address, `https://tushar-mahalya.github.io/archlens/`, redirects there.
+It is the only address; GitHub Pages is turned off for this repository.
 
 ## How it deploys
 
-| Workflow | Trigger | What it does |
-|---|---|---|
-| [Cloudflare Pages](../.github/workflows/cloudflare-pages.yml) | Push to `main` that changes `site/` | Uploads `site/` with a pinned Wrangler version |
-| [Pages](../.github/workflows/pages.yml) | Same | Publishes a redirect page on GitHub Pages so old links and search results move to one URL |
+The [Cloudflare Pages workflow](../.github/workflows/cloudflare-pages.yml) runs on every push to `main`
+that changes `site/`, and on demand. It uploads `site/` with a pinned Wrangler version.
 
-The Cloudflare workflow needs two repository secrets. Without them it skips with a notice.
+It needs two repository secrets. Without them it skips with a notice.
 
 1. `CLOUDFLARE_ACCOUNT_ID`: the account ID that `npx wrangler@4.159.0 whoami` prints.
 2. `CLOUDFLARE_API_TOKEN`: in the Cloudflare dashboard, open **My Profile → API Tokens →
-   Create Token → Create Custom Token**, give it **Account → Cloudflare Pages → Edit** for your
-   account, and create it. Store it without echoing it: `gh secret set CLOUDFLARE_API_TOKEN`
-   (the command prompts for the value).
+   Create Token → Create Custom Token**, give it the account permission **Pages Write** (older
+   dashboards call it **Cloudflare Pages → Edit**), and create it. Store it without echoing it:
+   `gh secret set CLOUDFLARE_API_TOKEN` (the command prompts for the value).
 
 To deploy by hand, run from the repository root after `npx wrangler@4.159.0 login`:
 
@@ -35,8 +33,7 @@ of them if the site moves, for example to a custom domain:
 - `site/index.html`: lines marked `site-url` (canonical, `og:url`, `og:image`, `twitter:image`)
   and the `url` in the `SoftwareApplication` JSON-LD.
 - `site/sitemap.xml` (`<loc>`) and `site/robots.txt` (`Sitemap:`).
-- `README.md` (Website link), the redirect target in `.github/workflows/pages.yml`, and the
-  repository's website field (`gh repo edit --homepage <url>`).
+- `README.md` (Website link) and the repository's website field (`gh repo edit --homepage <url>`).
 
 A custom domain can be added later in **Workers & Pages → archlens-docs → Custom domains**.
 `archlens.sh` had no registration record on 10 November 2026.

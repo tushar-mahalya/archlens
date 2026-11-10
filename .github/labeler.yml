@@ -42,7 +42,7 @@
   - changed-files:
       - any-glob-to-any-file:
           - site/**
-          - .github/workflows/pages.yml
+          - .github/workflows/cloudflare-pages.yml
 
 "area: bench":
   - changed-files:
