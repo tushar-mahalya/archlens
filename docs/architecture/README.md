@@ -30,11 +30,11 @@ There is no Archlens server or database.
 | Marketplace | Locate the installable plugin | [Catalog](../../.claude-plugin/marketplace.json) |
 | Plugin manifest | Name, version, and distribution metadata | [Manifest](../../plugins/archlens/.claude-plugin/plugin.json) |
 | Native skills | Select one isolated Claude workflow | [Commands](../../plugins/archlens/skills) |
-| Plugin hooks | Load the map at session start, point to pages, flag stale pages at stop, hold stale commits | [Hooks](../../plugins/archlens/hooks/hooks.json) |
+| Plugin hooks | Load the map at session start, point to pages, flag stale pages at stop, hold stale commits | [Hooks](../../plugins/archlens/hooks/hooks.json), [fast entry](../../plugins/archlens/scripts/hook.py) |
 | Portable skill | Route one operation for compatible hosts | [Portable skill](../../skills/archlens/SKILL.md) |
 | Generator | Keep portable resources aligned with the native plugin | [Sync tool](../../tools/sync_portable.py) |
 | References | Evidence, config, writing, and page conventions | [References](../../plugins/archlens/references) |
-| Checker | Config, structural checks, freshness, sync, context map, impact, hooks | [Python tool](../../plugins/archlens/scripts/archlens.py) |
+| Checker | Config, structural checks, freshness, sync, context map, section queries, pre-commit gate, impact, hooks | [Python tool](../../plugins/archlens/scripts/archlens.py) |
 | Budget check | Prevent instruction growth and eager-loading additions | [Budget tool](../../tools/prompt_budget.py) |
 
 ## Reading path and coverage
@@ -42,7 +42,7 @@ There is no Archlens server or database.
 | Question | Page | Known limit |
 |---|---|---|
 | How do the plugin and portable skill stay identical? | [Distribution](distribution.md) | Host discovery varies by agent |
-| How does the handbook stay current? | [Freshness runtime](runtime.md) | Stale flags are path-level, not semantic |
+| How does the handbook stay current? | [Freshness runtime](runtime.md) | Stale flags follow cited code, not the meaning of prose |
 | Where do settings and reports go? | [Data](data.md) | The host's internal data handling is outside this project |
 | Why manual isolated commands? | [ADR-001](decisions/ADR-001.md) | Real model token savings remain unmeasured |
 | Why JSON metadata? | [ADR-002](decisions/ADR-002.md) | Authors must maintain coverage patterns |
@@ -51,7 +51,7 @@ There is no Archlens server or database.
 | How does it compare with alternatives? | [Benchmarks](../benchmarks.md) | Small question set; one repository |
 
 **Implementation observed:** links above.
-**Test evidence:** [checker tests](../../tests/test_archlens.py#L236-L313),
+**Test evidence:** [checker tests](../../tests/test_archlens.py#L236-L355),
 [distribution tests](../../tests/test_distribution.py), and
 [installer tests](../../tests/test-skills-install.mjs).
 These documents are drafts. No human review is claimed.

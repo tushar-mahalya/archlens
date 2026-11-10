@@ -46,7 +46,8 @@ The diagram shows logical loading, not literal removal of tokens from an active 
 |---|---|---|
 | Discovery | Only `update` is model-invocable | Its description is at most 260 bytes; currently 178 bytes |
 | Session map | Session start, only where `map.json` exists | `contextBudget`, default 3,000 bytes; CI caps the default at 4,000 |
-| File pointer | After Read or Edit of a documented file | One line per page per session, naming the page |
+| File pointer | After Read or Edit of a documented file | One line per page per session, naming the page and up to two citing sections with line ranges |
+| Section query | Only when the agent or a skill runs `query` | One line per section; text output stops at 6,000 bytes |
 | Stop hook | After each turn | No output unless cited evidence changed; one message per stale set |
 | Commit gate | Before each Bash call | No output unless an agent `git commit` would leave pages stale; one reason per stale set |
 | Command | One task, one fork; `learn` runs inline | At most 2,600 UTF-8 bytes per skill |
@@ -63,7 +64,7 @@ out of normal model context, so only the 178-byte `update` description loads in 
 
 CI checks byte budgets, routes, resource paths, and forbidden eager-loading surfaces.
 It also counts setup's required configuration and workflow sections, and decide's ADR frame.
-Hooks may only run the bundled script for SessionStart, PreToolUse, PostToolUse, and Stop, in exec form, never async.
+Hooks may only run the bundled hook entry for SessionStart, PreToolUse, PostToolUse, and Stop, in exec form, never async.
 The cold-load limits are 10,500 bytes for setup, 6,500 for decide, 2,200 for inline learn, and 5,000 for the other commands.
 These limits exclude conditional source reads and template sections selected later in the task.
 It also tests report limits with oversized synthetic inputs.
@@ -81,12 +82,12 @@ These are instructions to the model, not enforced read limits.
 
 | Portable operation | Router + workflow + contract | Required cold load including named sections |
 |---|---:|---:|
-| setup | 6,346 bytes | 11,865 bytes |
-| update | 6,542 bytes | 6,542 bytes |
-| check | 5,801 bytes | 5,801 bytes |
-| explain | 5,305 bytes | 5,305 bytes |
-| decide | 5,541 bytes | 6,678 bytes |
-| learn | 3,597 bytes | 3,597 bytes |
+| setup | 6,362 bytes | 12,023 bytes |
+| update | 6,553 bytes | 6,553 bytes |
+| check | 5,900 bytes | 5,900 bytes |
+| explain | 5,488 bytes | 5,488 bytes |
+| decide | 5,640 bytes | 6,777 bytes |
+| learn | 3,758 bytes | 3,758 bytes |
 
 These are current UTF-8 byte counts with LF line endings, not measured tokens. Conditional source,
 template sections, tool output, and host context add to them. CI limits the

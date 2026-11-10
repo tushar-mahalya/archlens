@@ -83,7 +83,7 @@ repos:
         files: ^(plugins/archlens/|skills/archlens/|tools/prompt_budget\.py$|docs/context-efficiency\.md$)
       - id: archlens-handbook-check
         name: archlens handbook check
-        entry: python plugins/archlens/scripts/archlens.py check --root . --strict
+        entry: python plugins/archlens/scripts/archlens.py check --root . --strict --style
         language: python
         pass_filenames: false
         files: ^(docs/|plugins/archlens/scripts/)

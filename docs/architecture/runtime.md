@@ -45,15 +45,21 @@ In other projects, both hooks print nothing.
 | A whole-file link to code: bodies changed or names were added, or a declared name was removed or renamed | Review, or stale for a removed or renamed name | [outline](../../plugins/archlens/scripts/archlens.py) |
 | A linked document (Markdown and similar) was edited, or any linked file was deleted | Review for the edit; stale for the deletion | [page_changes](../../plugins/archlens/scripts/archlens.py) |
 | A cited function or text block moved | Stop hook rewrites the line link without a model; `fix-anchors` does the same on demand | [fix_anchors](../../plugins/archlens/scripts/archlens.py) |
-| Only other covered files changed, or comments and formatting inside cited code | Page needs review, not stale | [Anchor tests](../../tests/test_archlens.py#L669-L837) |
-| Change was already committed | Still stale; content IDs do not depend on a base ref | [Freshness tests](../../tests/test_archlens.py#L466-L666) |
+| Only other covered files changed, or comments and formatting inside cited code | Page needs review, not stale | [Anchor tests](../../tests/test_archlens.py#L712-L880) |
+| Change was already committed | Still stale; content IDs do not depend on a base ref | [Freshness tests](../../tests/test_archlens.py#L509-L709) |
 | Same stale set seen in this session | Stop hook stays silent | [hook_stop](../../plugins/archlens/scripts/archlens.py) |
 | `autoUpdate` is `auto` and the hook has not already blocked | Agent is asked to run update | [hook_stop](../../plugins/archlens/scripts/archlens.py) |
 | `autoUpdate` is `commit` (default) or `auto`, and an agent `git commit` would leave pages stale | Commit is held once; the agent updates the pages, stages them, and commits again | [hook_commit](../../plugins/archlens/scripts/archlens.py) |
 | `contextFile` is set | Sync rewrites the managed block, without stale flags | [write_context](../../plugins/archlens/scripts/archlens.py) |
 | The agent committed during the session | Stop hook also compares against the session's starting commit | [hook_stop](../../plugins/archlens/scripts/archlens.py) |
 | Base ref supplied to update | Impact report adds branch changes and uncovered files | [impact_report](../../plugins/archlens/scripts/archlens.py) |
+| A commit runs the `archlens` pre-commit hook, and a staged file changes cited code | Commit fails until someone checks and syncs the page; a page that was already stale gives only a note | [precommit](../../plugins/archlens/scripts/archlens.py) |
+| A reader needs one part of a page | `query` returns ranked sections, one diagram, or one table row, each with a line range | [query_handbook](../../plugins/archlens/scripts/archlens.py) |
+| Page summaries do not all fit the map budget | A folder of four or more decision records becomes one line of file names | [build_context](../../plugins/archlens/scripts/archlens.py) |
 | Hook input or configuration is invalid | Hook exits 0 with no output | [run_hook](../../plugins/archlens/scripts/archlens.py) |
+| A Bash call is not a commit, or the project has no handbook and no Archlens config | The hook entry exits before it loads the checker | [hook entry](../../plugins/archlens/scripts/hook.py) |
+| A cited file has the same content as at the last sync | `status` does not parse it | [page_changes](../../plugins/archlens/scripts/archlens.py) |
+| A comment or blank line is added inside a cited range, in any file type | Not stale; fingerprints use content lines without comments | [content_lines](../../plugins/archlens/scripts/archlens.py) |
 
 If Python is absent, the skills use Git and the map directly and state that limit.
 Portable hosts do not run the plugin hooks. They use the `contextFile` block,

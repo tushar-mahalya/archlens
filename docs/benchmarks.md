@@ -41,9 +41,9 @@ Apple Silicon laptop, Python 3.9.6.
 
 | Synthetic repo | sync | status | context | Stop hook | check | Map bytes | State file |
 |---|---:|---:|---:|---:|---:|---:|---:|
-| 1,000 files, 20 pages | 61 ms | 49 ms | 49 ms | 81 ms | 10 ms | 2,069 | 36,215 |
-| 10,000 files, 100 pages | 82 ms | 75 ms | 88 ms | 109 ms | 26 ms | 3,000 | 357,086 |
-| 50,000 files, 300 pages | 228 ms | 199 ms | 216 ms | 276 ms | 59 ms | 2,982 | 1,828,468 |
+| 1,000 files, 20 pages | 50 ms | 38 ms | 39 ms | 60 ms | 10 ms | 2,264 | 37,035 |
+| 10,000 files, 100 pages | 84 ms | 80 ms | 89 ms | 110 ms | 29 ms | 2,990 | 361,186 |
+| 50,000 files, 300 pages | 230 ms | 194 ms | 212 ms | 273 ms | 73 ms | 2,993 | 1,840,768 |
 
 Every synthetic page cites a line-range anchor, so these times include anchor checks.
 The map stays inside its 3,000-byte budget at 300 pages. It keeps each page's summary before its
@@ -56,8 +56,29 @@ even with symbol fingerprints for C-family files and per-range tracking inside f
 
 | Session map | Bytes | ~Tokens | Handbook bytes | Map / handbook |
 |---|---:|---:|---:|---:|
-| This repository | 1,630 | 408 | 19,867 | 8.2% |
-| Order example | 1,131 | 283 | 7,469 | 15.1% |
+| This repository | 1,618 | 405 | 20,650 | 7.8% |
+| Order example | 1,105 | 277 | 7,469 | 14.8% |
+
+### Hook latency in a real session
+
+The table above times functions inside one process, on synthetic files of a few lines.
+Claude Code starts one process for each hook, and real source files are long.
+`python tools/hook_benchmark.py` measures that: the median of nine real processes for each event,
+here on the trial monorepo (22 pages, 81 line-range citations) on the same laptop.
+
+| Event | How often | 0.4.0 | 0.5.0 |
+|---|---|---:|---:|
+| Bash call that is not a commit | Every Bash call | 36 ms | 14 ms |
+| Any tool call in a project without a handbook | Every Read, Edit, Write, and Bash call | 36 ms | 14 ms |
+| Read or Edit of a documented file | Every Read, Edit, and Write call | 55 ms | 34 ms |
+| Session start | Once | 213 ms | 100 ms |
+| Turn end | Every turn | 218 ms | 103 ms |
+| Agent commit | Every commit | 219 ms | 103 ms |
+
+Starting Python alone takes 10 ms on this machine. Two changes made the difference.
+A small hook entry answers the common cases before it loads the checker, which Python otherwise
+compiles again for every call. And `status` no longer parses a cited file whose content is unchanged:
+on the trial monorepo that parse was 156 of 225 ms.
 
 ## 3. Answer quality and cost with real agent sessions
 
@@ -129,9 +150,76 @@ Keep coverage gaps listed in the index, and keep summaries accurate.
 - Questions are about architecture and rationale. This does not measure coding tasks.
 - The final run cost $1.36 for 72 answers, plus about $0.30 for each grading pass.
 
+## 4. Drift detection accuracy
+
+`python tools/drift_benchmark.py` copies each cited file to a temporary folder, applies one edit
+with a known right answer, and asks the checker what changed. A real change is a literal or operator
+edited inside the range, deleted lines, a Python statement moved out of its block, or a renamed symbol.
+A harmless edit is lines added above the file, a comment added inside the range or at the end of a
+line, added blank lines and trailing spaces, or an edit outside the cited symbol or sub-range.
+Python edits are verified with the syntax tree, so the expected answer is certain.
+
+| Citations | Version | Real changes detected | Harmless edits flagged |
+|---|---|---:|---:|
+| Trial monorepo handbook: 81 citations | 0.4.0 | 213 of 217 (98.2%) | 52 of 420 (12.4%) |
+| | 0.5.0 | 226 of 226 (100%) | 0 of 420 (0.0%) |
+| Every Python function and class in its engine: 1,140 | 0.5.0 | 3,260 of 3,260 | 0 of 5,683 |
+| Every TypeScript function in its web client: 192 | 0.5.0 | 351 of 353 | 1 of 868 |
+| This repository's handbook: 5 citations | 0.5.0 | 15 of 15 | 0 of 25 |
+
+Citations that authors write by hand are less tidy than whole functions, and that is where 0.4.0
+failed. A range that ended one blank line after a function, covered two functions, or covered
+module-level constants fell back to a hash of the raw text. A new comment then counted as a change.
+A cited sub-range also ignored indentation, so a Python statement that moved out of its `if` block
+was missed. 0.5.0 fingerprints every range by its content lines: comments and blank lines are left
+out, and indentation is kept where it has meaning.
+
+The three wrong answers on TypeScript are limits of this benchmark and of duplicates. One comment
+was inserted inside a template literal, which is a real change. Two deleted blocks had an identical
+copy elsewhere in the file, so the checker reported them as moved.
+
+Limits: one edit at a time. The 0.4.0 row has fewer real edits because that version found no
+enclosing symbol for some ranges. The monorepo is private, so only the last row can be rerun here
+([`benchmarks/results/drift.json`](../benchmarks/results/drift.json)); use `--root` on your own project.
+The benchmark tests fingerprints, not whether a page's prose is still right.
+
+## 5. Section retrieval without a model
+
+`python tools/query_benchmark.py` asks the `query` command the same eight questions and compares
+three ways to load handbook text. Key-term recall is the share of the answer key's content words
+that the loaded text contains. It shows whether the needed text was loaded. It does not show
+answer quality. Results: [`benchmarks/results/query.json`](../benchmarks/results/query.json).
+
+| Load | This repository: bytes | Key-term recall | Trial monorepo: bytes | Key-term recall |
+|---|---:|---:|---:|---:|
+| Every mapped page | 21,371 | 89% | 220,507 | 100% |
+| Whole pages of the top 3 sections | 8,989 | 82% | 31,393 | 97% |
+| Top 3 sections | 6,589 | 71% | 6,281 | 84% |
+| Top 5 sections | 10,109 | 78% | 10,145 | 91% |
+
+What this says:
+
+- On a small handbook, sections save about a quarter of the bytes and lose 11 points of recall.
+  Reading whole pages is the better default there, so the session map names `query` only
+  from eight pages up.
+- On the trial monorepo, with long adopted documents, the top three sections are a fifth of the
+  bytes of their whole pages, for 13 points less recall. Five sections close half of that gap.
+- Treat a section as a first read. Widen to the page when the answer is not there.
+
+Limits: the trial monorepo is private, so its column cannot be rerun from this repository, and its
+eight answer keys were written from its own handbook. The question text is the query; an agent can
+choose better words. No model was called, so the effect on answer quality and cost is not measured.
+
+We also tried 18 ranking variants at fixed byte budgets: larger retrieval units, merged small
+sections, and a page-level score. None moved recall by more than 3 points on these 16 questions,
+which is noise, so the ranking is unchanged.
+
 ## Rerun
 
 ```text
+python tools/drift_benchmark.py
+python tools/hook_benchmark.py
+python tools/query_benchmark.py
 python tools/benchmark.py
 python tools/model_benchmark.py --questions benchmarks/questions/archlens.json --reps 3
 python tools/model_benchmark.py --report benchmarks/results/model-sonnet.json

@@ -30,9 +30,9 @@ Gemini CLI, OpenCode, and other agents.
 
 | What goes wrong today | What Archlens does | Measured |
 |---|---|---|
-| Docs go stale a week after they are written | Fingerprints the exact functions and line ranges each page cites, and flags the page when that code changes, even after a commit | Checks 50,000 files in **0.20 s** |
+| Docs go stale a week after they are written | Fingerprints the exact functions and line ranges each page cites, and flags the page when that code changes, even after a commit | Checks 50,000 files in **0.2 s**; 0 false alarms in 420 harmless edits |
 | Moved code breaks every `#L120` link | Rewrites links whose cited code only moved, or whose file was renamed. No model, no tokens | Automatic after each Claude turn |
-| Agents re-explore the repository every session | Loads a compact page map at session start, or writes it into `AGENTS.md` | **408 tokens** for this repo; capped at 3,000 bytes |
+| Agents re-explore the repository every session | Loads a compact page map at session start, or writes it into `AGENTS.md` | **405 tokens** for this repo; capped at 3,000 bytes |
 | Context files bloat every turn | One model-visible description; everything else loads only when used | **178 bytes** in every session |
 | AI wikis invent plausible details | Every claim links to source, tests, or decisions. Unknowns stay unknown. A checker catches dead links, moved anchors, and vanished symbols | 0.04 wrong claims per answer in our benchmark |
 | You ship code you do not understand | `/archlens:learn` answers questions, gives a tour, quizzes you, and explains your branch | Inline, so you can ask follow-ups |
@@ -86,10 +86,9 @@ See the [installation guide](docs/installation.md) for global installs, updates,
 # .pre-commit-config.yaml
 repos:
   - repo: https://github.com/tushar-mahalya/archlens
-    rev: v0.4.0
+    rev: v0.5.0
     hooks:
-      - id: archlens-check   # links, anchors, diagrams, stale references
-      - id: archlens-stale   # on pre-push: fail while cited code changed
+      - id: archlens   # one gate: fix moved links, check structure, stop when cited code changed
 ```
 
 ## How it works
@@ -215,17 +214,20 @@ python plugins/archlens/scripts/archlens.py fix-anchors --root .   # rewrite mov
 python plugins/archlens/scripts/archlens.py check --root . --strict
 python plugins/archlens/scripts/archlens.py context --root . --write AGENTS.md
 python plugins/archlens/scripts/archlens.py sync --root . --page FLOW-001
+python plugins/archlens/scripts/archlens.py query --root . retry limit   # sections with line ranges
+python plugins/archlens/scripts/archlens.py precommit --root .           # one gate: fix links, check, cited code
 ```
 
-Use `python3` or `py -3` where needed. Everything except `sync`, `fix-anchors`, and
-`context --write` is read-only. See the [CLI reference](docs/cli.md).
+Use `python3` or `py -3` where needed. Everything except `sync`, `fix-anchors`, `precommit`
+(which rewrites moved links), and `context --write` is read-only. See the [CLI reference](docs/cli.md).
 
 ## Trust and limits
 
 - A stale flag means "check this page". It does not prove the prose is wrong.
 - Code shows what happens, not why a person chose it. Decisions stay `proposed` until a human accepts them.
 - Python and C-family files (JavaScript, TypeScript, Go, Rust, Java, C#, C/C++, and others) get
-  symbol-level fingerprints; the C-family reader is a heuristic, not a parser. Other files use normalized text.
+  symbol-level fingerprints; the C-family reader is a heuristic, not a parser. Other files and ranges
+  outside one symbol use their content lines, without comments.
 - The benchmark covers one small repository; large-repository and coding-task results are not measured yet.
 - Archlens has no server, no telemetry, and no network calls. Your agent's provider policy still applies.
 - The writing style is STE-inspired, not certified ASD-STE100.

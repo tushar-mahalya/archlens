@@ -70,7 +70,7 @@ Add Archlens to `.pre-commit-config.yaml`:
 ```yaml
 repos:
   - repo: https://github.com/tushar-mahalya/archlens
-    rev: v0.4.0
+    rev: v0.5.0
     hooks:
       - id: archlens-check
       - id: archlens-stale
@@ -79,6 +79,28 @@ repos:
 `archlens-check` runs on every commit and fails on structural errors.
 `archlens-stale` runs on `pre-push` and fails while covered source changed
 after the last sync. Install both stages with `pre-commit install --hook-type pre-commit --hook-type pre-push`.
+
+### One gate per commit
+
+From release 0.5.0, one hook can replace both.
+
+```yaml
+    hooks:
+      - id: archlens          # add `args: [--stale, warn]` to report without failing
+```
+
+The `archlens` hook runs [`precommit`](cli.md#precommit) on every commit:
+
+| Step | What happens | Model |
+|---|---|---|
+| Moved code | Rewrites the line links and fails once, so you stage the rewrite | None |
+| Structure | Fails on broken links, anchors, fences, and map errors | None |
+| Cited code changed | Fails when a staged file changes code that a page cites | None |
+
+The third step is the pragmatic part. A page that was already stale does not block an unrelated
+commit, so a team can adopt the hook on a repository with old drift. To pass, check the page,
+edit it if needed, run `sync --page <ID>`, and stage the page with `.archlens-state.json`.
+`args: [--style]` adds a gate on the mechanical style pass rate.
 
 ## CI
 

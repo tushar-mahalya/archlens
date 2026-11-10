@@ -15,12 +15,14 @@ python plugins/archlens/scripts/archlens.py sync --root <project> --page FLOW-00
 python plugins/archlens/scripts/archlens.py context --root <project> --write AGENTS.md
 python plugins/archlens/scripts/archlens.py fix-anchors --root <project>
 python plugins/archlens/scripts/archlens.py cite --root <project> src/orders.py submit_order --from docs/architecture/runtime/submit.md
+python plugins/archlens/scripts/archlens.py query --root <project> retry limit
+python plugins/archlens/scripts/archlens.py precommit --root <project>
 ```
 
 Replace angle-bracket arguments. Quote paths containing spaces.
 The default root is the current folder.
 For `impact`, root must be the exact Git root, not a nested project.
-`check`, `config`, `status`, `sync`, and `context` also work in a nested folder or outside Git.
+`check`, `config`, `status`, `sync`, `context`, `query`, and `precommit` also work in a nested folder or outside Git.
 
 ### config
 
@@ -43,8 +45,26 @@ Checks:
 - Line ranges that cut off the first or last code line of a function or class by one or two lines,
   ignoring blank and comment lines (warning). These are almost always off-by-one citations.
 - Missing titles, missing sequence numbering, and explicit participant counts (warning).
-- Lines with semicolons and long prose lines: one `style` note per page with its line numbers (info).
-  Notes are editorial candidates and never fail `--strict`.
+- Flowcharts with more nodes than `maxDiagramNodes` (`diagram-density`, warning). The node count is a heuristic.
+- Step tables that do not match their diagram (`sequence-steps`). A table whose first column is "Step"
+  belongs to the numbered sequence diagram before it. A step number above the diagram's message
+  count is a warning. A message without a step row is a note.
+- In an adopted document (a page mapped with `../`), presentation advice is a note, not a warning:
+  titles, sequence numbering, and density. Archlens does not restyle documents it did not write.
+- Placement (warning): a handbook decision record while the project keeps decisions in another
+  mapped folder, such as `docs/adr/` (`decision-split`), and a handbook that no root Markdown
+  file or mapped existing document links to, when the project has a `README.md` (`unlinked-handbook`).
+- Handbook-owned pages only (info): commit IDs in prose, which duplicate `map.json` and the sync
+  state (`prose-metadata`), and table columns that say unknown in every row (`unknown-column`).
+- Mechanical style: one `style` note per page with counts and line numbers (info).
+  The checker reads complete sentences in paragraphs, list items, and table cells. A sentence fails
+  with more than 25 words (20 in a numbered procedure), a semicolon, a passive with "by", or a
+  listed wordy phrase such as "in order to". Code spans and link targets do not count.
+  Notes never fail `--strict`.
+- `stylePassRate`: passing sentences divided by all sentences in handbook-owned pages, reported
+  from 20 sentences up. `--style` fails the check when the rate is below `styleTarget`.
+  This rate is a mechanical floor. It is not an STE score: the checker cannot judge actors,
+  terminology, or ambiguity.
 
 Findings are sorted by severity, then broken links and missing references before
 presentation advice, so a `--summary` preview shows the most important records first.
@@ -54,7 +74,7 @@ Limits:
 - Not a complete CommonMark parser. Complex nested syntax, reference-use resolution, and HTML links are outside scope.
 - Does not check remote URLs, full Mermaid syntax, diagram layout, or source semantics.
 - Does not validate that a human really approved a decision.
-- Writing warnings are editorial candidates, not an STE score.
+- Style notes and `stylePassRate` are mechanical, not an STE score or ASD-STE100 compliance.
 - Expects ordinary UTF-8 Markdown; frontmatter is skipped, not parsed.
 
 ### impact
@@ -91,8 +111,17 @@ function or class around the range: by syntax tree in Python, and with a comment
 string-aware brace reader in C-family files (`.js`, `.ts`, `.tsx`, `.go`, `.rs`, `.java`,
 `.kt`, `.cs`, `.c`, `.cpp`, `.swift`, `.php`, `.dart`, and similar). Comments, blank lines,
 and formatting do not count, and a moved function is reported with its new lines.
-A range inside a larger function also records its own code lines, so an edit elsewhere in
-that function does not flag it. Other files compare normalized text and search for moved text.
+A range that is not exactly one function or class also records its own content lines, so an edit
+elsewhere in that function does not flag it. Content lines leave out blank lines and comments, and
+keep indentation where it has meaning (Python, YAML, plain text). The same fingerprint serves a
+range that no single symbol holds: module-level code, several functions, or a file without symbol
+support, such as YAML. Blank and comment lines at either end of a range do not decide which symbol
+it belongs to, so `#L96-L110` still follows a function that ends on line 109.
+`status` does not parse a cited file whose content is unchanged since the last sync.
+
+Limits: a cited sub-range follows its own lines. A new condition wrapped around it is an edit
+elsewhere in the function, so the citation moves and is not flagged; cite the whole function to
+catch that. When identical code exists twice in a file, a deleted copy can report as moved.
 
 A whole-file link to a code file goes `stale` when one of the file's declared names (a function,
 class, or top-level constant) is removed or renamed, and `review` when names are only added or
@@ -129,6 +158,9 @@ $ archlens.py cite --root . src/orders.py submit_order --from docs/architecture/
 
 Records the current content of each named page's covered files in `.archlens-state.json`.
 Use `--page ID` (repeatable) after you review those pages, or `--all` after setup.
+`--fresh` records every page that `status` reports fresh. No change is waiting on such a page,
+so this approves nothing. Run it once after an upgrade to move fingerprints to the current format:
+records from 0.4.0 still compare correctly, but they keep that version's false alarms until then.
 It writes only the state file, plus the managed block in `contextFile` when configured.
 Syncing a page you did not review hides real drift.
 
@@ -136,6 +168,10 @@ Syncing a page you did not review hides real drift.
 
 Prints a compact, freshness-aware page map within `contextBudget` bytes.
 Pages appear in reading order with their title, first sentence, coverage, and stale flag.
+Index and glossary pages omit coverage, because their patterns span the project.
+When page summaries do not all fit, a folder of four or more decision records becomes one line
+that lists the records by file name. A stale decision keeps its own line.
+The live map (not a written block) names the `query` command when the handbook has eight or more pages.
 When the budget is tight, it keeps summaries before coverage, page by page in reading order,
 and lists the remaining count only when titles alone do not fit.
 A written block has no stale flags, because freshness changes between commits; it tells
@@ -143,13 +179,63 @@ the agent to run `status` instead.
 `--write FILE` (or `--write` with `contextFile` set) replaces only the managed
 `archlens:context` block in that file and keeps all other text.
 
+### query
+
+Finds the smallest part of the handbook that answers a need. It reads only mapped pages, uses no
+model, and prints one line per section: `page:first-last  heading  (bytes)`. Open those lines
+with your editor or the agent's file reader instead of the whole page.
+
+| Form | Returns |
+|---|---|
+| `query <words>` | Sections ranked by word match (BM25). Headings count more. `RagService` also matches `rag` and `service` |
+| `query --file <path>` | Sections that link to the file, with the cited line ranges, then pages that cover it without a link |
+| `query --page <page>` | The page outline: every section with its line range, size, and diagram types |
+| `query --page <page> <words>` | The same ranking, inside one page |
+| `query --page <page> --diagram [N]` | Diagram N (default 1) as Mermaid source, plus a following "Text equivalent:" paragraph |
+| `query --page <page> --step <n>` | The step-table rows for message `n` of a numbered sequence diagram |
+| `query --page <page> --row <text>` | Table rows whose first cell contains the text, such as a unit name |
+
+`<page>` is a map ID, a map path, a project path, or a unique file name. `--limit` sets the number
+of ranked sections (default 5). A result from a stale or never-synced page ends with `STALE` or `UNSYNCED`.
+Text output stops at 6,000 bytes. `--json` and `--summary` work as for other commands.
+
+This design uses a diagram as an index. Read the diagram first, because it is the shortest complete
+view of a flow. Then ask for one step or one unit, and follow that row's source links.
+
+Limits: word match only, with light stemming. It knows no synonyms. Section boundaries are
+headings. On a small handbook, reading a whole page costs little more; see [benchmarks](benchmarks.md).
+
+### precommit
+
+One deterministic gate for a commit. It needs no model and no network. It runs three steps:
+
+1. Rewrites line links whose cited code only moved, and links to renamed files (`fixAnchors`).
+   If it changed a page, it fails once so that you stage the rewrite and commit again.
+2. Runs `check` and fails on errors. With `--style`, it also fails below `styleTarget`.
+3. Fails when a staged file changes code that a page cites, or when a staged page was never synced.
+
+A page that was already stale for another reason does not block the commit. The report counts
+those pages in a note. With nothing staged, such as a CI run, every stale page counts.
+
+`--stale warn` reports step 3 without failing. `--stale off` skips it.
+To pass step 3, check the page against the change and edit the page if needed. Then run
+`sync --page <ID>` and stage the page and `.archlens-state.json`. A coding agent can do this
+with the Archlens update operation.
+
+Limits: the gate reads the working tree. The pre-commit framework stashes unstaged changes first,
+so the two match. A plain Git hook sees unstaged edits too.
+
 ### hook
 
 `hook session-start`, `hook file-pointer`, `hook stop`, and `hook commit-gate` are the Claude Code plugin hooks.
+The plugin starts them through `scripts/hook.py`. That entry exits in a few milliseconds when the
+command is not a commit or the project has no handbook, and loads the checker as a cached module otherwise.
+The pointer hook keeps a small index of each page's links in the plugin data folder until a page changes.
 `commit-gate` runs before each Bash call. It exits at once unless the command is a `git commit`,
 and with `autoUpdate` set to `commit` or `auto` it holds a commit once while it would leave pages stale.
 They read hook JSON on standard input, print nothing outside an Archlens project, and always exit 0.
 `file-pointer` names the page that documents a file the agent read or edited, once per page per session.
+When the page cites the file, the pointer names up to two citing sections with their line ranges.
 
 ## Output and exits
 
@@ -162,7 +248,7 @@ They read hook JSON on standard input, print nothing outside an Archlens project
 | Exit | Meaning |
 |---|---|
 | `0` | Check passed, or report generated successfully |
-| `1` | Structural findings, strict warnings, a requested impact or stale gate, or a missing `cite` symbol |
+| `1` | Structural findings, strict warnings, a requested impact, stale, or style gate, a failed `precommit`, or a missing `cite` symbol |
 | `2` | Invalid input, config, map, Git failure, or file-access error |
 
 By default, warnings do not fail `check`, and review candidates do not fail `impact`.
