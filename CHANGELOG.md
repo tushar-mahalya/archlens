@@ -41,6 +41,8 @@ Tested on a real 50,000-line monorepo (FastAPI, React/TypeScript, Modal) with 6,
 
 ### Give agents better context
 
+- `fix-anchors` and the hooks rewrite links to files that Git reports as renamed, with no model.
+  When a cited function disappears, `status` names a likely rename (`now \`is_authorized\`?`).
 - Add `cite`, which prints link-ready line ranges for symbols, so pages cite exact evidence.
 - `check` warns when a line range cuts off a function's first or last code line by one or two lines.
 - A comment added inside a function now moves the citations inside it, so `fix-anchors` rewrites them;

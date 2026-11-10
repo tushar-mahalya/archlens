@@ -752,6 +752,24 @@ class AnchorTests(Fixture):
         self.assertEqual(len(findings), 1)
         self.assertIn("#L2-L9 cuts off part of `long` (#L3-L10)", findings[0]["message"])
 
+    def test_renamed_file_links_are_rewritten_and_renamed_symbol_is_hinted(self):
+        self.git_commit()
+        subprocess.check_call(["git", "-C", str(self.root), "mv", "src/svc.py", "src/service.py"])
+        report = archlens.fix_anchors(self.root, self.config)
+        self.assertIn({"page": "docs/architecture/README.md", "id": "INDEX", "path": "src/svc.py",
+                       "renamedTo": "src/service.py"}, report["fixed"])
+        text = (self.root / "docs/architecture/README.md").read_text(encoding="utf-8")
+        self.assertIn("../../src/service.py#L4-L7)", text)
+        self.assertFalse([f for f in archlens.check_documents(self.root, self.config)["findings"] if f["severity"] == "error"])
+        self.assertNotIn("stale", self.changes()[0])
+        self.write("src/service.py", self.SOURCE.replace("def validate", "def check_order"))
+        removed = [c for c in self.changes()[1] if c["change"] == "symbol-removed"]
+        self.assertEqual(removed[0]["renamedTo"], "check_order")
+
+    def git_commit(self):
+        subprocess.check_call(["git", "-C", str(self.root), "add", "."])
+        subprocess.check_call(["git", "-C", str(self.root), "-c", "user.name=t", "-c", "user.email=t@e", "commit", "-qm", "base"])
+
     def test_c_family_anchor_ignores_comments_and_follows_moves(self):
         self.write("src/app.js", "const a = 1;\nfunction go() {\n  return a; // explain\n}\n")
         self.assertEqual(self.changes()[0], "review")

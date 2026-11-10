@@ -106,7 +106,9 @@ A page with no evidence links treats every covered change as `stale`.
 
 ### fix-anchors
 
-Rewrites line links whose cited code moved but did not change, then re-records those anchors.
+Rewrites links to files that Git reports as renamed (in the working tree or since the page's
+last sync), including exact-path `covers` entries in `map.json`. Then rewrites line links whose
+cited code moved but did not change, and re-records those anchors.
 For example, `orders.py#L20-L38` becomes `orders.py#L21-L39` after a line is added above.
 It edits only the link fragments in handbook pages. Changed evidence still needs a person or agent.
 The Claude stop hook runs it automatically when `fixAnchors` is true.

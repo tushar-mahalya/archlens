@@ -978,7 +978,12 @@ def check_anchor(root: Path, record: dict) -> dict | None:
             return dict(base, change="evidence-changed")
         match = [s for s in symbols if s[0] == record["symbol"]]
         if not match:
-            return dict(base, change="symbol-removed")
+            old_start, old_end = record["symbolLines"]
+            depth = record["symbol"].count(".")
+            near = [s for s in symbols if s[0].count(".") == depth and abs(s[1] - old_start) <= 3
+                    and abs((s[2] - s[1]) - (old_end - old_start)) <= 2]
+            hint = {"renamedTo": near[0][0]} if len(near) == 1 else {}
+            return dict(base, change="symbol-removed", **hint)
         # Same-named symbols (overloads, repeated test blocks): prefer an unchanged one, then the nearest.
         _, start, end, digest = min(match, key=lambda s: (s[3] != record.get("digest"), abs(s[1] - record["symbolLines"][0])))
         old_start, old_end = record["symbolLines"]
@@ -1230,13 +1235,88 @@ def sync_pages(root: Path, config: dict, ids: list[str], every: bool) -> dict:
     return report
 
 
+def git_renames(root: Path, commits) -> dict[str, str]:
+    """Old to new paths that Git pairs as renames since the given commits and in the working tree."""
+    if not in_git(root):
+        return {}
+    result: dict[str, str] = {}
+
+    def collect(*args):
+        try:
+            out = git(root, "diff", "--no-ext-diff", "-M", "--name-status", "-z", *args, "--")
+        except ArchlensError:
+            return
+        parts = [part.decode("utf-8", "surrogateescape") for part in out.split(b"\0")]
+        i = 0
+        while i < len(parts):
+            code = parts[i]
+            if code[:1] in {"R", "C"} and i + 2 < len(parts):
+                if code[:1] == "R":
+                    result[parts[i + 1]] = parts[i + 2]
+                i += 3
+            else:
+                i += 2 if code else 1
+
+    for commit in sorted(c for c in commits if c):
+        collect(commit, "HEAD")
+    collect("HEAD")
+    for old in list(result):
+        new, seen = result[old], {old}
+        while new in result and new not in seen:
+            seen.add(new)
+            new = result[new]
+        result[old] = new
+    return result
+
+
+def link_target(root: Path, page_path: Path, path: str) -> str:
+    return Path(os.path.relpath(root / path, page_path.parent)).as_posix()
+
+
 def fix_anchors(root: Path, config: dict, ids: list[str] | None = None, status: dict | None = None) -> dict:
-    """Rewrite line links whose cited code moved but did not change. No model needed."""
+    """Rewrite links whose cited file was renamed, and line links whose cited code moved
+    but did not change. No model needed."""
     docs, pages = load_map(root, config)
     status = status or freshness(root, config)
     state = load_state(docs)
     by_id = {page["id"]: page for page in pages}
     fixed = []
+    selected = [e for e in status["needsSync"] if not ids or e["id"] in ids]
+    removed = [e for e in selected if any(c["change"] in {"removed", "evidence-removed"} for c in e["changed"])]
+    renames = git_renames(root, {(state["pages"].get(e["id"]) or {}).get("syncedCommit") for e in removed}) if removed else {}
+    for entry in removed:
+        record = state["pages"].get(entry["id"])
+        moves = sorted({c["path"] for c in entry["changed"]
+                        if c["change"] in {"removed", "evidence-removed"} and c["path"] in renames})
+        if not moves or not isinstance(record, dict):
+            continue
+        page_path = by_id[entry["id"]]["_file"]
+        text = page_path.read_text(encoding="utf-8-sig")
+        for old in moves:
+            new = renames[old]
+            pattern = re.escape(link_target(root, page_path, old)) + r"(?=[#)>\s]|$)"
+            text, count = re.subn(pattern, lambda _: link_target(root, page_path, new), text, flags=re.M)
+            for anchor in record.get("anchors") or []:
+                if anchor["path"] == old:
+                    anchor["path"] = new
+            for key in ("files", "outlines"):
+                if old in (record.get(key) or {}):
+                    record[key][new] = record[key].pop(old)
+            if count:
+                fixed.append({"page": entry["page"], "id": entry["id"], "path": old, "renamedTo": new})
+        page_path.write_text(text, encoding="utf-8")
+    if fixed:
+        save_state(docs, state)
+        # Exact-path coverage entries follow the rename too; patterns with wildcards stay as written.
+        map_path = docs / "map.json"
+        raw = map_path.read_text(encoding="utf-8-sig")
+        updated = raw
+        for item in fixed:
+            updated = updated.replace(json.dumps(item["path"]), json.dumps(item["renamedTo"]))
+        if updated != raw:
+            map_path.write_text(updated, encoding="utf-8")
+        status = freshness(root, config)
+        state = load_state(docs)
     for entry in status["needsSync"]:
         moves = [c for c in entry["changed"] if c["change"] == "evidence-moved"]
         record = state["pages"].get(entry["id"])
@@ -1245,7 +1325,7 @@ def fix_anchors(root: Path, config: dict, ids: list[str] | None = None, status: 
         page_path = by_id[entry["id"]]["_file"]
         text = page_path.read_text(encoding="utf-8-sig")
         for move in moves:
-            target = Path(os.path.relpath(root / move["path"], page_path.parent)).as_posix()
+            target = link_target(root, page_path, move["path"])
             (a, b), (c, d) = move["lines"], move["newLines"]
             old = f"#L{a}" if a == b else f"#L{a}-L{b}"
             new = f"#L{c}" if c == d else f"#L{c}-L{d}"
@@ -1574,7 +1654,8 @@ def stale_from_changes(root: Path, config: dict, dirty: set[str]) -> tuple[list,
     """Rewrite moved links, then list pages whose cited evidence this change set made stale."""
     status = freshness(root, config)
     fixed = []
-    moved = any(c["change"] == "evidence-moved" for e in status["needsSync"] for c in e["changed"])
+    moved = any(c["change"] in {"evidence-moved", "evidence-removed", "removed"}
+                for e in status["needsSync"] for c in e["changed"])
     if config["fixAnchors"] and moved:
         fixed = fix_anchors(root, config, status=status)["fixed"]
         if fixed:
@@ -1783,6 +1864,7 @@ def print_report(report: dict, as_json: bool):
             def describe(c):
                 where = c["path"] + (f"#L{c['lines'][0]}-L{c['lines'][1]}" if c.get("lines") else "")
                 where += f" ({c['symbol']})" if c.get("symbol") else ""
+                where += f" now `{c['renamedTo']}`?" if c.get("renamedTo") else ""
                 moved = f" -> #L{c['newLines'][0]}-L{c['newLines'][1]}" if c.get("newLines") else ""
                 return f"{c['change']} {where}{moved}"
             hard = [c for c in entry["changed"] if c["severity"] == "stale"]
@@ -1793,9 +1875,12 @@ def print_report(report: dict, as_json: bool):
                 detail += f" +{len(soft) - 3}" if len(soft) > 3 else ""
             print(f"{entry['state'].upper()} {entry['page']} [{entry['id']}] {detail}".rstrip())
     elif report["command"] == "fix-anchors":
-        print(f"Fixed {len(report['fixed'])} moved line link(s).")
+        print(f"Fixed {len(report['fixed'])} moved link(s).")
         for item in report["fixed"]:
-            print(f"FIXED {item['page']}: {item['path']}#L{item['from'][0]}-L{item['from'][1]} -> #L{item['to'][0]}-L{item['to'][1]}")
+            if item.get("renamedTo"):
+                print(f"FIXED {item['page']}: {item['path']} -> {item['renamedTo']} (file renamed)")
+            else:
+                print(f"FIXED {item['page']}: {item['path']}#L{item['from'][0]}-L{item['from'][1]} -> #L{item['to'][0]}-L{item['to'][1]}")
     elif report["command"] == "cite":
         for entry in report["symbols"]:
             print(f"[{entry['symbol']}]({entry['link']})")
