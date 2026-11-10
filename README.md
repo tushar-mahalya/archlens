@@ -19,6 +19,8 @@
   <a href="docs/automation.md">Automation</a>
 </p>
 
+# Archlens: living architecture docs for Claude Code and AI coding agents
+
 **Archlens keeps a small architecture handbook in step with your code, gives your coding agent
 a map of the whole project in a few hundred tokens, and teaches you the codebase while you work.**
 It runs as a Claude Code plugin and as a portable Agent Skill for Codex, Cursor, GitHub Copilot,
