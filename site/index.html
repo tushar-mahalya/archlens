@@ -45,7 +45,7 @@
  "description": "Living architecture docs for Claude Code and AI coding agents. A Claude Code plugin and portable Agent Skill that keeps architecture documentation in sync with code: local documentation drift detection on cited functions and line ranges, updates in the same commit as the code, and a compact page map for agents through a session hook or AGENTS.md.",
  "applicationCategory": "DeveloperApplication",
  "operatingSystem": "macOS, Linux, Windows",
- "softwareVersion": "0.3.0",
+ "softwareVersion": "0.4.0",
  "license": "https://opensource.org/licenses/MIT",
  "isAccessibleForFree": true,
  "offers": {
@@ -144,7 +144,7 @@
   <a class="brand" href="#a-000" aria-label="Archlens, cover sheet">
     <svg class="brand-mark" viewBox="0 0 32 32" aria-hidden="true"><circle cx="14" cy="16" r="10"/><path d="M4 16h20"/><path class="brand-arrow" d="M24 9l7 7-7 7z"/></svg>
     <span class="brand-word">Archlens</span>
-    <span class="brand-rev">Rev 0.3.0 · next</span>
+    <span class="brand-rev">Rev 0.4.0</span>
   </a>
   <nav class="sheet-nav" aria-label="Sheet index">
     <ol>
@@ -177,7 +177,7 @@
 
   <div class="cover">
     <p class="kicker"><span class="kicker-no">A-000</span> Cover sheet · Living architecture docs for Claude Code and AI coding agents</p>
-    <h1 id="h-a-000" class="cover-title">Architecture docs that stay <span class="cloud-word" data-cloud>in sync</span><span class="delta" aria-hidden="true">N</span> with your code.</h1>
+    <h1 id="h-a-000" class="cover-title">Architecture docs that stay <span class="cloud-word" data-cloud>in sync</span><span class="delta" aria-hidden="true">4</span> with your code.</h1>
     <div class="cover-body">
       <p class="lede">Archlens keeps your architecture docs in step with your code. It writes a small handbook, or adopts the docs you already have where they live. It gives your coding agent a map of the whole project in a few hundred tokens, and teaches you the codebase while you work. It runs as a Claude Code plugin and as a portable Agent Skill for Codex, Cursor, GitHub Copilot, Gemini CLI, OpenCode, and other agents.</p>
       <div class="cta">
@@ -214,11 +214,11 @@
         <table class="rev-table">
           <thead><tr><th scope="col">Rev</th><th scope="col">Date</th><th scope="col">Description</th></tr></thead>
           <tbody>
-            <tr><th scope="row"><span class="delta delta-inline rev">N</span></th><td>Unreleased</td><td>Next release: adopt existing docs, update once per commit, fewer false alarms, <code>cite</code></td></tr>
+            <tr><th scope="row"><span class="delta delta-inline rev" aria-hidden="true">4</span> 0.4.0</th><td>2026-11-10</td><td>Adopt existing docs, update once per commit, fewer false alarms, <code>cite</code></td></tr>
             <tr><th scope="row">0.3.0</th><td>2026-11-08</td><td>Freshness loop, page map, and <code>learn</code></td></tr>
           </tbody>
         </table>
-        <p class="small"><span class="delta delta-inline rev">N</span> marks what changed since 0.3.0. See the <a href="https://github.com/tushar-mahalya/archlens/blob/main/CHANGELOG.md">changelog</a>.</p>
+        <p class="small"><span class="delta delta-inline rev" aria-hidden="true">4</span> marks what changed in 0.4.0. See the <a href="https://github.com/tushar-mahalya/archlens/blob/main/CHANGELOG.md">changelog</a>.</p>
       </div>
     </aside>
   </div>
@@ -310,11 +310,11 @@ Pages live in `docs/architecture/` (6 pages, <span id="map-count">0 stale</span>
       </div>
       <p class="log" id="coupling-log" role="status" aria-live="polite"><span class="log-k">status</span> 6 pages, 0 stale. Click <em>Edit the code</em> or the marked lines 25–26.</p>
     </div>
-    <p class="fineprint">Page text, map lines, byte counts, and the Stop hook and commit gate messages are real output of <code>archlens.py</code> (next release) on the order example. The quantity limit is a hypothetical edit, simulated in your browser.</p>
+    <p class="fineprint">Page text, map lines, byte counts, and the Stop hook and commit gate messages are real output of <code>archlens.py</code> 0.4.0 on the order example. The quantity limit is a hypothetical edit, simulated in your browser.</p>
   </figure>
 
   <div class="title-block" aria-hidden="true">
-    <div><b>Project</b>Archlens</div><div><b>Title</b>Cover</div><div><b>Sheet</b><i>A-000</i></div><div><b>Rev</b>N</div>
+    <div><b>Project</b>Archlens</div><div><b>Title</b>Cover</div><div><b>Sheet</b><i>A-000</i></div><div><b>Rev</b>0.4.0</div>
     <div><b>Drawn</b>agent</div><div><b>Checked</b>you</div><div class="tb-wide"><b>Scale</b>1 page = 1 question</div>
   </div>
 </div>
@@ -344,8 +344,8 @@ Pages live in `docs/architecture/` (6 pages, <span id="map-count">0 stale</span>
           <tr><td class="mark">P4</td><th scope="row">Context files bloat every turn</th><td>One model-visible description; everything else loads only when used</td><td class="measured"><b>178 bytes</b> in every session</td></tr>
           <tr><td class="mark">P5</td><th scope="row">AI wikis invent plausible details</th><td>Every claim links to source, tests, or decisions. Unknowns stay unknown. A checker catches dead links, moved anchors, and vanished symbols</td><td class="measured"><b>0.04</b> wrong claims per answer in the benchmark</td></tr>
           <tr><td class="mark">P6</td><th scope="row">You ship code you do not understand</th><td><code>/archlens:learn</code> answers questions, gives a tour, quizzes you, and explains your branch</td><td class="measured">Inline, so you can ask follow-ups</td></tr>
-          <tr><td class="mark">P7</td><th scope="row">The docs you already have drifted long ago <span class="delta delta-inline rev" aria-hidden="true">N</span></th><td>Adopts them where they live: maps them, fixes statements the code contradicts with minimal edits, and adds pages only for real gaps</td><td class="measured">Trial: <b>16 docs</b> mapped, 3 real errors fixed, 5.8&nbsp;min</td></tr>
-          <tr><td class="mark">P8</td><th scope="row">Checkers bury real errors in noise <span class="delta delta-inline rev" aria-hidden="true">N</span></th><td>Style heuristics become one <code>info</code> note per page that never fails <code>--strict</code>. Errors sort first</td><td class="measured">Trial: <b>407</b> warnings down to <b>4</b></td></tr>
+          <tr><td class="mark">P7</td><th scope="row">The docs you already have drifted long ago <span class="delta delta-inline rev" aria-hidden="true">4</span></th><td>Adopts them where they live: maps them, fixes statements the code contradicts with minimal edits, and adds pages only for real gaps</td><td class="measured">Trial: <b>16 docs</b> mapped, 3 real errors fixed, 5.8&nbsp;min</td></tr>
+          <tr><td class="mark">P8</td><th scope="row">Checkers bury real errors in noise <span class="delta delta-inline rev" aria-hidden="true">4</span></th><td>Style heuristics become one <code>info</code> note per page that never fails <code>--strict</code>. Errors sort first</td><td class="measured">Trial: <b>407</b> warnings down to <b>4</b></td></tr>
         </tbody>
       </table>
     </div>
@@ -367,7 +367,7 @@ Pages live in `docs/architecture/` (6 pages, <span id="map-count">0 stale</span>
   glossary.md            <span>One term per concept</span>
   map.json               <span>Which code each page covers</span>
   .archlens-state.json   <span>Freshness baseline written by sync</span></pre>
-      <p class="tree-k"><code>/archlens:setup adopt</code> the default when docs exist <span class="delta delta-inline rev" aria-hidden="true">N</span></p>
+      <p class="tree-k"><code>/archlens:setup adopt</code> the default when docs exist <span class="delta delta-inline rev" aria-hidden="true">4</span></p>
 <pre class="tree"><b>docs/architecture/map.json</b>
   ../ARCHITECTURE.md     <span>An existing doc, mapped where it lives</span>
                          <span>Statements the code contradicts: minimal edits</span>
@@ -401,10 +401,10 @@ Pages live in `docs/architecture/` (6 pages, <span id="map-count">0 stale</span>
 <span class="t-ln">Archlens cite: PASS</span>
 <span class="t-ln">[submit_order](../../../order_service.py#L20-L38)</span></pre>
       </div>
-      <p class="fineprint">Real output of the next release on the order example, after the lines 25–26 edit. The <code>status</code> notes are trimmed.</p>
+      <p class="fineprint">Real output of 0.4.0 on the order example, after the lines 25–26 edit. The <code>status</code> notes are trimmed.</p>
     </figure>
     <div class="split-notes">
-      <p>Pages cite evidence, often a line range such as <code>order_service.py#L20-L38</code>. <code>sync</code> records a baseline of the function around each range. Python uses its syntax tree. JavaScript, TypeScript, Go, Rust, Java, C#, C/C++, Swift, PHP, Dart, and other C-family languages use a comment- and string-aware brace reader <span class="delta delta-inline rev" aria-hidden="true">N</span>. It is a heuristic, not a parser. Comments and formatting do not count, and a moved function is followed.</p>
+      <p>Pages cite evidence, often a line range such as <code>order_service.py#L20-L38</code>. <code>sync</code> records a baseline of the function around each range. Python uses its syntax tree. JavaScript, TypeScript, Go, Rust, Java, C#, C/C++, Swift, PHP, Dart, and other C-family languages use a comment- and string-aware brace reader <span class="delta delta-inline rev" aria-hidden="true">4</span>. It is a heuristic, not a parser. Comments and formatting do not count, and a moved function is followed.</p>
       <p>A range inside a larger function tracks only its own lines. One changed rule in a 40-line function no longer flags every citation inside it.</p>
       <p>Cited evidence that changed makes a page <code>stale</code>. A whole-file link to code goes stale only when the file’s declared names change; body edits mark it for <code>review</code>, as ADR-001 shows. An edit to a linked Markdown document marks <code>review</code>; deleting a linked file marks <code>stale</code>. Comment-only edits never make a page stale.</p>
       <p>Links follow the code with no model. Moved code, files Git reports as renamed, and citations shifted by a new comment inside a function are rewritten. When a cited function disappears, <code>status</code> suggests a likely rename, such as <code>symbol-removed memory.py#L14-L19 (authorized) now `is_authorized`?</code></p>
@@ -414,7 +414,7 @@ Pages live in `docs/architecture/` (6 pages, <span id="map-count">0 stale</span>
   </div>
 
   <div class="title-block" aria-hidden="true">
-    <div><b>Project</b>Archlens</div><div><b>Title</b>The problem</div><div><b>Sheet</b><i>A-101</i></div><div><b>Rev</b>N</div>
+    <div><b>Project</b>Archlens</div><div><b>Title</b>The problem</div><div><b>Sheet</b><i>A-101</i></div><div><b>Rev</b>0.4.0</div>
     <div><b>Drawn</b>agent</div><div><b>Checked</b>you</div><div class="tb-wide"><b>Scale</b>1 page = 1 question</div>
   </div>
 </div>
@@ -548,7 +548,7 @@ Pages live in `docs/architecture/` (6 pages, <span id="map-count">0 stale</span>
       <ol data-stagger>
         <li id="note-1" data-step="1"><b>Session start.</b> In a project with a handbook, a SessionStart hook prints the page map: one line per page, with stale flags. The budget is 3,000 bytes by default; this repository’s map is 1,630 bytes, about 408 tokens. Summaries come from a page’s “Summary” section when it has one. Projects without a handbook get nothing.</li>
         <li id="note-2" data-step="2"><b>Agent works.</b> The map says where to look. When the agent reads or edits a documented file, a hook names that file’s page, once per page per session. Pages summarize; source is authoritative.</li>
-        <li id="note-3" data-step="3"><b>Stop hook and commit gate.</b> <span class="delta delta-inline rev" aria-hidden="true">N</span> When a turn ends, a local script compares cited evidence with its baseline. Code that only moved, or a file Git reports as renamed, gets its links rewritten. Code that changed makes the page stale, and you see one line per new set of stale pages. 276&nbsp;ms on a 50,000-file repository. Before Claude runs <code>git commit</code>, a PreToolUse hook holds the commit once if it would leave pages stale.</li>
+        <li id="note-3" data-step="3"><b>Stop hook and commit gate.</b> <span class="delta delta-inline rev" aria-hidden="true">4</span> When a turn ends, a local script compares cited evidence with its baseline. Code that only moved, or a file Git reports as renamed, gets its links rewritten. Code that changed makes the page stale, and you see one line per new set of stale pages. 276&nbsp;ms on a 50,000-file repository. Before Claude runs <code>git commit</code>, a PreToolUse hook holds the commit once if it would leave pages stale.</li>
         <li id="note-4" data-step="4"><b>Update.</b> With <code>"autoUpdate": "commit"</code> (the new default), the held commit runs the update first, in an isolated task. With <code>"auto"</code>, it runs at the end of every turn. It fixes stale pages first, confirms review pages, and changes only prose the change made wrong.</li>
         <li id="note-5" data-step="5"><b>Sync.</b> <code>sync</code> records the reviewed pages’ new baseline and refreshes the context file. It trusts the caller, so only pages someone checked against current source get synced. Then the commit runs again, and code and docs land together.</li>
       </ol>
@@ -557,7 +557,7 @@ Pages live in `docs/architecture/` (6 pages, <span id="map-count">0 stale</span>
 
   <div class="split modes">
     <div>
-      <h3 class="label">When docs update <span class="delta delta-inline rev" aria-hidden="true">N</span></h3>
+      <h3 class="label">When docs update <span class="delta delta-inline rev" aria-hidden="true">4</span></h3>
       <div class="table-scroll">
         <table class="schedule schedule-compact">
           <thead><tr><th scope="col"><code>autoUpdate</code></th><th scope="col">After each turn</th><th scope="col">When Claude runs <code>git commit</code></th><th scope="col">Model tokens</th></tr></thead>
@@ -653,7 +653,7 @@ Pages live in `docs/architecture/` (6 pages, <span id="map-count">0 stale</span>
   </div>
 
   <div class="title-block" aria-hidden="true">
-    <div><b>Project</b>Archlens</div><div><b>Title</b>The loop</div><div><b>Sheet</b><i>A-201</i></div><div><b>Rev</b>N</div>
+    <div><b>Project</b>Archlens</div><div><b>Title</b>The loop</div><div><b>Sheet</b><i>A-201</i></div><div><b>Rev</b>0.4.0</div>
     <div><b>Drawn</b>agent</div><div><b>Checked</b>you</div><div class="tb-wide"><b>Scale</b>1 page = 1 question</div>
   </div>
 </div>
@@ -818,7 +818,7 @@ python tools/render_charts.py</code></pre>
   <p class="small">Method, raw results, and questions: <a href="https://github.com/tushar-mahalya/archlens/blob/main/docs/benchmarks.md">docs/benchmarks.md</a>. The model benchmark spends real usage; start with <code>--reps 1</code>.</p>
 
   <div class="title-block" aria-hidden="true">
-    <div><b>Project</b>Archlens</div><div><b>Title</b>Evidence</div><div><b>Sheet</b><i>A-301</i></div><div><b>Rev</b>N</div>
+    <div><b>Project</b>Archlens</div><div><b>Title</b>Evidence</div><div><b>Sheet</b><i>A-301</i></div><div><b>Rev</b>0.4.0</div>
     <div><b>Drawn</b>agent</div><div><b>Checked</b>you</div><div class="tb-wide"><b>Scale</b>1 page = 1 question</div>
   </div>
 </div>
@@ -829,7 +829,7 @@ python tools/render_charts.py</code></pre>
 <div class="frame">
   <div class="zones" aria-hidden="true"><span>1</span><span>2</span><span>3</span><span>4</span><span>5</span><span>6</span></div>
   <header class="sheet-head">
-    <p class="sheet-id"><span class="sheet-no">A-302</span><span class="sheet-name">Real-project trial <span class="delta delta-inline rev" aria-hidden="true">N</span></span></p>
+    <p class="sheet-id"><span class="sheet-no">A-302</span><span class="sheet-name">Real-project trial <span class="delta delta-inline rev" aria-hidden="true">4</span></span></p>
     <div class="sheet-heading">
       <h2 id="h-a-302">One real monorepo. A rule changed, tested, and committed with its docs in 4.6 minutes.</h2>
       <p class="lede">We tried Archlens on a 50,000-line FastAPI + React/TypeScript monorepo with about 6,000 lines of existing docs. Claude Code ran headless on Opus. This is one trial on one repository, not a general benchmark.</p>
@@ -926,7 +926,7 @@ python tools/render_charts.py</code></pre>
   </div>
 
   <div class="title-block" aria-hidden="true">
-    <div><b>Project</b>Archlens</div><div><b>Title</b>Trial</div><div><b>Sheet</b><i>A-302</i></div><div><b>Rev</b>N</div>
+    <div><b>Project</b>Archlens</div><div><b>Title</b>Trial</div><div><b>Sheet</b><i>A-302</i></div><div><b>Rev</b>0.4.0</div>
     <div><b>Drawn</b>agent</div><div><b>Checked</b>you</div><div class="tb-wide"><b>Scale</b>1 page = 1 question</div>
   </div>
 </div>
@@ -976,7 +976,7 @@ python tools/render_charts.py</code></pre>
   </div>
 
   <div class="title-block" aria-hidden="true">
-    <div><b>Project</b>Archlens</div><div><b>Title</b>Field survey</div><div><b>Sheet</b><i>S-401</i></div><div><b>Rev</b>N</div>
+    <div><b>Project</b>Archlens</div><div><b>Title</b>Field survey</div><div><b>Sheet</b><i>S-401</i></div><div><b>Rev</b>0.4.0</div>
     <div><b>Drawn</b>agent</div><div><b>Checked</b>you</div><div class="tb-wide"><b>Scale</b>1 page = 1 question</div>
   </div>
 </div>
@@ -1035,7 +1035,7 @@ python tools/render_charts.py</code></pre>
   </div>
 
   <div class="title-block" aria-hidden="true">
-    <div><b>Project</b>Archlens</div><div><b>Title</b>Learn</div><div><b>Sheet</b><i>A-501</i></div><div><b>Rev</b>N</div>
+    <div><b>Project</b>Archlens</div><div><b>Title</b>Learn</div><div><b>Sheet</b><i>A-501</i></div><div><b>Rev</b>0.4.0</div>
     <div><b>Drawn</b>agent</div><div><b>Checked</b>you</div><div class="tb-wide"><b>Scale</b>1 page = 1 question</div>
   </div>
 </div>
@@ -1087,13 +1087,13 @@ python tools/render_charts.py</code></pre>
       <p>Works with any editor or agent. Add Archlens to <code>.pre-commit-config.yaml</code>:</p>
       <div class="code-block"><pre><code>repos:
   - repo: https://github.com/tushar-mahalya/archlens
-    rev: v0.3.0
+    rev: v0.4.0
     hooks:
       - id: archlens-check   # links, anchors, diagrams, stale references
       - id: archlens-stale   # on pre-push: fail while cited code changed</code></pre></div>
       <p>Install both stages:</p>
       <div class="code-block"><pre><code>pre-commit install --hook-type pre-commit --hook-type pre-push</code></pre></div>
-      <p class="small"><code>archlens-check</code> runs on every commit and fails on structural errors. <code>archlens-stale</code> runs on <code>pre-push</code> and fails while covered source changed after the last sync. <code>rev: v0.3.0</code> pins the last release; items marked <span class="delta delta-inline rev">N</span> on this site are not in it yet.</p>
+      <p class="small"><code>archlens-check</code> runs on every commit and fails on structural errors. <code>archlens-stale</code> runs on <code>pre-push</code> and fails while covered source changed after the last sync. <code>rev: v0.4.0</code> pins the latest release.</p>
     </div>
 
     <div class="tabpanel" id="panel-ci" role="tabpanel" aria-labelledby="tab-ci" tabindex="0">
@@ -1130,7 +1130,7 @@ jobs:
   </div>
 
   <div class="title-block" aria-hidden="true">
-    <div><b>Project</b>Archlens</div><div><b>Title</b>Install</div><div><b>Sheet</b><i>I-601</i></div><div><b>Rev</b>N</div>
+    <div><b>Project</b>Archlens</div><div><b>Title</b>Install</div><div><b>Sheet</b><i>I-601</i></div><div><b>Rev</b>0.4.0</div>
     <div><b>Drawn</b>agent</div><div><b>Checked</b>you</div><div class="tb-wide"><b>Scale</b>1 page = 1 question</div>
   </div>
 </div>
@@ -1189,7 +1189,7 @@ jobs:
   </div>
 
   <div class="title-block" aria-hidden="true">
-    <div><b>Project</b>Archlens</div><div><b>Title</b>Questions</div><div><b>Sheet</b><i>Q-701</i></div><div><b>Rev</b>N</div>
+    <div><b>Project</b>Archlens</div><div><b>Title</b>Questions</div><div><b>Sheet</b><i>Q-701</i></div><div><b>Rev</b>0.4.0</div>
     <div><b>Drawn</b>agent</div><div><b>Checked</b>you</div><div class="tb-wide"><b>Scale</b>1 page = 1 question</div>
   </div>
 </div>
@@ -1205,7 +1205,7 @@ jobs:
       <p>Architecture docs that stay in sync with your code.</p>
     </div>
     <div class="fb-cell"><b>Drawing set</b><p>Public site, 9 sheets</p></div>
-    <div class="fb-cell"><b>Revision</b><p>N, unreleased · after 0.3.0 (2026-11-08)</p></div>
+    <div class="fb-cell"><b>Revision</b><p>0.4.0 (2026-11-10)</p></div>
     <div class="fb-cell"><b>Drawn</b><p>agent</p></div>
     <div class="fb-cell"><b>Checked</b><p>you</p></div>
     <div class="fb-cell"><b>Scale</b><p>1 page = 1 question</p></div>

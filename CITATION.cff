@@ -13,8 +13,8 @@ authors:
 repository-code: https://github.com/tushar-mahalya/archlens
 url: https://github.com/tushar-mahalya/archlens
 license: MIT
-version: 0.3.0
-date-released: "2026-11-08"
+version: 0.4.0
+date-released: "2026-11-10"
 keywords:
   - architecture
   - documentation

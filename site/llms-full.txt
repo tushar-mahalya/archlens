@@ -1,18 +1,17 @@
 ARCHLENS: LIVING ARCHITECTURE DOCS FOR CLAUDE CODE AND AI CODING AGENTS
 
-Source: https://github.com/tushar-mahalya/archlens (MIT license). Latest release: 0.3.0.
-Items marked [next] are unreleased: on the way to the next release, not in the 0.3.0 tag.
+Source: https://github.com/tushar-mahalya/archlens (MIT license). Latest release: 0.4.0 (2026-11-10).
 Unrelated to other products named Archlens or ArchLens.
 
 
 WHAT IT DOES
 
 - Keeps a small architecture handbook in step with the code, or adopts the docs a project
-  already has where they live [next].
+  already has where they live.
 - Every claim links to source, tests, or decisions. Unknowns stay unknown.
 - Detects documentation drift with a local Python script. It uses no model tokens.
 - Updates only the stale pages in an isolated agent task. By default this happens once per
-  commit, and the docs land in the same commit as the code [next].
+  commit, and the docs land in the same commit as the code.
 - Gives the coding agent a page map of the project at session start (Claude Code) or in
   AGENTS.md (other agents). Default budget: 3,000 bytes.
 - Teaches the developer the codebase: /archlens:learn answers questions, gives a tour,
@@ -44,7 +43,7 @@ Page map in AGENTS.md: set { "contextFile": "AGENTS.md" } in .archlens.json, the
 Git hooks (any editor or agent), in .pre-commit-config.yaml:
   repos:
     - repo: https://github.com/tushar-mahalya/archlens
-      rev: v0.3.0
+      rev: v0.4.0
       hooks:
         - id: archlens-check   # links, anchors, diagrams, stale references
         - id: archlens-stale   # on pre-push: fail while cited code changed
@@ -57,7 +56,7 @@ CI check on pull requests (copy archlens.py into the repository first):
 
 COMMANDS
 
-/archlens:setup    Adopts existing docs in place (adopt, the default when docs exist) [next]
+/archlens:setup    Adopts existing docs in place (adopt, the default when docs exist)
                    or writes a small handbook (new), then records the freshness baseline.
 /archlens:update   Fixes stale pages first, confirms review pages, then syncs them.
 /archlens:check    Audits evidence, links, anchors, diagrams, stale references, and freshness.
@@ -68,7 +67,7 @@ COMMANDS
 Five commands run in an isolated task; learn runs inline so you can ask follow-ups.
 
 archlens.py (Python 3.9+, read the CLI reference for flags):
-  config, check, impact, status, sync, context, fix-anchors, cite [next]
+  config, check, impact, status, sync, context, fix-anchors, cite
   Example: archlens.py cite --root . src/orders.py submit_order --from docs/architecture/runtime/submit.md
   prints [submit_order](../../../src/orders.py#L20-L38)
 
@@ -86,7 +85,7 @@ fixAnchors               true               Claude plugin: rewrite links whose c
 filePointers             true               Claude plugin: name a file's page once per session
 autoUpdate               commit             Claude plugin: off, remind, commit, or auto
 
-autoUpdate modes [next default: commit]:
+autoUpdate modes (default: commit):
   off     Nothing.
   remind  One message per new set of stale pages. No model tokens.
   commit  One message after a turn. Before Claude runs git commit, a PreToolUse hook holds
@@ -103,16 +102,16 @@ HOW DRIFT DETECTION WORKS
 - sync records a baseline: content IDs of covered and linked files, and a fingerprint of
   the function or class around each cited range. Python uses its syntax tree. C-family
   languages (JavaScript, TypeScript, Go, Rust, Java, C#, C/C++, Swift, PHP, Dart, and
-  others) use a comment- and string-aware brace reader, a heuristic, not a parser [next].
+  others) use a comment- and string-aware brace reader, a heuristic, not a parser.
 - status reports each page as fresh, stale, review, or unsynced, including changes that
   were already committed.
 - stale: evidence the page cites changed. review: only other covered files changed.
-- A range inside a larger function tracks only its own lines [next].
+- A range inside a larger function tracks only its own lines.
 - A whole-file link to code goes stale only when the file's declared names change; body
-  edits mark it review [next]. Editing a linked Markdown document marks review; deleting a
-  linked file marks stale [next]. Comment-only edits never make a page stale.
-- Code that only moved, and files Git reports as renamed [next], get their links rewritten
-  with no model. When a cited function disappears, status suggests a likely rename [next].
+  edits mark it review. Editing a linked Markdown document marks review; deleting a
+  linked file marks stale. Comment-only edits never make a page stale.
+- Code that only moved, and files Git reports as renamed, get their links rewritten
+  with no model. When a cited function disappears, status suggests a likely rename.
 - A stale flag means "check this page". It does not prove the prose is wrong.
 
 
@@ -125,7 +124,7 @@ MEASURED
   The intervals overlap; differences below about 8 points are noise.
 - Drift check speed: status on 50,000 files and 300 pages in 0.20 s (synthetic repository).
 - Page map for the Archlens repository: 1,630 bytes, about 408 tokens.
-- One real-project trial [next] (a 50,000-line FastAPI + React/TypeScript monorepo with about
+- One real-project trial (a 50,000-line FastAPI + React/TypeScript monorepo with about
   6,000 lines of existing docs; Claude Code headless on Opus): change one rule, run tests,
   and commit with docs in 4.6 minutes and $1.25; adopt-mode setup in 5.8 minutes and $1.53
   (16 docs mapped, 3 real errors fixed); an update after two code changes in 93 seconds

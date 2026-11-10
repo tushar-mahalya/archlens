@@ -86,7 +86,7 @@ See the [installation guide](docs/installation.md) for global installs, updates,
 # .pre-commit-config.yaml
 repos:
   - repo: https://github.com/tushar-mahalya/archlens
-    rev: v0.3.0
+    rev: v0.4.0
     hooks:
       - id: archlens-check   # links, anchors, diagrams, stale references
       - id: archlens-stale   # on pre-push: fail while cited code changed

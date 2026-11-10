@@ -43,7 +43,7 @@
   <rect class="line" x="16" y="16" width="1248" height="388" stroke-width="2"/>
   <rect class="line" x="24" y="24" width="1232" height="372" stroke-width="0.75"/>
 
-  <text class="mono muted" x="56" y="66" font-size="14" letter-spacing="2">SHEET A-000 · COVER · REV 0.3.0</text>
+  <text class="mono muted" x="56" y="66" font-size="14" letter-spacing="2">SHEET A-000 · COVER · REV 0.4.0</text>
   <text class="display ink" x="52" y="176" font-size="112" letter-spacing="-2">Archlens</text>
   <text class="display ink" x="56" y="226" font-size="30" font-style="italic">Architecture docs that keep up with your code.</text>
   <text class="mono muted" x="56" y="262" font-size="15">Coupled to source · drift found in milliseconds</text>

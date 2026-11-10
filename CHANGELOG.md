@@ -1,6 +1,6 @@
 # Changelog
 
-## Unreleased
+## 0.4.0 - 2026-11-10
 
 Tested on a real 50,000-line monorepo (FastAPI, React/TypeScript, Modal) with 6,000 lines of existing docs.
 
@@ -53,6 +53,11 @@ Tested on a real 50,000-line monorepo (FastAPI, React/TypeScript, Modal) with 6,
   removing every summary at once.
 - Setup and update instructions now say how to cite code, including the line that sets each limit.
   The handbook index is named `README.md` so code hosts show it for the folder.
+
+### Website
+
+- The project website moved to https://archlens-docs.pages.dev/ on Cloudflare Pages and deploys on
+  every push that changes `site/`. The GitHub Pages address is retired.
 
 ## 0.3.0 - 2026-11-08
 

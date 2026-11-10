@@ -70,7 +70,7 @@ Add Archlens to `.pre-commit-config.yaml`:
 ```yaml
 repos:
   - repo: https://github.com/tushar-mahalya/archlens
-    rev: v0.3.0
+    rev: v0.4.0
     hooks:
       - id: archlens-check
       - id: archlens-stale
