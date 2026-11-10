@@ -43,9 +43,10 @@ In other projects, both hooks print nothing.
 | The function or class around a cited line range changed (Python or C-family), or a linked non-code file changed | Page is stale | [page_changes](../../plugins/archlens/scripts/archlens.py) |
 | A cited range sits inside a larger function, and only other lines of that function changed | Not stale; the range's own code lines still match | [check_anchor](../../plugins/archlens/scripts/archlens.py) |
 | A whole-file link to code: only bodies changed, or the declared names changed | Review, or stale when names were added, removed, or renamed | [outline](../../plugins/archlens/scripts/archlens.py) |
+| A linked document (Markdown and similar) was edited, or any linked file was deleted | Review for the edit; stale for the deletion | [page_changes](../../plugins/archlens/scripts/archlens.py) |
 | A cited function or text block moved | Stop hook rewrites the line link without a model; `fix-anchors` does the same on demand | [fix_anchors](../../plugins/archlens/scripts/archlens.py) |
-| Only other covered files changed, or comments and formatting inside cited code | Page needs review, not stale | [Anchor tests](../../tests/test_archlens.py#L649-L790) |
-| Change was already committed | Still stale; content IDs do not depend on a base ref | [Freshness tests](../../tests/test_archlens.py#L466-L646) |
+| Only other covered files changed, or comments and formatting inside cited code | Page needs review, not stale | [Anchor tests](../../tests/test_archlens.py#L659-L800) |
+| Change was already committed | Still stale; content IDs do not depend on a base ref | [Freshness tests](../../tests/test_archlens.py#L466-L656) |
 | Same stale set seen in this session | Stop hook stays silent | [hook_stop](../../plugins/archlens/scripts/archlens.py) |
 | `autoUpdate` is `auto` and the hook has not already blocked | Agent is asked to run update | [hook_stop](../../plugins/archlens/scripts/archlens.py) |
 | `autoUpdate` is `commit` (default) or `auto`, and an agent `git commit` would leave pages stale | Commit is held once; the agent updates the pages, stages them, and commits again | [hook_commit](../../plugins/archlens/scripts/archlens.py) |
