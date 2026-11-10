@@ -97,7 +97,9 @@ that function does not flag it. Other files compare normalized text and search f
 A whole-file link to a code file goes `stale` when the file's declared names change
 (a function, class, or top-level constant added, removed, or renamed), and `review` when
 only bodies change. Cite line ranges for claims about behavior, limits, and defaults.
-A link to any other file goes `stale` when the file changes.
+A link to another document (`.md`, `.rst`, and similar) is a cross-reference: an edit marks the
+page for `review`. A link to any other file goes `stale` when the file changes.
+Deleting any linked file makes the page `stale`.
 A page with no evidence links treats every covered change as `stale`.
 
 `--fail-on-stale` exits 1 for stale or unsynced pages. `--fail-on-review` also fails on review pages.

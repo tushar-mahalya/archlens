@@ -570,6 +570,16 @@ class FreshnessTests(Fixture):
         self.assertEqual([e["page"] for e in report["needsSync"]], ["docs/GUIDE.md"])
         self.assertEqual(report["needsSync"][0]["state"], "stale")
 
+    def test_linked_document_change_is_review_not_stale(self):
+        (self.root / "docs/API.md").write_text("# API\n", encoding="utf-8")
+        (self.docs / "README.md").write_text("# Overview\n\nSee [helper](../../lib/helper.py) and [API](../API.md).\n", encoding="utf-8")
+        archlens.sync_pages(self.root, self.config, [], True)
+        (self.root / "docs/API.md").write_text("# API\n\nMore.\n", encoding="utf-8")
+        report = self.state()
+        self.assertEqual(report["needsSync"][0]["state"], "review")
+        (self.root / "docs/API.md").unlink()
+        self.assertEqual(self.state()["needsSync"][0]["state"], "stale", "a removed document breaks the link")
+
     def test_impact_includes_linked_evidence(self):
         (self.root / "lib/helper.py").write_text("h = 3\n", encoding="utf-8")
         report = archlens.impact_report(self.root, self.config, None)

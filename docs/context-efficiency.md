@@ -81,7 +81,7 @@ These are instructions to the model, not enforced read limits.
 
 | Portable operation | Router + workflow + contract | Required cold load including named sections |
 |---|---:|---:|
-| setup | 6,346 bytes | 12,033 bytes |
+| setup | 6,346 bytes | 11,865 bytes |
 | update | 6,542 bytes | 6,542 bytes |
 | check | 5,801 bytes | 5,801 bytes |
 | explain | 5,305 bytes | 5,305 bytes |

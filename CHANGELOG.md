@@ -31,6 +31,9 @@ Tested on a real 50,000-line monorepo (FastAPI, React/TypeScript, Modal) with 6,
   40-line function no longer flags every citation inside it.
 - A whole-file link to code goes stale only when the file's declared names change; body
   edits mark the page for review. A comment-only edit no longer makes a glossary stale.
+- An edit to a linked document (Markdown and similar) marks a page for review, not stale, so fixing
+  one existing doc no longer flags every page that links it. Deleting a linked file now makes a page stale;
+  before, its broken link only marked the page for review.
 - `check` reports style heuristics as one `info` note per page that never fails `--strict`,
   and sorts errors first. On the trial repository, 407 semicolon warnings had hidden one real broken anchor.
 - `check` skips Git-ignored paths, extension-less names that never existed (such as `tools/list`),

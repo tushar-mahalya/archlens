@@ -34,6 +34,7 @@ PAGE_KEYS = {
     "decisionStatus",
 }
 AUTO_UPDATE = {"off", "remind", "commit", "auto"}
+DOC_SUFFIXES = {".md", ".mdx", ".markdown", ".rst", ".adoc", ".txt"}
 COMMIT_COMMAND = re.compile(r"(?:^|[;&|(\s])git(?:\s+-[Cc]\s+\S+)*\s+commit\b")
 STATE_FILE = ".archlens-state.json"
 BLOCK_START = "<!-- archlens:context:start - generated from the handbook; edit pages, not this block -->"
@@ -337,7 +338,7 @@ def resolve_link(root: Path, page: Path, target: str) -> tuple[Path | None, str,
     if not location.is_relative_to(root):
         return None, "", f"Local link escapes the project: {target}"
     if not location.exists():
-        return None, "", f"Missing local link target: {target}"
+        return location, parts.fragment, f"Missing local link target: {target}"
     return location, parts.fragment, None
 
 
@@ -658,7 +659,9 @@ def page_evidence(root: Path, docs: Path, page_path: Path, mapped=frozenset()) -
     for _, line in prose:
         for target in local_targets(line):
             location, fragment, problem = resolve_link(root, page_path, target)
-            if problem or location is None or location.is_relative_to(docs) or location in mapped:
+            # A link whose target was deleted still names evidence: its removal makes the page stale.
+            missing = bool(problem) and problem.startswith("Missing local link target")
+            if (problem and not missing) or location is None or location.is_relative_to(docs) or location in mapped:
                 continue
             relative = location.relative_to(root).as_posix()
             span = re.fullmatch(r"L(\d+)(?:C\d+)?(?:-L(\d+)(?:C\d+)?)?", fragment or "")
@@ -1111,7 +1114,8 @@ def page_changes(root: Path, coverage: Coverage, page_id: str, current: dict, re
 
     def severity(path):
         if coverage.whole_file_evidence(page_id, path):
-            return "stale"
+            # A link to another document is a cross-reference, not code evidence.
+            return "review" if PurePosixPath(path).suffix.lower() in DOC_SUFFIXES else "stale"
         if path in anchored and has_anchor_state:
             return "review"
         if path in anchored or not cited:

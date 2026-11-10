@@ -93,12 +93,10 @@ The map checker validates structure, not the truth of review or approval claims.
 
 `sync` stores Git-compatible content IDs of each page's covered and linked files in
 `.archlens-state.json` beside `map.json`. Commit it with the handbook.
-`sync` also fingerprints cited line ranges: the enclosing function or class in Python and
-C-family languages (JavaScript, TypeScript, Go, Rust, Java, C#, and others), else the text.
-Comments and formatting do not count. A range inside a function tracks only its own lines.
-`status` reports `stale` when cited evidence changed or moved, and `review` when only
-other covered files changed. A whole-file link to code goes stale when the file's
-declared names change; body edits mark it for review. Committed changes also count.
+`sync` also fingerprints cited line ranges by their enclosing function or class (Python and
+C-family languages), ignoring comments and formatting. `status` reports `stale` when cited
+evidence changed, moved, or was deleted. It reports `review` for other covered changes,
+edited linked documents, and body edits behind a whole-file code link. Commits count.
 Sync a page only after you verify it against current source.
 If the state file has a merge conflict, take either side and sync the reviewed pages again.
 
