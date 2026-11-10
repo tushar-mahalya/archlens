@@ -23,7 +23,10 @@ sequenceDiagram
     Host->>Hook: Turn stops
     Hook->>CLI: hook stop
     CLI-->>User: Reminder, or a request to run update (auto mode)
-    User->>Task: Run update
+    Host->>Hook: Run git commit
+    Hook->>CLI: hook commit-gate
+    CLI-->>Host: Hold the commit once while pages are stale (commit mode)
+    Host->>Task: Run update
     Task->>CLI: status with summary output
     CLI-->>Task: Stale pages and changed files
     Task->>Task: Trace evidence and edit affected pages
@@ -37,12 +40,15 @@ In other projects, both hooks print nothing.
 
 | Condition | Behavior | Evidence |
 |---|---|---|
-| A linked file, or the Python function or class around a cited line range, changed | Page is stale | [page_changes](../../plugins/archlens/scripts/archlens.py) |
+| The function or class around a cited line range changed (Python or C-family), or a linked non-code file changed | Page is stale | [page_changes](../../plugins/archlens/scripts/archlens.py) |
+| A cited range sits inside a larger function, and only other lines of that function changed | Not stale; the range's own code lines still match | [check_anchor](../../plugins/archlens/scripts/archlens.py) |
+| A whole-file link to code: only bodies changed, or the declared names changed | Review, or stale when names were added, removed, or renamed | [outline](../../plugins/archlens/scripts/archlens.py) |
 | A cited function or text block moved | Stop hook rewrites the line link without a model; `fix-anchors` does the same on demand | [fix_anchors](../../plugins/archlens/scripts/archlens.py) |
-| Only other covered files changed, or comments and formatting inside cited code | Page needs review, not stale | [Anchor tests](../../tests/test_archlens.py#L571-L647) |
-| Change was already committed | Still stale; content IDs do not depend on a base ref | [Freshness tests](../../tests/test_archlens.py#L431-L567) |
+| Only other covered files changed, or comments and formatting inside cited code | Page needs review, not stale | [Anchor tests](../../tests/test_archlens.py#L648-L771) |
+| Change was already committed | Still stale; content IDs do not depend on a base ref | [Freshness tests](../../tests/test_archlens.py#L465-L645) |
 | Same stale set seen in this session | Stop hook stays silent | [hook_stop](../../plugins/archlens/scripts/archlens.py) |
 | `autoUpdate` is `auto` and the hook has not already blocked | Agent is asked to run update | [hook_stop](../../plugins/archlens/scripts/archlens.py) |
+| `autoUpdate` is `commit` (default) or `auto`, and an agent `git commit` would leave pages stale | Commit is held once; the agent updates the pages, stages them, and commits again | [hook_commit](../../plugins/archlens/scripts/archlens.py) |
 | `contextFile` is set | Sync rewrites the managed block, without stale flags | [write_context](../../plugins/archlens/scripts/archlens.py) |
 | The agent committed during the session | Stop hook also compares against the session's starting commit | [hook_stop](../../plugins/archlens/scripts/archlens.py) |
 | Base ref supplied to update | Impact report adds branch changes and uncovered files | [impact_report](../../plugins/archlens/scripts/archlens.py) |
