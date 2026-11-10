@@ -321,6 +321,22 @@ class MapDensityTests(Fixture):
         self.assertIn("11 decision records:", tight)
         self.assertIn("ADR 0003: A decision title that takes many bytes in the map STALE: 1 cited change", tight)
 
+    def test_map_never_exceeds_the_budget_for_any_install_path(self):
+        self.handbook_with_decisions(12, working=14)
+        for length in range(20, 260, 7):
+            with patch.object(archlens, "script_path", return_value="/" + "p" * length):
+                for budget in (1500, 1900, 2400, 3000):
+                    text = archlens.build_context(self.root, self.config, budget)
+                    self.assertLessEqual(len(text.encode("utf-8")), budget, (length, budget))
+                    self.assertTrue(text.endswith("\n"))
+        with patch.object(archlens, "script_path", return_value="/" + "p" * 190):
+            tight = archlens.build_context(self.root, self.config, 1500)
+            self.assertNotIn("query --root", tight, "the hint goes before any page title")
+            self.assertIn("`flow13.md` Flow 13", tight)
+            self.assertNotIn("more pages", tight)
+        with patch.object(archlens, "script_path", return_value="/" + "p" * 201):
+            self.assertNotIn("query --root", archlens.build_context(self.root, self.config, 3000))
+
     def test_query_hint_needs_room_and_a_larger_handbook(self):
         self.handbook_with_decisions(3, working=2)
         self.assertNotIn("query --root", archlens.build_context(self.root, self.config, 3000), "6 pages: read them whole")

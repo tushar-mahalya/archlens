@@ -1843,7 +1843,11 @@ def page_brief(path: Path) -> tuple[str, str]:
     return title or path.stem, sentence
 
 
-def build_context(root: Path, config: dict, budget: int | None = None, live: bool = True) -> str:
+def script_path() -> str:
+    return str(Path(__file__).resolve())
+
+
+def build_context(root: Path, config: dict, budget: int | None = None, live: bool = True, hint: bool = True) -> str:
     """A compact pointer map for an agent's always-loaded context.
 
     A live map (session hook) carries stale flags. A static map (committed file)
@@ -1866,8 +1870,9 @@ def build_context(root: Path, config: dict, budget: int | None = None, live: boo
         intro = (f"Pages live in `{doc_rel}/` ({len(pages)} pages, {freshness_note}). " + guidance
                  + "STALE means evidence the page cites changed after the last doc sync. ")
         # Worth its bytes only where pages are many: a small handbook is cheap to read whole.
-        if budget >= 1500 and len(pages) >= 8:
-            intro += (f'To read one section and not a whole page, run `python3 "{Path(__file__).resolve()}" query '
+        hint = hint and budget >= 1500 and len(pages) >= 8 and len(script_path()) <= 200
+        if hint:
+            intro += (f'To read one section and not a whole page, run `python3 "{script_path()}" query '
                       "--root . <words>` (or `--file <path>`, `--page <page>`). ")
     else:
         intro = (f"Pages live in `{doc_rel}/` ({len(pages)} pages). " + guidance
@@ -1903,6 +1908,9 @@ def build_context(root: Path, config: dict, budget: int | None = None, live: boo
         more = f" +{len(members) - len(stems)}" if len(stems) < len(members) else ""
         return f"- `{folder}/` {len(members)} decision records: {', '.join(stems)}{more}"
 
+    def size(text):
+        return len(text.encode("utf-8")) + 1    # the map ends with a newline
+
     def text_of(items, details):
         return "\n".join(header + [group_line(item) if isinstance(item, tuple) else line(item, details[item["id"]])
                                    for item in items])
@@ -1912,7 +1920,7 @@ def build_context(root: Path, config: dict, budget: int | None = None, live: boo
         order while the budget allows: one long page does not cost every page its detail,
         and a summary orients an agent better than a list of paths."""
         details = {page["id"]: (False, False) for page in ordered}
-        if len(text_of(items, details).encode("utf-8")) > budget:
+        if size(text_of(items, details)) > budget:
             return None, 0
         for part in (0, 1):
             for item in items:
@@ -1920,7 +1928,7 @@ def build_context(root: Path, config: dict, budget: int | None = None, live: boo
                     continue
                 previous = details[item["id"]]
                 details[item["id"]] = (True, previous[1]) if part == 0 else (previous[0], True)
-                if len(text_of(items, details).encode("utf-8")) > budget:
+                if size(text_of(items, details)) > budget:
                     details[item["id"]] = previous
         missed = sum(1 for item in items if not isinstance(item, tuple) and item["kind"] != "decision"
                      and briefs[item["id"]][1] and not details[item["id"]][0])
@@ -1952,10 +1960,13 @@ def build_context(root: Path, config: dict, budget: int | None = None, live: boo
             return compact
     if full is not None:
         return full
+    if live and hint:
+        # Page titles matter more than the query hint: drop the hint before any page.
+        return build_context(root, config, budget, live, hint=False)
     kept = []
     for page in ordered:
         candidate = "\n".join(header + kept + [line(page), f"- +{len(ordered)} more pages in `{doc_rel}/map.json`"])
-        if len(candidate.encode("utf-8")) > budget:
+        if size(candidate) > budget:
             break
         kept.append(line(page))
     rest = len(ordered) - len(kept)
