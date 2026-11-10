@@ -6,6 +6,7 @@ import json
 import os
 from pathlib import Path
 import shutil
+import stat
 import subprocess
 import sys
 import unittest
@@ -795,7 +796,11 @@ class PrecommitTests(Fixture):
         self.assertTrue(off["failed"], "a moved citation stays stale when fixing is off")
 
     def test_works_without_git(self):
-        shutil.rmtree(self.root / ".git")
+        def writable(function, path, _):   # Git object files are read-only on Windows
+            os.chmod(path, stat.S_IWRITE)
+            function(path)
+
+        shutil.rmtree(self.root / ".git", onerror=writable)
         self.assertFalse(self.gate()["failed"])
         (self.root / "src/svc.py").write_text(self.SOURCE.replace("< 1", "< 2"), encoding="utf-8")
         self.assertTrue(self.gate()["failed"])
