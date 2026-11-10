@@ -38,8 +38,8 @@ The state file maps each page ID to short Git-compatible content IDs of its cove
 and linked files, plus the sync time and commit. Each cited line range also has a
 fingerprint: a hash of the enclosing function or class (Python syntax tree, or comment-free
 C-family code), plus a hash of the range's own code lines when it sits inside a larger symbol,
-or of the normalized text otherwise. Whole-file links to code also record an outline hash of
-the file's declared names. It holds no file content.
+or of the normalized text otherwise. Whole-file links to code also record a short hash of each
+of the file's declared names, and a page also follows Git-reported file renames. It holds no file content.
 The checker uses no network API and sends no telemetry.
 Source content selected by the agent follows the host's provider and retention policy.
 

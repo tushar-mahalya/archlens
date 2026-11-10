@@ -45,8 +45,8 @@ In other projects, both hooks print nothing.
 | A whole-file link to code: bodies changed or names were added, or a declared name was removed or renamed | Review, or stale for a removed or renamed name | [outline](../../plugins/archlens/scripts/archlens.py) |
 | A linked document (Markdown and similar) was edited, or any linked file was deleted | Review for the edit; stale for the deletion | [page_changes](../../plugins/archlens/scripts/archlens.py) |
 | A cited function or text block moved | Stop hook rewrites the line link without a model; `fix-anchors` does the same on demand | [fix_anchors](../../plugins/archlens/scripts/archlens.py) |
-| Only other covered files changed, or comments and formatting inside cited code | Page needs review, not stale | [Anchor tests](../../tests/test_archlens.py#L659-L800) |
-| Change was already committed | Still stale; content IDs do not depend on a base ref | [Freshness tests](../../tests/test_archlens.py#L466-L656) |
+| Only other covered files changed, or comments and formatting inside cited code | Page needs review, not stale | [Anchor tests](../../tests/test_archlens.py#L669-L837) |
+| Change was already committed | Still stale; content IDs do not depend on a base ref | [Freshness tests](../../tests/test_archlens.py#L466-L666) |
 | Same stale set seen in this session | Stop hook stays silent | [hook_stop](../../plugins/archlens/scripts/archlens.py) |
 | `autoUpdate` is `auto` and the hook has not already blocked | Agent is asked to run update | [hook_stop](../../plugins/archlens/scripts/archlens.py) |
 | `autoUpdate` is `commit` (default) or `auto`, and an agent `git commit` would leave pages stale | Commit is held once; the agent updates the pages, stages them, and commits again | [hook_commit](../../plugins/archlens/scripts/archlens.py) |
