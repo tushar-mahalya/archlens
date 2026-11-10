@@ -29,7 +29,7 @@ Gemini CLI, OpenCode, and other agents.
 | What goes wrong today | What Archlens does | Measured |
 |---|---|---|
 | Docs go stale a week after they are written | Fingerprints the exact functions and line ranges each page cites, and flags the page when that code changes, even after a commit | Checks 50,000 files in **0.20 s** |
-| Moved code breaks every `#L120` link | Rewrites links whose cited code only moved. No model, no tokens | Automatic after each Claude turn |
+| Moved code breaks every `#L120` link | Rewrites links whose cited code only moved, or whose file was renamed. No model, no tokens | Automatic after each Claude turn |
 | Agents re-explore the repository every session | Loads a compact page map at session start, or writes it into `AGENTS.md` | **408 tokens** for this repo; capped at 3,000 bytes |
 | Context files bloat every turn | One model-visible description; everything else loads only when used | **178 bytes** in every session |
 | AI wikis invent plausible details | Every claim links to source, tests, or decisions. Unknowns stay unknown. A checker catches dead links, moved anchors, and vanished symbols | 0.04 wrong claims per answer in our benchmark |
@@ -174,7 +174,7 @@ See the complete [order-service example](examples/order-service/README.md).
 | | Archlens | OpenWiki | deepwiki-skill | claude-code-auto-memory | DeepWiki |
 |---|---|---|---|---|---|
 | Drift detection | Cited symbols and line ranges, no model | Claim evidence, skips model when clean | Model-driven update | Updater agent after every changed turn | Hosted regeneration |
-| Moved code | Links rewritten automatically | Not stated | Not stated | Not applicable | Not applicable |
+| Moved code or renamed files | Links rewritten automatically | Not stated | Not stated | Not applicable | Not applicable |
 | Always-loaded cost | 178 B, plus ≤ 3 KB map | `AGENTS.md` block, size not stated | About 526 B, plus up to 70 KB per task | About 784 B, plus `CLAUDE.md` sections | MCP tools |
 | Answer-quality benchmark | Published, with a failed run | Claim-accuracy replay | None | None | None |
 | Tutor for the human | Questions, tour, quiz, changes | No | No | No | Chat |
