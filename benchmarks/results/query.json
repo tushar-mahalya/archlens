@@ -1,0 +1,354 @@
+{
+  "benchmark": "query-retrieval",
+  "repository": "archlens (this repository)",
+  "pages": 7,
+  "method": "Key-term recall of loaded text against each answer key; bytes are UTF-8, not tokens.",
+  "limits": [
+    "Proxy for loaded context, not answer quality.",
+    "A few questions on one repository.",
+    "The question text is the query; an agent may choose better words."
+  ],
+  "summary": {
+    "questions": 8,
+    "handbook": {
+      "bytes": 21371,
+      "recall": 0.887
+    },
+    "top1": {
+      "sections": {
+        "bytes": 2153,
+        "recall": 0.445
+      },
+      "wholePages": {
+        "bytes": 3262,
+        "recall": 0.612
+      }
+    },
+    "top3": {
+      "sections": {
+        "bytes": 6589,
+        "recall": 0.71
+      },
+      "wholePages": {
+        "bytes": 8989,
+        "recall": 0.818
+      }
+    },
+    "top5": {
+      "sections": {
+        "bytes": 10109,
+        "recall": 0.778
+      },
+      "wholePages": {
+        "bytes": 13556,
+        "recall": 0.864
+      }
+    }
+  },
+  "questions": [
+    {
+      "id": "staleness",
+      "keyTerms": 45,
+      "handbook": {
+        "bytes": 21371,
+        "recall": 0.844
+      },
+      "top1": {
+        "sections": {
+          "bytes": 5734,
+          "recall": 0.756
+        },
+        "wholePages": {
+          "bytes": 5512,
+          "recall": 0.756
+        }
+      },
+      "top3": {
+        "sections": {
+          "bytes": 10816,
+          "recall": 0.822
+        },
+        "wholePages": {
+          "bytes": 11504,
+          "recall": 0.822
+        }
+      },
+      "top5": {
+        "sections": {
+          "bytes": 12538,
+          "recall": 0.822
+        },
+        "wholePages": {
+          "bytes": 17582,
+          "recall": 0.844
+        }
+      }
+    },
+    {
+      "id": "isolation",
+      "keyTerms": 30,
+      "handbook": {
+        "bytes": 21371,
+        "recall": 1.0
+      },
+      "top1": {
+        "sections": {
+          "bytes": 1155,
+          "recall": 0.367
+        },
+        "wholePages": {
+          "bytes": 2156,
+          "recall": 0.6
+        }
+      },
+      "top3": {
+        "sections": {
+          "bytes": 3914,
+          "recall": 0.767
+        },
+        "wholePages": {
+          "bytes": 5905,
+          "recall": 0.9
+        }
+      },
+      "top5": {
+        "sections": {
+          "bytes": 11723,
+          "recall": 0.9
+        },
+        "wholePages": {
+          "bytes": 14549,
+          "recall": 1.0
+        }
+      }
+    },
+    {
+      "id": "json-map",
+      "keyTerms": 33,
+      "handbook": {
+        "bytes": 21371,
+        "recall": 0.97
+      },
+      "top1": {
+        "sections": {
+          "bytes": 676,
+          "recall": 0.606
+        },
+        "wholePages": {
+          "bytes": 1631,
+          "recall": 0.848
+        }
+      },
+      "top3": {
+        "sections": {
+          "bytes": 3245,
+          "recall": 0.788
+        },
+        "wholePages": {
+          "bytes": 5380,
+          "recall": 0.879
+        }
+      },
+      "top5": {
+        "sections": {
+          "bytes": 5776,
+          "recall": 0.848
+        },
+        "wholePages": {
+          "bytes": 7709,
+          "recall": 0.909
+        }
+      }
+    },
+    {
+      "id": "summary-limit",
+      "keyTerms": 22,
+      "handbook": {
+        "bytes": 21371,
+        "recall": 0.682
+      },
+      "top1": {
+        "sections": {
+          "bytes": 575,
+          "recall": 0.045
+        },
+        "wholePages": {
+          "bytes": 2156,
+          "recall": 0.318
+        }
+      },
+      "top3": {
+        "sections": {
+          "bytes": 9208,
+          "recall": 0.5
+        },
+        "wholePages": {
+          "bytes": 10530,
+          "recall": 0.591
+        }
+      },
+      "top5": {
+        "sections": {
+          "bytes": 11806,
+          "recall": 0.545
+        },
+        "wholePages": {
+          "bytes": 15293,
+          "recall": 0.682
+        }
+      }
+    },
+    {
+      "id": "config-order",
+      "keyTerms": 27,
+      "handbook": {
+        "bytes": 21371,
+        "recall": 0.815
+      },
+      "top1": {
+        "sections": {
+          "bytes": 586,
+          "recall": 0.111
+        },
+        "wholePages": {
+          "bytes": 1631,
+          "recall": 0.296
+        }
+      },
+      "top3": {
+        "sections": {
+          "bytes": 9339,
+          "recall": 0.704
+        },
+        "wholePages": {
+          "bytes": 10005,
+          "recall": 0.741
+        }
+      },
+      "top5": {
+        "sections": {
+          "bytes": 12073,
+          "recall": 0.741
+        },
+        "wholePages": {
+          "bytes": 13754,
+          "recall": 0.778
+        }
+      }
+    },
+    {
+      "id": "portable-sync",
+      "keyTerms": 29,
+      "handbook": {
+        "bytes": 21371,
+        "recall": 0.966
+      },
+      "top1": {
+        "sections": {
+          "bytes": 2004,
+          "recall": 0.483
+        },
+        "wholePages": {
+          "bytes": 3748,
+          "recall": 0.621
+        }
+      },
+      "top3": {
+        "sections": {
+          "bytes": 4023,
+          "recall": 0.621
+        },
+        "wholePages": {
+          "bytes": 8234,
+          "recall": 0.931
+        }
+      },
+      "top5": {
+        "sections": {
+          "bytes": 5687,
+          "recall": 0.69
+        },
+        "wholePages": {
+          "bytes": 8234,
+          "recall": 0.931
+        }
+      }
+    },
+    {
+      "id": "hook-safety",
+      "keyTerms": 20,
+      "handbook": {
+        "bytes": 21371,
+        "recall": 0.85
+      },
+      "top1": {
+        "sections": {
+          "bytes": 5747,
+          "recall": 0.75
+        },
+        "wholePages": {
+          "bytes": 5512,
+          "recall": 0.75
+        }
+      },
+      "top3": {
+        "sections": {
+          "bytes": 9462,
+          "recall": 0.8
+        },
+        "wholePages": {
+          "bytes": 12122,
+          "recall": 0.8
+        }
+      },
+      "top5": {
+        "sections": {
+          "bytes": 12475,
+          "recall": 0.8
+        },
+        "wholePages": {
+          "bytes": 14451,
+          "recall": 0.8
+        }
+      }
+    },
+    {
+      "id": "other-agents",
+      "keyTerms": 34,
+      "handbook": {
+        "bytes": 21371,
+        "recall": 0.971
+      },
+      "top1": {
+        "sections": {
+          "bytes": 744,
+          "recall": 0.441
+        },
+        "wholePages": {
+          "bytes": 3748,
+          "recall": 0.706
+        }
+      },
+      "top3": {
+        "sections": {
+          "bytes": 2703,
+          "recall": 0.676
+        },
+        "wholePages": {
+          "bytes": 8234,
+          "recall": 0.882
+        }
+      },
+      "top5": {
+        "sections": {
+          "bytes": 8796,
+          "recall": 0.882
+        },
+        "wholePages": {
+          "bytes": 16878,
+          "recall": 0.971
+        }
+      }
+    }
+  ]
+}

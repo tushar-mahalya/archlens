@@ -1,0 +1,73 @@
+{
+  "benchmark": "drift-mutation",
+  "repository": "archlens",
+  "summary": {
+    "anchors": 5,
+    "all": {
+      "detection": 1.0,
+      "realEdits": 15,
+      "falseAlarms": 0.0,
+      "harmlessEdits": 25
+    },
+    "python": {
+      "detection": 1.0,
+      "realEdits": 15,
+      "falseAlarms": 0.0,
+      "harmlessEdits": 25
+    },
+    "c-family": {
+      "detection": null,
+      "realEdits": 0,
+      "falseAlarms": null,
+      "harmlessEdits": 0
+    },
+    "text": {
+      "detection": null,
+      "realEdits": 0,
+      "falseAlarms": null,
+      "harmlessEdits": 0
+    }
+  },
+  "byEdit": {
+    "python/change": {
+      "correct": 5,
+      "total": 5
+    },
+    "python/change-outside": {
+      "correct": 5,
+      "total": 5
+    },
+    "python/comment": {
+      "correct": 5,
+      "total": 5
+    },
+    "python/delete": {
+      "correct": 5,
+      "total": 5
+    },
+    "python/format": {
+      "correct": 5,
+      "total": 5
+    },
+    "python/inline-comment": {
+      "correct": 5,
+      "total": 5
+    },
+    "python/rename": {
+      "correct": 5,
+      "total": 5
+    },
+    "python/shift": {
+      "correct": 5,
+      "total": 5
+    }
+  },
+  "failures": [],
+  "limits": [
+    "One edit at a time, on citations that exist in this handbook.",
+    "Python edits are verified with the syntax tree. Other languages use statement-boundary heuristics.",
+    "It measures citation fingerprints, not whether a page's prose is still right."
+  ],
+  "script": "plugins/archlens/scripts/archlens.py",
+  "citations": "handbook"
+}
