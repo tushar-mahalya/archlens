@@ -1,0 +1,382 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Archlens guide: install, commands, hooks, CLI, and configuration</title>
+<meta name="description" content="The Archlens guide: install the Claude Code plugin or Agent Skill, run setup, use the six commands, automate updates with hooks, a pre-commit gate, and CI, and look up the CLI and settings.">
+<meta name="theme-color" content="#F2EEE4" media="(prefers-color-scheme: light)">
+<meta name="theme-color" content="#0B1C33" media="(prefers-color-scheme: dark)">
+<meta name="color-scheme" content="light dark">
+<link rel="canonical" href="https://archlens-docs.pages.dev/docs/"><!-- site-url -->
+<meta property="og:url" content="https://archlens-docs.pages.dev/docs/"><!-- site-url -->
+<meta property="og:image" content="https://archlens-docs.pages.dev/og.png"><!-- site-url -->
+<meta property="og:type" content="article">
+<meta property="og:site_name" content="Archlens">
+<meta property="og:title" content="Archlens guide">
+<meta property="og:description" content="Install, first run, commands, hooks, the commit gate, CI, CLI, and configuration.">
+<meta name="twitter:card" content="summary_large_image">
+<link rel="icon" href="../favicon.svg" type="image/svg+xml">
+<script>try{var t=localStorage.getItem("archlens-theme");if(t==="light"||t==="dark")document.documentElement.setAttribute("data-theme",t)}catch(e){}document.documentElement.classList.add("js")</script>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Big+Shoulders+Display:wght@600;800;900&amp;family=IBM+Plex+Mono:wght@400;500;600&amp;family=IBM+Plex+Sans:ital,wght@0,400;0,500;0,600;1,400&amp;display=swap">
+<link rel="stylesheet" href="../styles.css">
+<script src="../main.js" defer></script>
+<script src="../lab.js" defer></script>
+</head>
+<body class="guide-page">
+<a class="skip" href="#main">Skip to content</a>
+
+<header class="topbar">
+  <a class="brand" href="../" aria-label="Archlens, home">
+    <svg class="brand-mark" viewBox="0 0 32 32" aria-hidden="true"><circle cx="14" cy="16" r="10"/><path d="M4 16h20"/><path class="brand-arrow" d="M24 9l7 7-7 7z"/></svg>
+    <span class="brand-word">Archlens</span>
+    <span class="brand-rev">Guide 0.5.0</span>
+  </a>
+  <nav class="sheet-nav" aria-label="Guide parts">
+    <ol>
+      <li><a href="#start"><span class="no">G-100</span><span class="nm">Start</span></a></li>
+      <li><a href="#use"><span class="no">G-200</span><span class="nm">Use</span></a></li>
+      <li><a href="#automate"><span class="no">G-300</span><span class="nm">Automate</span></a></li>
+      <li><a href="#reference"><span class="no">G-400</span><span class="nm">Reference</span></a></li>
+    </ol>
+  </nav>
+  <div class="topbar-tools">
+    <button class="theme-toggle" type="button" id="theme-toggle" hidden>
+      <svg viewBox="0 0 20 20" aria-hidden="true"><circle cx="10" cy="10" r="7.5"/><path d="M10 2.5a7.5 7.5 0 0 1 0 15z"/></svg>
+      <span class="theme-label">Blueprint</span>
+    </button>
+    <a class="gh" href="../">Home</a>
+    <a class="gh" href="https://github.com/tushar-mahalya/archlens"><span class="vh">Archlens source on </span>GitHub</a>
+  </div>
+</header>
+
+<main id="main" class="guide">
+  <nav class="guide-nav" aria-label="On this page">
+    <p class="label">Guide</p>
+    <ol>
+      <li><a href="#start">Start</a>
+        <ol><li><a href="#install">Install</a></li><li><a href="#first-run">First run</a></li><li><a href="#upgrade">Upgrade</a></li></ol></li>
+      <li><a href="#use">Use</a>
+        <ol><li><a href="#commands">Commands</a></li><li><a href="#states">Page states</a></li><li><a href="#query">Query</a></li><li><a href="#learn">Learn</a></li></ol></li>
+      <li><a href="#automate">Automate</a>
+        <ol><li><a href="#hooks">Hooks</a></li><li><a href="#commit-gate">Commit gate</a></li><li><a href="#ci">CI</a></li></ol></li>
+      <li><a href="#reference">Reference</a>
+        <ol><li><a href="#cli">CLI</a></li><li><a href="#config">Configuration</a></li><li><a href="#files">Files</a></li><li><a href="#limits">Limits</a></li></ol></li>
+    </ol>
+  </nav>
+
+  <div class="guide-body">
+
+<!-- ============ START ============ -->
+<section class="sheet" id="start" aria-labelledby="h-start">
+<div class="frame">
+  <header class="guide-head">
+    <p class="sheet-id"><span class="sheet-no">G-100</span><span class="sheet-name">Start</span></p>
+    <h1 id="h-start">Install it, run setup, keep working.</h1>
+    <p class="lede">Five minutes from nothing to a handbook that tells you when it is out of date.</p>
+  </header>
+
+  <article class="g" id="install">
+    <h2>Install</h2>
+    <h3>Claude Code</h3>
+    <p>Run these inside Claude Code. Choose <strong>user scope</strong>, so Archlens works in every project.</p>
+    <div class="code-block"><pre><code>/plugin marketplace add tushar-mahalya/archlens
+/plugin install archlens@archlens
+/archlens:setup</code></pre></div>
+    <h3>Codex, Cursor, Copilot, Gemini CLI, OpenCode, and others</h3>
+    <p>Install the portable Agent Skill in the project folder. Replace <code>codex</code> with your agent.</p>
+    <div class="code-block"><pre><code>npx skills@1.7.6 add tushar-mahalya/archlens --skill archlens --agent codex --copy --yes</code></pre></div>
+    <p>Then ask your agent:</p>
+    <blockquote class="prompt">Use the Archlens skill to set up architecture documentation for this project.</blockquote>
+    <p class="g-note"><b>Needs</b> Python 3.9+ on <code>PATH</code> for the hooks and checks. The macOS system Python works. No API key, server, or Node for the plugin.</p>
+  </article>
+
+  <article class="g" id="first-run">
+    <h2>First run</h2>
+    <p>Setup starts small: the system boundary, the main units, and one important journey. It grows by risk, not by file count.</p>
+    <div class="g-two">
+      <div>
+        <h3>No docs yet: <code>setup new</code></h3>
+<pre class="tree"><b>docs/architecture/</b>
+  README.md            <span>Reading path and known gaps</span>
+  context.md           <span>Users and external systems</span>
+  runtime/             <span>Flows, failures, recovery</span>
+  data.md              <span>Ownership and lifecycle</span>
+  decisions/ADR-*.md   <span>Why, with alternatives</span>
+  glossary.md          <span>One term per concept</span>
+  map.json             <span>Which code each page covers</span></pre>
+      </div>
+      <div>
+        <h3>Docs exist: <code>setup adopt</code> (default)</h3>
+<pre class="tree"><b>docs/architecture/map.json</b>
+  ../ARCHITECTURE.md   <span>Mapped where it lives</span>
+  ../adr/*.md          <span>Your decision folder</span>
+  runtime/*.md         <span>New pages for real gaps</span></pre>
+        <p>Setup fixes statements the code contradicts with small edits. It does not move or restyle your documents.</p>
+      </div>
+    </div>
+    <p>Setup ends with <code>sync</code>. That records a baseline for every page in <code>.archlens-state.json</code>. Commit the handbook and that file.</p>
+  </article>
+
+  <article class="g" id="upgrade">
+    <h2>Upgrade</h2>
+    <p>After you update Archlens, record fresh pages again once. This moves their fingerprints to the current format and approves nothing new.</p>
+    <div class="code-block"><pre><code>python3 &lt;archlens&gt;/scripts/archlens.py sync --root . --fresh</code></pre></div>
+  </article>
+</div>
+</section>
+
+<!-- ============ USE ============ -->
+<section class="sheet" id="use" aria-labelledby="h-use">
+<div class="frame">
+  <header class="guide-head">
+    <p class="sheet-id"><span class="sheet-no">G-200</span><span class="sheet-name">Use</span></p>
+    <h2 class="guide-title" id="h-use">Six commands. One of them you rarely type.</h2>
+    <p class="lede">The hooks run <code>update</code> for you. The rest are there when you want them.</p>
+  </header>
+
+  <article class="g" id="commands">
+    <h2>Commands</h2>
+    <div class="table-scroll">
+      <table class="schedule schedule-compact">
+        <thead><tr><th scope="col">Command</th><th scope="col">Use it to</th><th scope="col">Edits</th></tr></thead>
+        <tbody>
+          <tr><th scope="row"><code>/archlens:setup</code></th><td>Write a small handbook, or adopt the docs you have</td><td>Docs</td></tr>
+          <tr><th scope="row"><code>/archlens:update</code></th><td>Fix stale pages, confirm review pages, then sync them</td><td>Docs</td></tr>
+          <tr><th scope="row"><code>/archlens:check</code></th><td>Audit links, evidence, diagrams, and freshness</td><td>Nothing</td></tr>
+          <tr><th scope="row"><code>/archlens:explain &lt;flow&gt;</code></th><td>Trace one flow with a diagram and a source-linked step table</td><td>Nothing</td></tr>
+          <tr><th scope="row"><code>/archlens:decide &lt;choice&gt;</code></th><td>Draft a decision record with options and tradeoffs</td><td>Docs</td></tr>
+          <tr><th scope="row"><code>/archlens:learn</code></th><td>Ask, tour, quiz, or review your branch</td><td>Nothing</td></tr>
+        </tbody>
+      </table>
+    </div>
+    <p class="g-note"><b>Context</b> Five commands run in an isolated task, so exploration stays out of your conversation. <code>learn</code> runs inline so you can ask follow-ups. In other agents, ask for the same operation by name.</p>
+  </article>
+
+  <article class="g" id="states">
+    <h2>Page states</h2>
+    <div class="table-scroll">
+      <table class="schedule schedule-compact">
+        <thead><tr><th scope="col">State</th><th scope="col">Meaning</th><th scope="col">What to do</th></tr></thead>
+        <tbody>
+          <tr><th scope="row"><code>fresh</code></th><td>Nothing the page covers changed since its last sync</td><td>Nothing</td></tr>
+          <tr><th scope="row"><code>stale</code></th><td>Code the page cites changed, or was removed or renamed</td><td>Check the page, edit it if needed, then sync it</td></tr>
+          <tr><th scope="row"><code>review</code></th><td>Only other covered files changed</td><td>A quick look; the page is probably right</td></tr>
+          <tr><th scope="row"><code>unsynced</code></th><td>The page has no baseline yet</td><td>Verify it, then sync it</td></tr>
+        </tbody>
+      </table>
+    </div>
+    <p>A comment, a blank line, or code that only moved never makes a page stale. Moved links are rewritten for you.</p>
+    <p class="g-note"><b>Remember</b> A stale flag means "check this page". It does not prove the prose is wrong.</p>
+  </article>
+
+  <article class="g" id="query">
+    <h2>Query</h2>
+    <p>Read one section, not a whole page. Every result has a line range to open.</p>
+    <div class="table-scroll">
+      <table class="schedule schedule-compact">
+        <thead><tr><th scope="col">Form</th><th scope="col">Returns</th></tr></thead>
+        <tbody>
+          <tr><th scope="row"><code>query &lt;words&gt;</code></th><td>Sections ranked by word match</td></tr>
+          <tr><th scope="row"><code>query --file &lt;path&gt;</code></th><td>Sections that cite the file, with the cited line ranges</td></tr>
+          <tr><th scope="row"><code>query --page &lt;page&gt;</code></th><td>The page outline: sections, sizes, diagram types</td></tr>
+          <tr><th scope="row"><code>query --page &lt;page&gt; --diagram</code></th><td>One diagram as Mermaid source, with its text equivalent</td></tr>
+          <tr><th scope="row"><code>query --page &lt;page&gt; --step 7</code></th><td>The step-table row for message 7 of a sequence diagram</td></tr>
+          <tr><th scope="row"><code>query --page &lt;page&gt; --row &lt;text&gt;</code></th><td>Table rows whose first cell contains the text</td></tr>
+        </tbody>
+      </table>
+    </div>
+    <p>Read the diagram first. It is the shortest complete view of a flow. Then ask for one step or one unit.</p>
+  </article>
+
+  <article class="g" id="learn">
+    <h2>Learn</h2>
+    <ul class="cmds">
+      <li><code>/archlens:learn &lt;question&gt;</code><span>A direct answer in at most 150 words, with source links</span></li>
+      <li><code>/archlens:learn tour</code><span>The reading path, one stop per turn, diagram first</span></li>
+      <li><code>/archlens:learn quiz [topic]</code><span>Five questions about real behavior, graded against the code</span></li>
+      <li><code>/archlens:learn changes</code><span>What your branch changed, and which flow it affects</span></li>
+    </ul>
+  </article>
+</div>
+</section>
+
+<!-- ============ AUTOMATE ============ -->
+<section class="sheet" id="automate" aria-labelledby="h-automate">
+<div class="frame">
+  <header class="guide-head">
+    <p class="sheet-id"><span class="sheet-no">G-300</span><span class="sheet-name">Automate</span></p>
+    <h2 class="guide-title" id="h-automate">Detection is free. Choose when prose is rewritten.</h2>
+    <p class="lede">A local script finds drift with no model. An agent rewrites only the pages it flags.</p>
+  </header>
+
+  <article class="g" id="hooks">
+    <h2>Hooks in Claude Code</h2>
+    <p>The plugin's hooks work after installation. Set <code>autoUpdate</code> in <code>.archlens.json</code> to choose when stale pages are refreshed.</p>
+    <div class="table-scroll">
+      <table class="schedule schedule-compact">
+        <thead><tr><th scope="col"><code>autoUpdate</code></th><th scope="col">After each turn</th><th scope="col">When Claude commits</th><th scope="col">Model use</th></tr></thead>
+        <tbody>
+          <tr><th scope="row"><code>off</code></th><td>Nothing</td><td>Nothing</td><td>None</td></tr>
+          <tr><th scope="row"><code>remind</code></th><td>One message per new set of stale pages</td><td>Nothing</td><td>None</td></tr>
+          <tr class="row-key"><th scope="row"><code>commit</code> (default)</th><td>One message</td><td>Holds the commit once, updates the pages, commits code and docs together</td><td>One update per commit</td></tr>
+          <tr><th scope="row"><code>auto</code></th><td>Runs the update</td><td>Same as <code>commit</code></td><td>One update per turn</td></tr>
+        </tbody>
+      </table>
+    </div>
+    <div class="g-two">
+      <ul class="g-list">
+        <li><b>Session start</b> loads the page map, at most 3,000 bytes.</li>
+        <li><b>Read or Edit</b> of a documented file names its page and section, once.</li>
+      </ul>
+      <ul class="g-list">
+        <li><b>Turn end</b> rewrites moved links and reports new stale pages.</li>
+        <li><b>Commit</b> waits once while it would leave pages stale.</li>
+      </ul>
+    </div>
+    <p class="g-note"><b>Other agents</b> Set <code>"contextFile": "AGENTS.md"</code> and run <code>context --write</code>. The agent then sees the page map in every session.</p>
+  </article>
+
+  <article class="g" id="commit-gate">
+    <h2>Commit gate</h2>
+    <p>One pre-commit hook for any editor or agent. It needs no model.</p>
+    <div class="code-block"><pre><code>repos:
+  - repo: https://github.com/tushar-mahalya/archlens
+    rev: v0.5.0
+    hooks:
+      - id: archlens</code></pre></div>
+    <ol class="g-steps">
+      <li><b>Moved code</b><span>Rewrites the links, and fails once so you stage the rewrite.</span></li>
+      <li><b>Structure</b><span>Fails on broken links, anchors, fences, and map errors.</span></li>
+      <li><b>Cited code changed</b><span>Fails when a staged file changes code that a page cites.</span></li>
+    </ol>
+    <p>Pages that were already stale do not block an unrelated commit. To report without failing, add <code>args: [--stale, warn]</code>.</p>
+  </article>
+
+  <article class="g" id="ci">
+    <h2>CI</h2>
+    <p>Fail a pull request that leaves pages stale. Copy <code>archlens.py</code> into your repository first, for example as <code>tools/archlens.py</code>.</p>
+    <div class="code-block"><pre><code>name: architecture-docs
+on: pull_request
+permissions:
+  contents: read
+jobs:
+  freshness:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v7
+      - uses: actions/setup-python@v7
+        with:
+          python-version: "3.13"
+      - run: python tools/archlens.py check --root . --summary
+      - run: python tools/archlens.py status --root . --fail-on-stale</code></pre></div>
+    <p class="g-note"><b>Never</b> let an automated job mark pages <code>reviewed</code> or decisions <code>accepted</code>.</p>
+  </article>
+</div>
+</section>
+
+<!-- ============ REFERENCE ============ -->
+<section class="sheet" id="reference" aria-labelledby="h-reference">
+<div class="frame">
+  <header class="guide-head">
+    <p class="sheet-id"><span class="sheet-no">G-400</span><span class="sheet-name">Reference</span></p>
+    <h2 class="guide-title" id="h-reference">Look it up.</h2>
+    <p class="lede">The short version is here. Each part links to the full reference in the repository.</p>
+  </header>
+
+  <article class="g" id="cli">
+    <h2>CLI</h2>
+    <p>The checker is dependency-free Python. Everything is read-only except <code>sync</code>, <code>fix-anchors</code>, <code>precommit</code>, and <code>context --write</code>.</p>
+    <div class="code-block"><pre><code>archlens.py status --root .                 # fresh, stale, review, unsynced
+archlens.py check --root . --strict         # links, anchors, diagrams, references
+archlens.py check --root . --style          # also gate the mechanical style rate
+archlens.py query --root . retry limit      # sections with line ranges
+archlens.py cite --root . src/orders.py submit_order
+archlens.py fix-anchors --root .            # rewrite links to moved code
+archlens.py sync --root . --page FLOW-001   # record a verified page
+archlens.py precommit --root .              # the commit gate
+archlens.py context --root . --write AGENTS.md
+archlens.py impact --root . --base main     # pages a branch may affect</code></pre></div>
+    <p><a href="https://github.com/tushar-mahalya/archlens/blob/main/docs/cli.md">Full CLI reference</a></p>
+  </article>
+
+  <article class="g" id="config">
+    <h2>Configuration</h2>
+    <p>Defaults work. To change them, add <code>.archlens.json</code> to the project, or <code>~/.config/archlens/config.json</code> for every project.</p>
+    <div class="table-scroll">
+      <table class="schedule schedule-compact">
+        <thead><tr><th scope="col">Key</th><th scope="col">What it sets</th><th scope="col">Default</th></tr></thead>
+        <tbody>
+          <tr><th scope="row"><code>docsRoot</code></th><td>Where the handbook lives</td><td><code>docs/architecture</code></td></tr>
+          <tr><th scope="row"><code>autoUpdate</code></th><td>When Claude refreshes stale pages</td><td><code>commit</code></td></tr>
+          <tr><th scope="row"><code>contextBudget</code></th><td>Most bytes for the page map</td><td><code>3000</code></td></tr>
+          <tr><th scope="row"><code>contextFile</code></th><td>A file that also gets the map, such as <code>AGENTS.md</code></td><td><code>null</code></td></tr>
+          <tr><th scope="row"><code>sessionContext</code></th><td>Load the map at session start</td><td><code>true</code></td></tr>
+          <tr><th scope="row"><code>filePointers</code></th><td>Name the page for a file the agent opens</td><td><code>true</code></td></tr>
+          <tr><th scope="row"><code>fixAnchors</code></th><td>Rewrite links to code that only moved</td><td><code>true</code></td></tr>
+          <tr><th scope="row"><code>styleTarget</code></th><td>Pass rate that <code>check --style</code> requires</td><td><code>0.8</code></td></tr>
+          <tr><th scope="row"><code>maxDiagramNodes</code></th><td>Flowchart nodes before a density note</td><td><code>12</code></td></tr>
+          <tr><th scope="row"><code>maxSequenceParticipants</code></th><td>Sequence participants before a density note</td><td><code>7</code></td></tr>
+        </tbody>
+      </table>
+    </div>
+    <p><a href="https://github.com/tushar-mahalya/archlens/blob/main/docs/configuration.md">Full configuration reference</a></p>
+  </article>
+
+  <article class="g" id="files">
+    <h2>Files</h2>
+    <div class="table-scroll">
+      <table class="schedule schedule-compact">
+        <thead><tr><th scope="col">File</th><th scope="col">Holds</th><th scope="col">Commit it?</th></tr></thead>
+        <tbody>
+          <tr><th scope="row"><code>map.json</code></th><td>Every page: its ID, kind, review state, and the code it covers</td><td>Yes</td></tr>
+          <tr><th scope="row"><code>.archlens-state.json</code></th><td>The baseline that <code>sync</code> records: content IDs and citation fingerprints</td><td>Yes</td></tr>
+          <tr><th scope="row"><code>.archlens.json</code></th><td>Project settings</td><td>Your choice</td></tr>
+        </tbody>
+      </table>
+    </div>
+  </article>
+
+  <article class="g" id="limits">
+    <h2>Limits</h2>
+    <ul class="g-list">
+      <li>Code shows what happens, not why a person chose it. Decisions stay <code>proposed</code> until a human accepts them.</li>
+      <li>Python and C-family files get symbol-level fingerprints. The C-family reader is a heuristic, not a parser.</li>
+      <li>A cited sub-range follows its own lines. Cite the whole function to catch a new condition wrapped around it.</li>
+      <li>Archlens has no server, no telemetry, and no network calls. Your agent's provider policy still applies.</li>
+      <li>The writing style is STE-inspired, not certified ASD-STE100.</li>
+    </ul>
+    <div class="hub hub-mini">
+      <section class="hub-col"><ul>
+        <li><a href="https://github.com/tushar-mahalya/archlens/blob/main/docs/benchmarks.md"><b>Benchmarks</b><span>Method, raw data, limits</span></a></li>
+        <li><a href="https://github.com/tushar-mahalya/archlens/blob/main/docs/automation.md"><b>Automation</b><span>Every host, in detail</span></a></li>
+      </ul></section>
+      <section class="hub-col"><ul>
+        <li><a href="https://github.com/tushar-mahalya/archlens/blob/main/docs/installation.md"><b>Installation</b><span>Updates and troubleshooting</span></a></li>
+        <li><a href="https://github.com/tushar-mahalya/archlens/blob/main/docs/context-efficiency.md"><b>Context budgets</b><span>What loads, and when</span></a></li>
+      </ul></section>
+      <section class="hub-col"><ul>
+        <li><a href="https://github.com/tushar-mahalya/archlens/tree/main/examples/order-service"><b>Worked example</b><span>A complete small handbook</span></a></li>
+        <li><a href="https://github.com/tushar-mahalya/archlens/blob/main/CHANGELOG.md"><b>Changelog</b><span>What changed in 0.5.0</span></a></li>
+      </ul></section>
+    </div>
+  </article>
+</div>
+</section>
+
+  </div>
+</main>
+
+<footer class="site-foot">
+  <div class="foot-block">
+    <div class="fb-cell fb-name"><b>Project</b><p class="fb-word">Archlens</p><p>Architecture docs that stay in sync with your code.</p></div>
+    <div class="fb-cell"><b>Document</b><p>Guide</p></div>
+    <div class="fb-cell"><b>Revision</b><p>0.5.0 (2026-11-11)</p></div>
+    <div class="fb-cell"><b>License</b><p><a href="https://github.com/tushar-mahalya/archlens/blob/main/LICENSE">MIT</a></p></div>
+    <div class="fb-cell fb-legal"><b>Notes</b><p><a href="../">Back to the cover sheet</a>. Independent project; not affiliated with Anthropic or ASD. No analytics on this site.</p></div>
+  </div>
+</footer>
+</body>
+</html>

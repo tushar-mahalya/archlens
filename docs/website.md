@@ -1,6 +1,11 @@
 # Project website
 
 The website is the static `site/` folder: HTML, CSS, and dependency-free JavaScript.
+`index.html` is the landing page and `docs/index.html` is the guide. `main.js` holds the shared
+behavior, and `lab.js` holds the interactive examples and the in-view illustrations.
+The examples replay recorded output of `archlens.py`. When output changes, record it again:
+the verdicts in `lab.js` come from `status` on the order example, and the query results come
+from `query` on this repository.
 It is served at **https://archlens-docs.pages.dev/** from Cloudflare Pages (project `archlens-docs`).
 It is the only address; GitHub Pages is turned off for this repository.
 
@@ -32,6 +37,7 @@ of them if the site moves, for example to a custom domain:
 
 - `site/index.html`: lines marked `site-url` (canonical, `og:url`, `og:image`, `twitter:image`)
   and the `url` in the `SoftwareApplication` JSON-LD.
+- `site/docs/index.html`: the lines marked `site-url`.
 - `site/sitemap.xml` (`<loc>`) and `site/robots.txt` (`Sitemap:`).
 - `README.md` (Website link) and the repository's website field (`gh repo edit --homepage <url>`).
 
@@ -67,7 +73,9 @@ that this project is unrelated to the others, so search engines and agents can t
 
 ## Checks before publishing
 
-- `node --check site/main.js`
+- `node --check site/main.js` and `node --check site/lab.js`
 - Serve `site/` locally (`python3 -m http.server` inside it) and check both themes at desktop and
   360 px width, with and without reduced motion.
 - Every `href="#..."` target exists, and every local asset returns 200.
+- Click every example: the five edits, the three queries, the quiz, and the 0.4.0 and 0.5.0 switch.
+- With JavaScript off, the page still shows the static content and no dead controls.

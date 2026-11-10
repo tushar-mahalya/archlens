@@ -6,13 +6,14 @@ This Archlens is the open-source, MIT-licensed project at https://github.com/tus
 
 ## Install
 
+- [Guide](https://archlens-docs.pages.dev/docs/): install, first run, commands, page states, query, hooks, the commit gate, CI, CLI, and configuration on one page
 - [Installation guide](https://github.com/tushar-mahalya/archlens/blob/main/docs/installation.md): Claude Code plugin, portable Agent Skill through skills.sh, adapters and caveats
 - [README and quick start](https://github.com/tushar-mahalya/archlens/blob/main/README.md): what Archlens does, measured results, and quick start
 
 ## Docs
 
 - [Automation](https://github.com/tushar-mahalya/archlens/blob/main/docs/automation.md): autoUpdate modes (off, remind, commit, auto), AGENTS.md for other agents, pre-commit hooks, and a CI check
-- [CLI reference](https://github.com/tushar-mahalya/archlens/blob/main/docs/cli.md): archlens.py commands config, check, impact, status, sync, context, fix-anchors, and cite
+- [CLI reference](https://github.com/tushar-mahalya/archlens/blob/main/docs/cli.md): archlens.py commands config, check, impact, status, sync, context, fix-anchors, cite, query, and precommit
 - [Configuration](https://github.com/tushar-mahalya/archlens/blob/main/docs/configuration.md): preference files, keys, and mapping existing documents in place
 - [Benchmarks](https://github.com/tushar-mahalya/archlens/blob/main/docs/benchmarks.md): 72-session answer-quality benchmark, speed on synthetic repositories, and a survey of similar tools
 - [Changelog](https://github.com/tushar-mahalya/archlens/blob/main/CHANGELOG.md): release notes for every version
