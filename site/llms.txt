@@ -1,0 +1,24 @@
+# Archlens
+
+> Archlens is a Claude Code plugin and portable Agent Skill that keeps architecture documentation in sync with code. A local script detects documentation drift on the exact functions and line ranges each page cites, with no model tokens; an isolated agent task updates only the stale pages, by default in the same commit as the code. It gives coding agents (Claude Code, Codex, Cursor, GitHub Copilot, Gemini CLI, OpenCode) a page map of the project in a few hundred tokens, through a session hook or AGENTS.md, and teaches developers the codebase with /archlens:learn.
+
+This Archlens is the open-source, MIT-licensed project at https://github.com/tushar-mahalya/archlens. It is unrelated to other products named Archlens or ArchLens. The latest release is 0.3.0; the website also describes unreleased changes marked "next".
+
+## Install
+
+- [Installation guide](https://github.com/tushar-mahalya/archlens/blob/main/docs/installation.md): Claude Code plugin, portable Agent Skill through skills.sh, adapters and caveats
+- [README and quick start](https://github.com/tushar-mahalya/archlens/blob/main/README.md): what Archlens does, measured results, and quick start
+
+## Docs
+
+- [Automation](https://github.com/tushar-mahalya/archlens/blob/main/docs/automation.md): autoUpdate modes (off, remind, commit, auto), AGENTS.md for other agents, pre-commit hooks, and a CI check
+- [CLI reference](https://github.com/tushar-mahalya/archlens/blob/main/docs/cli.md): archlens.py commands config, check, impact, status, sync, context, fix-anchors, and cite
+- [Configuration](https://github.com/tushar-mahalya/archlens/blob/main/docs/configuration.md): preference files, keys, and mapping existing documents in place
+- [Benchmarks](https://github.com/tushar-mahalya/archlens/blob/main/docs/benchmarks.md): 72-session answer-quality benchmark, speed on synthetic repositories, and a survey of similar tools
+- [Changelog](https://github.com/tushar-mahalya/archlens/blob/main/CHANGELOG.md): release notes, including unreleased changes
+
+## Optional
+
+- [Full plain-text summary](llms-full.txt): install commands, commands, configuration keys, how drift detection works, and limits
+- [Order example](https://github.com/tushar-mahalya/archlens/blob/main/examples/order-service/README.md): a six-page handbook for a small order library
+- [How Archlens works](https://github.com/tushar-mahalya/archlens/blob/main/docs/architecture/README.md): the project's own architecture handbook

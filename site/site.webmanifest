@@ -1,0 +1,13 @@
+{
+  "name": "Archlens",
+  "short_name": "Archlens",
+  "description": "Architecture docs that stay in sync with your code.",
+  "start_url": "./",
+  "scope": "./",
+  "display": "browser",
+  "background_color": "#F2EEE4",
+  "theme_color": "#F2EEE4",
+  "icons": [
+    { "src": "favicon.svg", "sizes": "any", "type": "image/svg+xml", "purpose": "any" }
+  ]
+}

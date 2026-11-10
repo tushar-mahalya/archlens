@@ -1,0 +1,8 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!-- site-url: change <loc> when a custom domain is added (see docs/website.md). -->
+<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">
+  <url>
+    <loc>https://tushar-mahalya.github.io/archlens/</loc>
+    <lastmod>2026-11-10</lastmod>
+  </url>
+</urlset>

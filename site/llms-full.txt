@@ -1,0 +1,153 @@
+ARCHLENS: LIVING ARCHITECTURE DOCS FOR CLAUDE CODE AND AI CODING AGENTS
+
+Source: https://github.com/tushar-mahalya/archlens (MIT license). Latest release: 0.3.0.
+Items marked [next] are unreleased: on the way to the next release, not in the 0.3.0 tag.
+Unrelated to other products named Archlens or ArchLens.
+
+
+WHAT IT DOES
+
+- Keeps a small architecture handbook in step with the code, or adopts the docs a project
+  already has where they live [next].
+- Every claim links to source, tests, or decisions. Unknowns stay unknown.
+- Detects documentation drift with a local Python script. It uses no model tokens.
+- Updates only the stale pages in an isolated agent task. By default this happens once per
+  commit, and the docs land in the same commit as the code [next].
+- Gives the coding agent a page map of the project at session start (Claude Code) or in
+  AGENTS.md (other agents). Default budget: 3,000 bytes.
+- Teaches the developer the codebase: /archlens:learn answers questions, gives a tour,
+  quizzes, and explains the current branch.
+- No server, no telemetry, no network calls. Python 3.9+ enables the hooks and checks.
+
+
+INSTALL
+
+Claude Code (run inside Claude Code; choose user scope when asked):
+  /plugin marketplace add tushar-mahalya/archlens
+  /plugin install archlens@archlens
+  /archlens:setup
+
+From a terminal, the install equivalent is:
+  claude plugin marketplace add tushar-mahalya/archlens
+  claude plugin install archlens@archlens --scope user
+
+Codex, Cursor, GitHub Copilot, Gemini CLI, OpenCode, Roo, Devin (portable Agent Skill;
+Node.js 22.20+ and Git, in the project directory):
+  npx skills@1.7.6 add tushar-mahalya/archlens --skill archlens --agent codex --copy --yes
+Replace codex with cursor, github-copilot, gemini-cli, opencode, roo, or devin, or add
+--global. Then ask the agent: "Use the Archlens skill to set up architecture documentation
+for this project." The skills CLI has its own telemetry; set DISABLE_TELEMETRY=1 to opt out.
+
+Page map in AGENTS.md: set { "contextFile": "AGENTS.md" } in .archlens.json, then run
+  python <skill-dir>/scripts/archlens.py context --root . --write
+
+Git hooks (any editor or agent), in .pre-commit-config.yaml:
+  repos:
+    - repo: https://github.com/tushar-mahalya/archlens
+      rev: v0.3.0
+      hooks:
+        - id: archlens-check   # links, anchors, diagrams, stale references
+        - id: archlens-stale   # on pre-push: fail while cited code changed
+  pre-commit install --hook-type pre-commit --hook-type pre-push
+
+CI check on pull requests (copy archlens.py into the repository first):
+  python tools/archlens.py check --root . --summary
+  python tools/archlens.py status --root . --fail-on-stale
+
+
+COMMANDS
+
+/archlens:setup    Adopts existing docs in place (adopt, the default when docs exist) [next]
+                   or writes a small handbook (new), then records the freshness baseline.
+/archlens:update   Fixes stale pages first, confirms review pages, then syncs them.
+/archlens:check    Audits evidence, links, anchors, diagrams, stale references, and freshness.
+/archlens:explain  Traces one flow with a diagram and a source-linked step table.
+/archlens:decide   Drafts a decision record with options, tradeoffs, and a review trigger.
+/archlens:learn    Tutors you: questions, tour, quiz, or changes. Runs inline.
+
+Five commands run in an isolated task; learn runs inline so you can ask follow-ups.
+
+archlens.py (Python 3.9+, read the CLI reference for flags):
+  config, check, impact, status, sync, context, fix-anchors, cite [next]
+  Example: archlens.py cite --root . src/orders.py submit_order --from docs/architecture/runtime/submit.md
+  prints [submit_order](../../../src/orders.py#L20-L38)
+
+
+CONFIGURATION KEYS (.archlens.json or the user preference file)
+
+docsRoot                 docs/architecture  Handbook directory inside the project
+styleTarget              0.8                Target for a declared style audit
+maxDiagramNodes          12                 Soft limit for a flowchart
+maxSequenceParticipants  7                  Soft limit for a sequence diagram
+contextBudget            3000               Maximum bytes of the page map (600 to 20000)
+contextFile              null               Agent instruction file, such as AGENTS.md
+sessionContext           true               Claude plugin: load the map at session start
+fixAnchors               true               Claude plugin: rewrite links whose code only moved
+filePointers             true               Claude plugin: name a file's page once per session
+autoUpdate               commit             Claude plugin: off, remind, commit, or auto
+
+autoUpdate modes [next default: commit]:
+  off     Nothing.
+  remind  One message per new set of stale pages. No model tokens.
+  commit  One message after a turn. Before Claude runs git commit, a PreToolUse hook holds
+          the commit once while it would leave pages stale; the isolated update runs, then
+          code and docs commit together. One update per commit that leaves pages stale.
+  auto    The isolated update runs at the end of every turn that leaves pages stale.
+Commits made by hand in a terminal are not held; the turn-end message and the
+archlens-stale pre-push hook catch them. No CLAUDE.md instructions are needed.
+
+
+HOW DRIFT DETECTION WORKS
+
+- Pages cite evidence, often a line range such as order_service.py#L20-L38.
+- sync records a baseline: content IDs of covered and linked files, and a fingerprint of
+  the function or class around each cited range. Python uses its syntax tree. C-family
+  languages (JavaScript, TypeScript, Go, Rust, Java, C#, C/C++, Swift, PHP, Dart, and
+  others) use a comment- and string-aware brace reader, a heuristic, not a parser [next].
+- status reports each page as fresh, stale, review, or unsynced, including changes that
+  were already committed.
+- stale: evidence the page cites changed. review: only other covered files changed.
+- A range inside a larger function tracks only its own lines [next].
+- A whole-file link to code goes stale only when the file's declared names change; body
+  edits mark it review [next]. Editing a linked Markdown document marks review; deleting a
+  linked file marks stale [next]. Comment-only edits never make a page stale.
+- Code that only moved, and files Git reports as renamed [next], get their links rewritten
+  with no model. When a cited function disappears, status suggests a likely rename [next].
+- A stale flag means "check this page". It does not prove the prose is wrong.
+
+
+MEASURED
+
+- 72 Claude Code sessions (Sonnet; eight architecture questions about the Archlens
+  repository, three times each, three conditions; blind model grading): key-fact recall
+  89% with Archlens, 86% with no handbook, 84% with a handbook alone. Archlens used 31%
+  fewer input tokens, 26% fewer turns, 32% lower cost, and 27% less time per answer.
+  The intervals overlap; differences below about 8 points are noise.
+- Drift check speed: status on 50,000 files and 300 pages in 0.20 s (synthetic repository).
+- Page map for the Archlens repository: 1,630 bytes, about 408 tokens.
+- One real-project trial [next] (a 50,000-line FastAPI + React/TypeScript monorepo with about
+  6,000 lines of existing docs; Claude Code headless on Opus): change one rule, run tests,
+  and commit with docs in 4.6 minutes and $1.25; adopt-mode setup in 5.8 minutes and $1.53
+  (16 docs mapped, 3 real errors fixed); an update after two code changes in 93 seconds
+  and $0.40. One trial on one repository, not a general benchmark.
+
+
+LIMITS
+
+- The benchmark covers one small repository; coding-task results are not measured.
+- The C-family brace reader is a heuristic, not a parser. Other files use normalized text.
+- Code shows what happens, not why a person chose it. Decisions stay proposed until a
+  human accepts them.
+- sync trusts the caller. Sync only pages someone checked against current source.
+- Portable hosts do not necessarily provide Claude's isolated, manual-only behavior.
+- The writing style is STE-inspired, not certified ASD-STE100.
+
+
+LINKS
+
+Installation  https://github.com/tushar-mahalya/archlens/blob/main/docs/installation.md
+Automation    https://github.com/tushar-mahalya/archlens/blob/main/docs/automation.md
+CLI           https://github.com/tushar-mahalya/archlens/blob/main/docs/cli.md
+Configuration https://github.com/tushar-mahalya/archlens/blob/main/docs/configuration.md
+Benchmarks    https://github.com/tushar-mahalya/archlens/blob/main/docs/benchmarks.md
+Changelog     https://github.com/tushar-mahalya/archlens/blob/main/CHANGELOG.md

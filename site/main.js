@@ -12,12 +12,54 @@
   function $$(sel, ctx) { return Array.prototype.slice.call((ctx || doc).querySelectorAll(sel)); }
   function wait(ms) { return new Promise(function (r) { setTimeout(r, reduced() ? 0 : ms); }); }
   function fmt(n) { return n.toLocaleString("en-US"); }
-  function esc(s) {
-    return String(s).replace(/[&<>"']/g, function (c) {
-      return { "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" }[c];
+
+  /* ---------- motion: one set of tokens, read from the CSS custom properties ---------- */
+  var css = getComputedStyle(root);
+  function token(name, fallback) { var v = parseFloat(css.getPropertyValue(name)); return isNaN(v) ? fallback : v; }
+  var D1 = token("--d-1", 140), D2 = token("--d-2", 260), D3 = token("--d-3", 520), D4 = token("--d-4", 1100), STAGGER = token("--stagger", 70);
+  function tween(ms, step, alive) {
+    var start = null;
+    requestAnimationFrame(function frame(t) {
+      if (alive && !alive()) return;
+      if (start === null) start = t;
+      var k = Math.min(1, (t - start) / ms);
+      step(1 - Math.pow(1 - k, 3));
+      if (k < 1) requestAnimationFrame(frame);
     });
   }
-  function ticks(s) { return esc(s).replace(/`([^`]+)`/g, "<code>$1</code>"); }
+  function typeText(el, text, alive, speed) {
+    return new Promise(function (resolve) {
+      if (reduced()) { el.textContent = text; resolve(); return; }
+      var i = 0;
+      el.classList.add("is-typing");
+      (function next() {
+        if (alive && !alive()) { el.classList.remove("is-typing"); resolve(); return; }
+        el.textContent = text.slice(0, ++i);
+        if (i < text.length) setTimeout(next, speed || 34);
+        else { el.classList.remove("is-typing"); resolve(); }
+      })();
+    });
+  }
+  /* Run callbacks once, the first time an element scrolls into view; one shared observer. */
+  var seenIO = "IntersectionObserver" in window ? new IntersectionObserver(function (entries) {
+    entries.filter(function (e) { return e.isIntersecting; })
+      .map(function (e) { return e.target; })
+      .sort(function (a, b) { return a.compareDocumentPosition(b) & 4 ? -1 : 1; })
+      .forEach(function (el, k) {
+        seenIO.unobserve(el);
+        var fns = el.__seen || [];
+        el.__seen = null;
+        fns.forEach(function (fn) { fn(el, k); });
+      });
+  }, { rootMargin: "0px 0px -8% 0px" }) : null;
+  function onSeen(el, fn) {
+    if (!seenIO) { fn(el, 0); return; }
+    (el.__seen = el.__seen || []).push(fn);
+    seenIO.observe(el);
+  }
+  var motionOK = !reduced() && !!seenIO;
+  var vh = window.innerHeight;
+  function belowFold(el) { return el.getBoundingClientRect().top >= vh; }
 
   /* ---------- theme ---------- */
   function store(key, value) {
@@ -47,9 +89,13 @@
     btn.hidden = false;
     btn.addEventListener("click", function () {
       var next = currentTheme() === "dark" ? "light" : "dark";
-      root.setAttribute("data-theme", next);
-      store("archlens-theme", next);
-      syncThemeUI();
+      function apply() { root.setAttribute("data-theme", next); store("archlens-theme", next); syncThemeUI(); }
+      if (reduced() || !doc.startViewTransition) { apply(); return; }
+      var r = btn.getBoundingClientRect(), x = r.left + r.width / 2, y = r.top + r.height / 2;
+      root.style.setProperty("--vt-x", x.toFixed(0) + "px");
+      root.style.setProperty("--vt-y", y.toFixed(0) + "px");
+      root.style.setProperty("--vt-r", Math.ceil(Math.hypot(Math.max(x, innerWidth - x), Math.max(y, innerHeight - y))) + "px");
+      doc.startViewTransition(apply);
     });
     if (darkMQ && darkMQ.addEventListener) darkMQ.addEventListener("change", syncThemeUI);
     syncThemeUI();
@@ -128,7 +174,7 @@
       path.style.strokeDasharray = "1";
       path.style.strokeDashoffset = "1";
       path.getBoundingClientRect();
-      path.style.transition = "stroke-dashoffset .9s cubic-bezier(.5,.1,.3,1)";
+      path.style.transition = "stroke-dashoffset var(--d-4) var(--ease-io)";
       requestAnimationFrame(function () { path.style.strokeDashoffset = "0"; });
     }
     return svg;
@@ -172,18 +218,14 @@
 
     function mapBytes() { return new TextEncoder().encode(mapEl.textContent + "\n").length; }
     function setBytes(n, animate) {
-      var from = shownBytes, start = null, my = runId;
+      var from = shownBytes, my = runId;
       shownBytes = n;
       dim.style.setProperty("--used", n);
       if (!animate || reduced() || from === n) { bytesEl.textContent = fmt(n); bytesDim.textContent = fmt(n); return; }
-      function frame(t) {
-        if (my !== runId) return;
-        if (start === null) start = t;
-        var k = Math.min(1, (t - start) / 700), v = Math.round(from + (n - from) * (1 - Math.pow(1 - k, 3)));
+      tween(D3 + D2, function (k) {
+        var v = Math.round(from + (n - from) * k);
         bytesEl.textContent = fmt(v); bytesDim.textContent = fmt(v);
-        if (k < 1) requestAnimationFrame(frame);
-      }
-      requestAnimationFrame(frame);
+      }, function () { return my === runId; });
     }
     function say(kind, html) {
       log.className = "log" + (kind === "stale" ? " is-stale" : kind === "synced" ? " is-synced" : "");
@@ -219,7 +261,7 @@
         if (my !== runId) return;
         fig.setAttribute("data-state", "stale");
         setStamp("stale", "Evidence changed · L20–L38");
-        count.textContent = "5 stale";
+        count.textContent = "4 stale";
         count.classList.add("is-stale");
         flags.forEach(function (f, i) {
           setTimeout(function () {
@@ -227,43 +269,33 @@
             f.textContent = f.getAttribute("data-flag");
             f.classList.remove("is-new"); void f.offsetWidth; f.classList.add("is-new");
             if (i === flags.length - 1) setBytes(mapBytes(), true);
-          }, reduced() ? 0 : i * 90);
+          }, reduced() ? 0 : i * STAGGER);
         });
         if (reduced()) setBytes(mapBytes(), false);
-        say("stale", '<span class="log-k">Stop hook</span>Archlens: 5 handbook page(s) cite code you changed (README.md, context.md, runtime/submit-order.md, data.md +1). Run /archlens:update to refresh them.<span class="log-sub"><span class="log-k">status</span>STALE docs/architecture/runtime/submit-order.md [FLOW-001] evidence-changed order_service.py#L20-L38 (submit_order)</span>');
+        say("stale", '<span class="log-k">Stop hook</span>Archlens: 4 handbook page(s) cite code you changed (README.md, context.md, runtime/submit-order.md, data.md). They update when Claude commits, or run /archlens:update to refresh them.<span class="log-sub"><span class="log-k">status</span>STALE docs/architecture/runtime/submit-order.md [FLOW-001] evidence-changed order_service.py#L20-L38 (submit_order); review: modified order_service.py<br>REVIEW docs/architecture/decisions/ADR-001.md [ADR-001] review: modified order_service.py</span>');
         state = "stale";
         btnUpdate.disabled = false;
         moveFocus(btnEdit, btnUpdate);
       });
     }
 
-    function typeText(el, text, my) {
-      return new Promise(function (resolve) {
-        if (reduced()) { el.textContent = text; resolve(); return; }
-        var i = 0;
-        el.classList.add("is-typing");
-        (function next() {
-          if (my !== runId) { resolve(); return; }
-          el.textContent = text.slice(0, ++i);
-          if (i < text.length) setTimeout(next, 34);
-          else { el.classList.remove("is-typing"); resolve(); }
-        })();
-      });
-    }
-
     function update() {
       if (state !== "stale") return;
       state = "busy";
-      var my = ++runId;
+      var my = ++runId, alive = function () { return my === runId; };
       btnUpdate.disabled = true;
-      say("", '<span class="log-k">update</span>Isolated task: reads the diff of order_service.py and the 5 stale pages, then edits only the prose the change made wrong.');
-      wait(700).then(function () {
-        if (my !== runId) return;
+      say("stale", '<span class="log-k">commit gate</span>Archlens: this commit would leave handbook pages stale: README.md, context.md, runtime/submit-order.md, data.md. Before committing, invoke the archlens:update skill with pages INDEX CONTEXT FLOW-001 DATA; it runs in an isolated task. Then stage the updated pages and the handbook\'s .archlens-state.json, and run the commit again. …');
+      wait(1400).then(function () {
+        if (!alive()) return;
+        say("", '<span class="log-k">update</span>Isolated task: reads the diff of order_service.py and the 4 stale pages, then edits only the prose the change made wrong.');
+        return wait(700);
+      }).then(function () {
+        if (!alive()) return;
         redline.classList.add("is-struck");
         return wait(500);
       }).then(function () {
         if (my !== runId) return;
-        return typeText(redNew, NEW_RULE, my);
+        return typeText(redNew, NEW_RULE, alive);
       }).then(function () {
         if (my !== runId) return;
         redNew.removeAttribute("aria-hidden");
@@ -279,7 +311,7 @@
         count.textContent = "0 stale";
         count.classList.remove("is-stale");
         setBytes(mapBytes(), true);
-        say("synced", '<span class="log-k">sync</span>Rule 3 rewritten in runtime/submit-order.md. Each reviewed page synced with <code>sync --page</code>; the map is back to 6 pages, 0 stale.');
+        say("synced", '<span class="log-k">commit</span>Rule 3 rewritten in runtime/submit-order.md, and the 4 reviewed pages synced with <code>sync --page</code>. The commit runs again: order_service.py, the page, and .archlens-state.json land together. The map is back to 6 pages, 0 stale.');
         state = "updated";
         moveFocus(btnUpdate, btnReset);
       });
@@ -390,30 +422,130 @@
         if (e.key === "Enter" || e.key === " ") { e.preventDefault(); activate(step); }
       });
     });
-    if (reduced() || !("IntersectionObserver" in window)) return;
-    var r = loop.getBoundingClientRect();
-    if (r.top < window.innerHeight * 0.9) return;
-    loop.classList.add("is-armed");
-    var io = new IntersectionObserver(function (entries) {
-      if (entries.some(function (e) { return e.isIntersecting; })) {
-        loop.classList.add("is-drawn");
-        io.disconnect();
+    if (!motionOK) return;
+    var drawn = Promise.resolve();
+    if (belowFold(loop)) {
+      loop.classList.add("is-armed");
+      drawn = new Promise(function (done) {
+        onSeen($(".loop-figure", loop), function () { loop.classList.add("is-drawn"); setTimeout(done, D4 * 1.6); });
+      });
+    }
+    if (Element.prototype.animate) drawn.then(pulse);
+
+    /* After the drawing, a pulse travels the loop edge by edge at one speed; it pauses off screen. */
+    function edgeLength(d) {
+      var x = 0, y = 0, len = 0, m, re = /([MHV])\s*(-?[\d.]+)(?:[ ,](-?[\d.]+))?/g;
+      while ((m = re.exec(d))) {
+        if (m[1] === "M") { x = +m[2]; y = +m[3]; }
+        else if (m[1] === "H") { len += Math.abs(m[2] - x); x = +m[2]; }
+        else { len += Math.abs(m[2] - y); y = +m[2]; }
       }
-    }, { threshold: 0.12 });
-    io.observe($(".loop-figure", loop));
+      return len;
+    }
+    function pulse() {
+      if (reduced()) return;
+      var SPEED = 0.3, GAP = 240, DASH = 26, all = [];
+      var vis = new IntersectionObserver(function (entries) {
+        entries.forEach(function (e) { (e.target.__anims || []).forEach(function (a) { if (e.isIntersecting) a.play(); else a.pause(); }); });
+      });
+      $$(".loop-svg", loop).forEach(function (svg) {
+        var edges = $$(".edges .ln", svg), lens = edges.map(function (p) { return edgeLength(p.getAttribute("d")); });
+        var total = lens.reduce(function (sum, l) { return sum + l / SPEED + GAP; }, 0) + D4, at = 0;
+        var g = doc.createElementNS(NS, "g");
+        g.setAttribute("class", "pulse");
+        g.setAttribute("aria-hidden", "true");
+        svg.__anims = edges.map(function (edge, i) {
+          var c = doc.createElementNS(NS, "path"), L = lens[i], dur = L / SPEED;
+          c.setAttribute("d", edge.getAttribute("d"));
+          c.style.strokeDasharray = DASH + " " + (L + DASH);
+          c.style.strokeDashoffset = String(DASH);
+          c.style.opacity = "1";
+          g.appendChild(c);
+          var a = c.animate([
+            { strokeDashoffset: String(DASH), offset: 0 },
+            { strokeDashoffset: String(-L), offset: dur / total },
+            { strokeDashoffset: String(-L), offset: 1 }
+          ], { duration: total, delay: at, iterations: Infinity, easing: "linear" });
+          at += dur + GAP;
+          return a;
+        });
+        all = all.concat(svg.__anims);
+        svg.insertBefore(g, $(".bubbles", svg));
+        vis.observe(svg);
+      });
+      if (reduceMQ && reduceMQ.addEventListener) reduceMQ.addEventListener("change", function () {
+        if (reduced()) { all.forEach(function (a) { a.cancel(); }); vis.disconnect(); }
+      });
+    }
   })();
 
-  /* ---------- S-401 survey table ---------- */
-  (function initSurvey() {
-    var data, body = $("#survey-body"), src = $("#survey-data");
-    if (!body || !src) return;
-    try { data = JSON.parse(src.textContent); } catch (e) { return; }
-    var cols = data.columns || ["current", "always", "safeguards", "agents"];
-    body.innerHTML = data.rows.map(function (r) {
-      var names = (r.links || []).map(function (l) { return '<a href="' + esc(l[1]) + '">' + esc(l[0]) + "</a>"; }).join(", ");
-      return "<tr" + (r.self ? ' class="is-self"' : "") + '><th scope="row">' + names + "</th>" +
-        cols.map(function (c) { return "<td>" + ticks(r[c] || "") + "</td>"; }).join("") + "</tr>";
-    }).join("");
+  /* ---------- A-101 terminal replay ---------- */
+  (function initTerm() {
+    if (!motionOK) return;
+    $$("[data-term]").forEach(function (term) {
+      var pre = $(".term-body", term), lines = $$(".t-ln", term), run = 0;
+      lines.forEach(function (ln) { var tx = $(".t-tx", ln); if (tx) tx.__full = tx.textContent; });
+      function play() {
+        var my = ++run, alive = function () { return my === run; }, chain = Promise.resolve();
+        term.classList.add("is-armed");
+        pre.setAttribute("aria-busy", "true");
+        lines.forEach(function (ln) { ln.classList.toggle("is-on", false); var tx = $(".t-tx", ln); if (tx) tx.textContent = ""; });
+        lines.forEach(function (ln) {
+          chain = chain.then(function () {
+            if (!alive()) return;
+            ln.classList.add("is-on");
+            var tx = $(".t-tx", ln);
+            return tx ? typeText(tx, tx.__full, alive, 22).then(function () { return wait(D2); }) : wait(STAGGER);
+          });
+        });
+        chain.then(function () { if (alive()) pre.removeAttribute("aria-busy"); });
+      }
+      var btn = doc.createElement("button");
+      btn.type = "button";
+      btn.className = "term-replay";
+      btn.textContent = "Replay";
+      btn.setAttribute("aria-label", "Replay the terminal session");
+      btn.addEventListener("click", play);
+      $(".term-bar", term).appendChild(btn);
+      if (belowFold(term)) { term.classList.add("is-armed"); onSeen(term, play); }
+    });
+  })();
+
+  /* ---------- scroll reveals and counters (content below the fold only) ---------- */
+  function countUp(el) {
+    var node = el.firstChild, text = node && node.nodeType === 3 ? node.nodeValue : "";
+    var m = /^(\D*)(\d[\d,]*(?:\.\d+)?)([\s\S]*)$/.exec(text);
+    if (!m) return;
+    var target = parseFloat(m[2].replace(/,/g, "")), dec = (m[2].split(".")[1] || "").length;
+    function show(k) {
+      var v = (target * k).toFixed(dec);
+      node.nodeValue = m[1] + (m[2].indexOf(",") >= 0 ? Number(v).toLocaleString("en-US", { minimumFractionDigits: dec }) : v) + m[3];
+    }
+    show(0);
+    tween(D4, function (k) { if (k < 1) show(k); else node.nodeValue = text; });
+  }
+  (function initReveal() {
+    if (!motionOK) return;
+    var blocks = [];
+    $$("main .frame").forEach(function (f) {
+      Array.prototype.forEach.call(f.children, function (c) { if (!c.classList.contains("zones")) blocks.push(c); });
+    });
+    var below = blocks.map(belowFold);
+    blocks.forEach(function (b, n) {
+      if (!below[n]) return;
+      b.classList.add("rv");
+      $$("[data-stagger]", b).forEach(function (g) {
+        Array.prototype.forEach.call(g.children, function (k, i) { k.style.setProperty("--i", Math.min(i, 9)); });
+      });
+      onSeen(b, function (el, k) {
+        k = Math.min(k, 4);
+        el.style.setProperty("--d", k);
+        el.classList.add("is-in");
+        $$("[data-count]", el).forEach(function (c, i) { setTimeout(function () { countUp(c); }, (k + i) * STAGGER); });
+        setTimeout(function () { el.classList.toggle("rv", false); el.classList.toggle("is-in", false); el.style.removeProperty("--d"); }, D4 * 2.5);
+      });
+    });
+    root.classList.add("motion");
   })();
 
   /* ---------- A-501 quiz ---------- */

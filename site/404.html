@@ -2,6 +2,9 @@
 <html lang="en">
 <head>
 <meta charset="utf-8">
+<!-- GitHub Pages serves this page at any missing path, at any depth. Resolve the site root at
+     runtime so relative links work both under /archlens/ (project site) and at a domain root. -->
+<script>(function(){var b=/^\/archlens(\/|$)/.test(location.pathname)?"/archlens/":"/",e=document.createElement("base");e.href=b;document.head.appendChild(e)})()</script>
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <title>Sheet not found · Archlens</title>
 <meta name="description" content="This sheet is not in the Archlens drawing set.">
@@ -10,7 +13,7 @@
 <meta name="theme-color" content="#0B1C33" media="(prefers-color-scheme: dark)">
 <meta name="color-scheme" content="light dark">
 <script>try{var t=localStorage.getItem("archlens-theme");if(t==="light"||t==="dark")document.documentElement.setAttribute("data-theme",t)}catch(e){}</script>
-<link rel="icon" href="/archlens/favicon.svg" type="image/svg+xml">
+<link rel="icon" href="favicon.svg" type="image/svg+xml">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Big+Shoulders+Display:wght@800;900&amp;family=IBM+Plex+Mono:wght@500;600&amp;family=IBM+Plex+Sans:wght@400;600&amp;display=swap">
@@ -58,7 +61,7 @@
   <p>This page is STALE. The sheet you asked for is not in the set, or it moved after the last sync.</p>
   <p>A stale flag means “review this page”. Here it means: go back to the index.</p>
   <div class="links">
-    <a class="btn ink" href="/archlens/">Back to the cover sheet</a>
+    <a class="btn ink" href="./">Back to the cover sheet</a>
     <a class="btn" href="https://github.com/tushar-mahalya/archlens">Archlens on GitHub</a>
   </div>
   <div class="tb" aria-hidden="true">

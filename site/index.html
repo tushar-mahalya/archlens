@@ -3,26 +3,133 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
-<title>Archlens: architecture docs that stay in sync with your code</title>
-<meta name="description" content="Archlens keeps architecture docs in sync with code, gives your coding agent a page map of the whole project in a few hundred tokens, and teaches you the codebase while you work. Claude Code plugin and portable Agent Skill.">
-<link rel="canonical" href="https://tushar-mahalya.github.io/archlens/">
+<title>Archlens: living architecture docs for Claude Code and AI coding agents</title>
+<meta name="description" content="Claude Code plugin and Agent Skill that keeps architecture docs in sync: documentation drift detection, an AGENTS.md page map, and Codex and Cursor support.">
 <meta name="theme-color" content="#F2EEE4" media="(prefers-color-scheme: light)">
 <meta name="theme-color" content="#0B1C33" media="(prefers-color-scheme: dark)">
 <meta name="color-scheme" content="light dark">
+<!-- SITE URL: the only absolute URLs in this file. Change all four lines marked "site-url"
+     when a custom domain is added (see docs/website.md). Crawlers need an absolute og:image. -->
+<link rel="canonical" href="https://tushar-mahalya.github.io/archlens/"><!-- site-url: change with a custom domain -->
+<meta property="og:url" content="https://tushar-mahalya.github.io/archlens/"><!-- site-url: change with a custom domain -->
+<meta property="og:image" content="https://tushar-mahalya.github.io/archlens/og.png"><!-- site-url: change with a custom domain -->
+<meta name="twitter:image" content="https://tushar-mahalya.github.io/archlens/og.png"><!-- site-url: change with a custom domain -->
+<!-- site-url: the "url" in the SoftwareApplication JSON-LD below also changes with a custom domain. -->
+<!-- Search Console: paste the HTML-tag verification here (see docs/website.md), for example
+     <meta name="google-site-verification" content="TOKEN-FROM-SEARCH-CONSOLE"> -->
 <meta property="og:type" content="website">
 <meta property="og:site_name" content="Archlens">
-<meta property="og:title" content="Archlens: architecture docs that stay in sync with your code">
-<meta property="og:description" content="A page map of the whole project in a few hundred tokens. Stale pages flagged by a local script, refreshed by an isolated update. Claude Code plugin and portable Agent Skill.">
-<meta property="og:url" content="https://tushar-mahalya.github.io/archlens/">
-<meta property="og:image" content="https://tushar-mahalya.github.io/archlens/og.png">
+<meta property="og:locale" content="en_US">
+<meta property="og:title" content="Archlens: living architecture docs for Claude Code and AI coding agents">
+<meta property="og:description" content="A page map of the whole project in a few hundred tokens. Stale pages flagged by a local script, refreshed by an isolated update in the same commit as the code. Claude Code plugin and portable Agent Skill.">
+<meta property="og:image:type" content="image/png">
 <meta property="og:image:width" content="1200">
 <meta property="og:image:height" content="630">
 <meta property="og:image:alt" content="Archlens drawing sheet: a page marked STALE, then SYNCED.">
 <meta name="twitter:card" content="summary_large_image">
-<meta name="twitter:title" content="Archlens: architecture docs that stay in sync with your code">
-<meta name="twitter:description" content="A page map of the whole project in a few hundred tokens. Stale pages flagged by a local script, refreshed by an isolated update.">
-<meta name="twitter:image" content="https://tushar-mahalya.github.io/archlens/og.png">
+<meta name="twitter:title" content="Archlens: living architecture docs for Claude Code and AI coding agents">
+<meta name="twitter:description" content="A page map of the whole project in a few hundred tokens. Stale pages flagged by a local script, refreshed by an isolated update in the same commit as the code.">
+<meta name="twitter:image:alt" content="Archlens drawing sheet: a page marked STALE, then SYNCED.">
 <link rel="icon" href="favicon.svg" type="image/svg+xml">
+<link rel="manifest" href="site.webmanifest">
+<link rel="alternate" type="text/plain" href="llms.txt" title="LLM summary">
+<script type="application/ld+json">
+{
+ "@context": "https://schema.org",
+ "@type": [
+  "SoftwareApplication",
+  "SoftwareSourceCode"
+ ],
+ "name": "Archlens",
+ "url": "https://tushar-mahalya.github.io/archlens/",
+ "description": "Living architecture docs for Claude Code and AI coding agents. A Claude Code plugin and portable Agent Skill that keeps architecture documentation in sync with code: local documentation drift detection on cited functions and line ranges, updates in the same commit as the code, and a compact page map for agents through a session hook or AGENTS.md.",
+ "applicationCategory": "DeveloperApplication",
+ "operatingSystem": "macOS, Linux, Windows",
+ "softwareVersion": "0.3.0",
+ "license": "https://opensource.org/licenses/MIT",
+ "isAccessibleForFree": true,
+ "offers": {
+  "@type": "Offer",
+  "price": "0",
+  "priceCurrency": "USD"
+ },
+ "codeRepository": "https://github.com/tushar-mahalya/archlens",
+ "programmingLanguage": "Python",
+ "sameAs": [
+  "https://github.com/tushar-mahalya/archlens"
+ ],
+ "keywords": "Claude Code plugin, Agent Skill, architecture documentation, living documentation, documentation drift detection, AGENTS.md, Codex, Cursor, GitHub Copilot, Gemini CLI",
+ "author": {
+  "@type": "Person",
+  "name": "Tushar Sharma",
+  "url": "https://github.com/tushar-mahalya"
+ }
+}
+</script>
+<script type="application/ld+json">
+{
+ "@context": "https://schema.org",
+ "@type": "FAQPage",
+ "mainEntity": [
+  {
+   "@type": "Question",
+   "name": "What is Archlens?",
+   "acceptedAnswer": {
+    "@type": "Answer",
+    "text": "Archlens is a Claude Code plugin and a portable Agent Skill that keeps architecture docs in sync with your code. It writes a small, source-linked handbook or adopts the docs you already have. A local script flags pages whose cited code changed, and an isolated task updates them, by default in the same commit as the code. It also gives your coding agent a page map of the project in a few hundred tokens."
+   }
+  },
+  {
+   "@type": "Question",
+   "name": "How is Archlens different from DeepWiki or OpenWiki?",
+   "acceptedAnswer": {
+    "@type": "Answer",
+    "text": "DeepWiki regenerates a hosted wiki and serves it through the web and MCP. OpenWiki ties claims to line-range evidence and updates through a manual run or a scheduled CI pull request. Archlens keeps the docs in your repository, detects drift on the exact functions and line ranges each page cites with a local script and no model, and updates only the stale pages. Its always-loaded map has a byte budget that CI enforces. The field survey compares more tools; vendor claims there are as published."
+   }
+  },
+  {
+   "@type": "Question",
+   "name": "Which coding agents does it support?",
+   "acceptedAnswer": {
+    "@type": "Answer",
+    "text": "Claude Code gets the native plugin with hooks. Codex, Cursor, GitHub Copilot, Gemini CLI, OpenCode, Roo, Devin, and other agents get the portable Agent Skill through skills.sh, and any agent that reads AGENTS.md can get the page map. The pre-commit hooks and the CI check work with any editor or agent."
+   }
+  },
+  {
+   "@type": "Question",
+   "name": "Does it need a server, an API key, or send telemetry?",
+   "acceptedAnswer": {
+    "@type": "Answer",
+    "text": "No. Archlens has no server, no telemetry, and makes no network calls. The Claude Code plugin needs no API key or Node installation; Python 3.9+ enables the hooks and checks. Your agent’s normal subscription or API usage and provider policy still apply. The skills CLI that installs the portable skill has its own telemetry; set DISABLE_TELEMETRY=1 to opt out."
+   }
+  },
+  {
+   "@type": "Question",
+   "name": "What does keeping docs current cost?",
+   "acceptedAnswer": {
+    "@type": "Answer",
+    "text": "Detecting drift costs no model tokens, because it is a local script. By default, prose is rewritten once per commit that leaves pages stale. In the real-project trial, an update after two real code changes took 93 seconds and $0.40 on Opus, and a whole change, test, and commit task with its docs took 4.6 minutes and $1.25. That is one trial on one repository."
+   }
+  },
+  {
+   "@type": "Question",
+   "name": "Does it work with the docs I already have?",
+   "acceptedAnswer": {
+    "@type": "Answer",
+    "text": "Yes. In a project with architecture docs, /archlens:setup adopt, the default then, maps them where they live, fixes statements the code contradicts with minimal edits, adds pages only for real gaps, and uses your decision-record folder and numbering. Mapped docs get the same checks and freshness tracking as new pages."
+   }
+  },
+  {
+   "@type": "Question",
+   "name": "How do I install it?",
+   "acceptedAnswer": {
+    "@type": "Answer",
+    "text": "In Claude Code, run /plugin marketplace add tushar-mahalya/archlens, then /plugin install archlens@archlens, then /archlens:setup. For other agents, run npx skills@1.7.6 add tushar-mahalya/archlens --skill archlens --agent codex --copy --yes in the project, and replace codex with your agent."
+   }
+  }
+ ]
+}
+</script>
 <script>try{var t=localStorage.getItem("archlens-theme");if(t==="light"||t==="dark")document.documentElement.setAttribute("data-theme",t)}catch(e){}document.documentElement.classList.add("js")</script>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
@@ -37,7 +144,7 @@
   <a class="brand" href="#a-000" aria-label="Archlens, cover sheet">
     <svg class="brand-mark" viewBox="0 0 32 32" aria-hidden="true"><circle cx="14" cy="16" r="10"/><path d="M4 16h20"/><path class="brand-arrow" d="M24 9l7 7-7 7z"/></svg>
     <span class="brand-word">Archlens</span>
-    <span class="brand-rev">Rev 0.3.0</span>
+    <span class="brand-rev">Rev 0.3.0 · next</span>
   </a>
   <nav class="sheet-nav" aria-label="Sheet index">
     <ol>
@@ -45,9 +152,11 @@
       <li><a href="#a-101"><span class="no">A-101</span><span class="nm">Problem</span></a></li>
       <li><a href="#a-201"><span class="no">A-201</span><span class="nm">Loop</span></a></li>
       <li><a href="#a-301"><span class="no">A-301</span><span class="nm">Evidence</span></a></li>
+      <li><a href="#a-302"><span class="no">A-302</span><span class="nm">Trial</span></a></li>
       <li><a href="#s-401"><span class="no">S-401</span><span class="nm">Survey</span></a></li>
       <li><a href="#a-501"><span class="no">A-501</span><span class="nm">Learn</span></a></li>
       <li><a href="#i-601"><span class="no">I-601</span><span class="nm">Install</span></a></li>
+      <li><a href="#q-701"><span class="no">Q-701</span><span class="nm">FAQ</span></a></li>
     </ol>
   </nav>
   <div class="topbar-tools">
@@ -55,7 +164,7 @@
       <svg viewBox="0 0 20 20" aria-hidden="true"><circle cx="10" cy="10" r="7.5"/><path d="M10 2.5a7.5 7.5 0 0 1 0 15z"/></svg>
       <span class="theme-label">Blueprint</span>
     </button>
-    <a class="gh" href="https://github.com/tushar-mahalya/archlens">GitHub<span class="vh"> repository</span></a>
+    <a class="gh" href="https://github.com/tushar-mahalya/archlens"><span class="vh">Archlens source on </span>GitHub</a>
   </div>
 </header>
 
@@ -67,13 +176,13 @@
   <div class="zones" aria-hidden="true"><span>1</span><span>2</span><span>3</span><span>4</span><span>5</span><span>6</span></div>
 
   <div class="cover">
-    <p class="kicker"><span class="kicker-no">A-000</span> Cover sheet · A drawing set for your codebase</p>
-    <h1 id="h-a-000" class="cover-title">Architecture docs that stay <span class="cloud-word" data-cloud>in sync</span><span class="delta" aria-hidden="true">3</span> with your code.</h1>
+    <p class="kicker"><span class="kicker-no">A-000</span> Cover sheet · Living architecture docs for Claude Code and AI coding agents</p>
+    <h1 id="h-a-000" class="cover-title">Architecture docs that stay <span class="cloud-word" data-cloud>in sync</span><span class="delta" aria-hidden="true">N</span> with your code.</h1>
     <div class="cover-body">
-      <p class="lede">Archlens keeps a small architecture handbook in step with your code, gives your coding agent a map of the whole project in a few hundred tokens, and teaches you the codebase while you work. It runs as a Claude Code plugin and as a portable Agent Skill for Codex, Cursor, GitHub Copilot, Gemini CLI, OpenCode, and other agents.</p>
+      <p class="lede">Archlens keeps your architecture docs in step with your code. It writes a small handbook, or adopts the docs you already have where they live. It gives your coding agent a map of the whole project in a few hundred tokens, and teaches you the codebase while you work. It runs as a Claude Code plugin and as a portable Agent Skill for Codex, Cursor, GitHub Copilot, Gemini CLI, OpenCode, and other agents.</p>
       <div class="cta">
         <a class="btn btn-ink" href="#i-601">Install <span class="btn-ref">see I-601</span></a>
-        <a class="btn" href="https://github.com/tushar-mahalya/archlens">Read the source on GitHub</a>
+        <a class="btn" href="https://github.com/tushar-mahalya/archlens">Read the Archlens source on GitHub</a>
       </div>
     </div>
     <aside class="cover-side">
@@ -82,6 +191,7 @@
         <ol>
           <li>Every claim links to source, tests, or decisions. Unknowns stay unknown.</li>
           <li>Drift detection is a local Python script. It uses no model tokens.</li>
+          <li>Docs update once per commit, and land in the same commit as the code.</li>
           <li>No server, no telemetry, no network calls. Python 3.9+ enables hooks and checks.</li>
           <li>MIT licensed. Independent project.</li>
         </ol>
@@ -92,10 +202,23 @@
           <li><a href="#a-101"><span>A-101</span>The problem</a></li>
           <li><a href="#a-201"><span>A-201</span>The loop</a></li>
           <li><a href="#a-301"><span>A-301</span>Evidence</a></li>
+          <li><a href="#a-302"><span>A-302</span>Real-project trial</a></li>
           <li><a href="#s-401"><span>S-401</span>Field survey</a></li>
           <li><a href="#a-501"><span>A-501</span>Learn</a></li>
           <li><a href="#i-601"><span>I-601</span>Install</a></li>
+          <li><a href="#q-701"><span>Q-701</span>Questions</a></li>
         </ol>
+      </div>
+      <div class="revisions">
+        <h2 class="label">Revisions</h2>
+        <table class="rev-table">
+          <thead><tr><th scope="col">Rev</th><th scope="col">Date</th><th scope="col">Description</th></tr></thead>
+          <tbody>
+            <tr><th scope="row"><span class="delta delta-inline rev">N</span></th><td>Unreleased</td><td>Next release: adopt existing docs, update once per commit, fewer false alarms, <code>cite</code></td></tr>
+            <tr><th scope="row">0.3.0</th><td>2026-11-08</td><td>Freshness loop, page map, and <code>learn</code></td></tr>
+          </tbody>
+        </table>
+        <p class="small"><span class="delta delta-inline rev">N</span> marks what changed since 0.3.0. See the <a href="https://github.com/tushar-mahalya/archlens/blob/main/CHANGELOG.md">changelog</a>.</p>
       </div>
     </aside>
   </div>
@@ -140,7 +263,7 @@
       <div class="panel panel-doc">
         <p class="panel-head"><span class="panel-kind">Page</span><span class="panel-path">docs/architecture/runtime/submit-order.md</span><span class="panel-meta">FLOW-001</span></p>
         <div class="doc">
-          <h3 class="doc-title">What happens when the caller submits an order?</h3>
+          <p class="doc-title">What happens when the caller submits an order?</p>
           <p>The library validates the input before it starts a write. It creates an order or finds the order with the same request key. It rejects a repeated key whose SKU or quantity differs.</p>
           <div class="table-scroll">
             <table class="doc-table">
@@ -171,7 +294,7 @@ Pages live in `docs/architecture/` (6 pages, <span id="map-count">0 stale</span>
 - <span class="map-focus">`runtime/submit-order.md` What happens when the caller submits an order?: The library validates the input before it starts a write. [covers order_service.py]</span><span class="map-flag" data-flag=" STALE: 1 cited change"></span>
 - `data.md` Where does order data go?: The caller supplies the input. [covers order_service.py]<span class="map-flag" data-flag=" STALE: 1 cited change"></span>
 - `glossary.md` Glossary: These are local project definitions, not an official STE vocabulary.
-- `decisions/ADR-001.md` ADR-001: Identify repeated submissions with a request key [covers order_service.py]<span class="map-flag" data-flag=" STALE: 1 cited change"></span></pre>
+- `decisions/ADR-001.md` ADR-001: Identify repeated submissions with a request key [covers order_service.py]</pre>
         <div class="dimline" id="map-dim" style="--used:1131;--max:3000">
           <div class="dim dim-budget"><span class="dim-text">≤ 3,000 bytes · default <code>contextBudget</code></span></div>
           <div class="dim dim-used"><span class="dim-text"><span id="map-bytes-dim">1,131</span> B</span></div>
@@ -182,16 +305,16 @@ Pages live in `docs/architecture/` (6 pages, <span id="map-count">0 stale</span>
     <div class="coupling-controls" id="coupling-controls" hidden>
       <div class="controls-row">
         <button class="btn btn-ink" type="button" id="btn-edit"><span class="btn-key" aria-hidden="true">1</span> Edit the code</button>
-        <button class="btn" type="button" id="btn-update" disabled><span class="btn-key" aria-hidden="true">2</span> Run update</button>
+        <button class="btn" type="button" id="btn-update" disabled><span class="btn-key" aria-hidden="true">2</span> Commit</button>
         <button class="btn btn-ghost" type="button" id="btn-reset">Reset</button>
       </div>
       <p class="log" id="coupling-log" role="status" aria-live="polite"><span class="log-k">status</span> 6 pages, 0 stale. Click <em>Edit the code</em> or the marked lines 25–26.</p>
     </div>
-    <p class="fineprint">Page text, map lines, byte counts, and the Stop hook message are real output of <code>archlens.py</code> on the order example. The quantity limit is a hypothetical edit, simulated in your browser.</p>
+    <p class="fineprint">Page text, map lines, byte counts, and the Stop hook and commit gate messages are real output of <code>archlens.py</code> (next release) on the order example. The quantity limit is a hypothetical edit, simulated in your browser.</p>
   </figure>
 
   <div class="title-block" aria-hidden="true">
-    <div><b>Project</b>Archlens</div><div><b>Title</b>Cover</div><div><b>Sheet</b><i>A-000</i></div><div><b>Rev</b>0.3.0</div>
+    <div><b>Project</b>Archlens</div><div><b>Title</b>Cover</div><div><b>Sheet</b><i>A-000</i></div><div><b>Rev</b>N</div>
     <div><b>Drawn</b>agent</div><div><b>Checked</b>you</div><div class="tb-wide"><b>Scale</b>1 page = 1 question</div>
   </div>
 </div>
@@ -205,7 +328,7 @@ Pages live in `docs/architecture/` (6 pages, <span id="map-count">0 stale</span>
     <p class="sheet-id"><span class="sheet-no">A-101</span><span class="sheet-name">The problem</span></p>
     <div class="sheet-heading">
       <h2 id="h-a-101">Docs go stale a week after they are written. Agents start from zero every session.</h2>
-      <p class="lede">Nothing says which architecture page drifted, and nothing tells a coding agent where to look, so it explores the repository again. Archlens answers both with one small handbook and a baseline for every page.</p>
+      <p class="lede">Nothing says which architecture page drifted, and nothing tells a coding agent where to look, so it explores the repository again. Archlens answers both with one small handbook, or the docs you already have, and a baseline for every page.</p>
     </div>
   </header>
 
@@ -214,13 +337,15 @@ Pages live in `docs/architecture/` (6 pages, <span id="map-count">0 stale</span>
     <div class="table-scroll">
       <table class="schedule schedule-measured">
         <thead><tr><th scope="col">Mark</th><th scope="col">What goes wrong today</th><th scope="col">What Archlens does</th><th scope="col">Measured</th></tr></thead>
-        <tbody>
-          <tr><td class="mark">P1</td><th scope="row">Docs go stale a week after they are written</th><td>Fingerprints the exact functions and line ranges each page cites, and flags the page when that code changes, even after a commit</td><td class="measured">Checks 50,000 files in <b>0.22&nbsp;s</b></td></tr>
-          <tr><td class="mark">P2</td><th scope="row">Moved code breaks every <code>#L120</code> link</th><td>Rewrites links whose cited code only moved. No model, no tokens</td><td class="measured">Automatic after each Claude turn</td></tr>
+        <tbody data-stagger>
+          <tr><td class="mark">P1</td><th scope="row">Docs go stale a week after they are written</th><td>Fingerprints the exact functions and line ranges each page cites, in Python and C-family languages, and flags the page when that code changes, even after a commit</td><td class="measured">Checks 50,000 files in <b>0.20&nbsp;s</b></td></tr>
+          <tr><td class="mark">P2</td><th scope="row">Moved code breaks every <code>#L120</code> link</th><td>Rewrites links whose cited code only moved, or whose file was renamed. No model, no tokens</td><td class="measured">Automatic after each Claude turn</td></tr>
           <tr><td class="mark">P3</td><th scope="row">Agents re-explore the repository every session</th><td>Loads a compact page map at session start, or writes it into <code>AGENTS.md</code></td><td class="measured"><b>408 tokens</b> for this repo; capped at 3,000 bytes</td></tr>
           <tr><td class="mark">P4</td><th scope="row">Context files bloat every turn</th><td>One model-visible description; everything else loads only when used</td><td class="measured"><b>178 bytes</b> in every session</td></tr>
           <tr><td class="mark">P5</td><th scope="row">AI wikis invent plausible details</th><td>Every claim links to source, tests, or decisions. Unknowns stay unknown. A checker catches dead links, moved anchors, and vanished symbols</td><td class="measured"><b>0.04</b> wrong claims per answer in the benchmark</td></tr>
           <tr><td class="mark">P6</td><th scope="row">You ship code you do not understand</th><td><code>/archlens:learn</code> answers questions, gives a tour, quizzes you, and explains your branch</td><td class="measured">Inline, so you can ask follow-ups</td></tr>
+          <tr><td class="mark">P7</td><th scope="row">The docs you already have drifted long ago <span class="delta delta-inline rev" aria-hidden="true">N</span></th><td>Adopts them where they live: maps them, fixes statements the code contradicts with minimal edits, and adds pages only for real gaps</td><td class="measured">Trial: <b>16 docs</b> mapped, 3 real errors fixed, 5.8&nbsp;min</td></tr>
+          <tr><td class="mark">P8</td><th scope="row">Checkers bury real errors in noise <span class="delta delta-inline rev" aria-hidden="true">N</span></th><td>Style heuristics become one <code>info</code> note per page that never fails <code>--strict</code>. Errors sort first</td><td class="measured">Trial: <b>407</b> warnings down to <b>4</b></td></tr>
         </tbody>
       </table>
     </div>
@@ -230,8 +355,9 @@ Pages live in `docs/architecture/` (6 pages, <span id="map-count">0 stale</span>
     <figure class="detail tree-detail" aria-labelledby="tree-title">
       <figcaption class="detail-head">
         <span class="bubble" aria-hidden="true"><span>2</span><span>A-101</span></span>
-        <span class="detail-title" id="tree-title">Detail 2: what setup draws</span>
+        <span class="detail-title" id="tree-title">Detail 2: what setup draws, or adopts</span>
       </figcaption>
+      <p class="tree-k"><code>/archlens:setup new</code> or a project without docs</p>
 <pre class="tree"><b>docs/architecture/</b>
   README.md              <span>Reading path, coverage table, and known gaps</span>
   context.md             <span>Users, boundaries, and external systems</span>
@@ -241,17 +367,54 @@ Pages live in `docs/architecture/` (6 pages, <span id="map-count">0 stale</span>
   glossary.md            <span>One term per concept</span>
   map.json               <span>Which code each page covers</span>
   .archlens-state.json   <span>Freshness baseline written by sync</span></pre>
+      <p class="tree-k"><code>/archlens:setup adopt</code> the default when docs exist <span class="delta delta-inline rev" aria-hidden="true">N</span></p>
+<pre class="tree"><b>docs/architecture/map.json</b>
+  ../ARCHITECTURE.md     <span>An existing doc, mapped where it lives</span>
+                         <span>Statements the code contradicts: minimal edits</span>
+  <i>your ADR folder</i>        <span>New decisions use its folder and numbering</span>
+  runtime/*.md           <span>New pages only for real gaps</span></pre>
     </figure>
     <div class="split-notes">
       <p>Archlens starts small: context, main units, and one important journey, then grows by risk. Pages use Mermaid diagrams, short sentences, and plain words.</p>
-      <p>Pages cite evidence, often a line range such as <code>order_service.py#L20-L38</code>. <code>sync</code> records a baseline of every cited range and covered file. For Python, the baseline is the syntax tree of the function around the range, so comments and formatting do not count and a moved function is followed.</p>
-      <p>Cited evidence that changed makes a page <code>stale</code>. Changes elsewhere in covered files only mark it for <code>review</code>.</p>
+      <p>When a project already has architecture docs, <code>setup</code> adopts them. Nothing moves or gets copied. Mapped docs get the same link and reference checks and freshness tracking, and they appear in the agent’s page map. <code>setup new</code> writes a separate handbook instead.</p>
+    </div>
+  </div>
+
+  <div class="split split-term">
+    <figure class="detail term-detail" aria-labelledby="term-title">
+      <figcaption class="detail-head">
+        <span class="bubble" aria-hidden="true"><span>3</span><span>A-101</span></span>
+        <span class="detail-title" id="term-title">Detail 3: the Detail 1 edit, from a terminal</span>
+      </figcaption>
+      <div class="term" data-term>
+        <p class="term-bar"><span>examples/order-service</span></p>
+<pre class="term-body"><span class="t-ln t-cmd"><span class="t-ps">$ </span><span class="t-tx">python3 archlens.py status --root .</span></span>
+<span class="t-ln">Archlens status: PASS</span>
+<span class="t-ln">1 fresh, 4 stale, 1 review, 0 unsynced.</span>
+<span class="t-ln"><span class="t-stale">STALE</span> docs/architecture/README.md [INDEX] evidence-changed order_service.py#L20-L38 (submit_order); review: modified order_service.py</span>
+<span class="t-ln"><span class="t-stale">STALE</span> docs/architecture/context.md [CONTEXT] evidence-changed order_service.py#L20-L38 (submit_order); review: modified order_service.py</span>
+<span class="t-ln"><span class="t-stale">STALE</span> docs/architecture/runtime/submit-order.md [FLOW-001] evidence-changed order_service.py#L20-L38 (submit_order); review: modified order_service.py</span>
+<span class="t-ln"><span class="t-stale">STALE</span> docs/architecture/data.md [DATA] evidence-changed order_service.py#L20-L38 (submit_order); review: modified order_service.py</span>
+<span class="t-ln"><span class="t-review">REVIEW</span> docs/architecture/decisions/ADR-001.md [ADR-001] review: modified order_service.py</span>
+<span class="t-ln t-cmd"><span class="t-ps">$ </span><span class="t-tx">python3 archlens.py cite --root . order_service.py submit_order \</span></span>
+<span class="t-ln t-cmd t-cont"><span class="t-tx">--from docs/architecture/runtime/submit-order.md</span></span>
+<span class="t-ln">Archlens cite: PASS</span>
+<span class="t-ln">[submit_order](../../../order_service.py#L20-L38)</span></pre>
+      </div>
+      <p class="fineprint">Real output of the next release on the order example, after the lines 25–26 edit. The <code>status</code> notes are trimmed.</p>
+    </figure>
+    <div class="split-notes">
+      <p>Pages cite evidence, often a line range such as <code>order_service.py#L20-L38</code>. <code>sync</code> records a baseline of the function around each range. Python uses its syntax tree. JavaScript, TypeScript, Go, Rust, Java, C#, C/C++, Swift, PHP, Dart, and other C-family languages use a comment- and string-aware brace reader <span class="delta delta-inline rev" aria-hidden="true">N</span>. It is a heuristic, not a parser. Comments and formatting do not count, and a moved function is followed.</p>
+      <p>A range inside a larger function tracks only its own lines. One changed rule in a 40-line function no longer flags every citation inside it.</p>
+      <p>Cited evidence that changed makes a page <code>stale</code>. A whole-file link to code goes stale only when the file’s declared names change; body edits mark it for <code>review</code>, as ADR-001 shows. An edit to a linked Markdown document marks <code>review</code>; deleting a linked file marks <code>stale</code>. Comment-only edits never make a page stale.</p>
+      <p>Links follow the code with no model. Moved code, files Git reports as renamed, and citations shifted by a new comment inside a function are rewritten. When a cited function disappears, <code>status</code> suggests a likely rename, such as <code>symbol-removed memory.py#L14-L19 (authorized) now `is_authorized`?</code></p>
+      <p><code>cite</code> prints a link-ready range for a symbol, so pages cite exact lines. <code>check</code> warns when a range cuts off a function’s first or last code line by one or two lines.</p>
       <p class="note-strong">A stale flag means “check this page”. It does not prove the prose is wrong.</p>
     </div>
   </div>
 
   <div class="title-block" aria-hidden="true">
-    <div><b>Project</b>Archlens</div><div><b>Title</b>The problem</div><div><b>Sheet</b><i>A-101</i></div><div><b>Rev</b>0.3.0</div>
+    <div><b>Project</b>Archlens</div><div><b>Title</b>The problem</div><div><b>Sheet</b><i>A-101</i></div><div><b>Rev</b>N</div>
     <div><b>Drawn</b>agent</div><div><b>Checked</b>you</div><div class="tb-wide"><b>Scale</b>1 page = 1 question</div>
   </div>
 </div>
@@ -265,20 +428,20 @@ Pages live in `docs/architecture/` (6 pages, <span id="map-count">0 stale</span>
     <p class="sheet-id"><span class="sheet-no">A-201</span><span class="sheet-name">The loop</span></p>
     <div class="sheet-heading">
       <h2 id="h-a-201">Detecting drift costs no tokens. Rewriting prose happens only where it drifted.</h2>
-      <p class="lede">Archlens separates two jobs. A local script compares the code each page cites with the baseline recorded at its last sync, and rewrites links whose code only moved: no model, no tokens. An agent then reviews only the stale pages, edits what changed, and syncs the pages it verified.</p>
+      <p class="lede">Archlens separates two jobs. A local script compares the code each page cites with the baseline recorded at its last sync, and rewrites links whose code only moved: no model, no tokens. An agent then reviews only the stale pages, edits what changed, and syncs the pages it verified. By default that happens once per commit, so the docs land in the same commit as the code.</p>
     </div>
   </header>
 
   <div class="loop" id="loop">
     <figure class="loop-figure" aria-labelledby="loop-title">
       <figcaption class="detail-head">
-        <span class="bubble" aria-hidden="true"><span>3</span><span>A-201</span></span>
-        <span class="detail-title" id="loop-title">Detail 3: the freshness loop</span>
+        <span class="bubble" aria-hidden="true"><span>4</span><span>A-201</span></span>
+        <span class="detail-title" id="loop-title">Detail 4: the freshness loop</span>
         <span class="detail-note">Hover or focus a callout</span>
       </figcaption>
       <svg class="loop-svg loop-wide" viewBox="0 0 960 470" role="img" aria-labelledby="loop-wide-t loop-wide-d">
         <title id="loop-wide-t">The Archlens freshness loop</title>
-        <desc id="loop-wide-d">Session start loads the page map with stale flags. The agent works and edits covered code. The Stop hook flags stale pages. Update reviews them in an isolated task. Sync records the new baseline for the next session.</desc>
+        <desc id="loop-wide-d">Session start loads the page map with stale flags. The agent works and edits covered code. The Stop hook flags stale pages when a turn ends, and the commit gate holds a commit that would leave pages stale. Update reviews them in an isolated task. Sync records the new baseline, code and docs commit together, and the next session starts from there.</desc>
         <g class="dimg">
           <path class="ln thin" pathLength="1" d="M24 52V22M244 52V22M24 30H244"/>
           <path class="ln" pathLength="1" d="M19 35l10-10M239 35l10-10"/>
@@ -298,9 +461,9 @@ Pages live in `docs/architecture/` (6 pages, <span id="map-count">0 stale</span>
         </g>
         <g class="node script" data-step="3">
           <path class="ln box" pathLength="1" d="M716 336h220v104H716z"/><path class="ln thin" pathLength="1" d="M722 342h208v92H722z"/>
-          <text class="t-title" x="738" y="378">Stop hook</text>
-          <text class="t-mono" x="738" y="402">Fixes moved links,</text>
-          <text class="t-mono" x="738" y="420">flags cited changes</text>
+          <text class="t-title" x="738" y="378">Commit gate</text>
+          <text class="t-mono" x="738" y="402">Stop hook flags pages;</text>
+          <text class="t-mono" x="738" y="420">a commit waits once</text>
         </g>
         <g class="node" data-step="4">
           <path class="ln box" pathLength="1" d="M370 336h220v104H370z"/>
@@ -321,10 +484,11 @@ Pages live in `docs/architecture/` (6 pages, <span id="map-count">0 stale</span>
           <path class="ln" pathLength="1" d="M370 388H256"/><path class="head" d="M244 388l14-4.5v9z"/>
           <path class="ln" pathLength="1" d="M134 336V172"/><path class="head" d="M134 160l-4.5 14h9z"/>
           <text class="t-edge" x="480" y="98" text-anchor="middle">page map + stale flags</text>
-          <text class="t-edge" x="814" y="252" text-anchor="end">turn ends</text>
-          <text class="t-edge" x="653" y="376" text-anchor="middle">remind | auto</text>
+          <text class="t-edge" x="814" y="252" text-anchor="end">turn end · git commit</text>
+          <text class="t-edge" x="653" y="376" text-anchor="middle">commit | auto</text>
           <text class="t-edge" x="307" y="376" text-anchor="middle">verified pages</text>
-          <text class="t-edge" x="146" y="252">next session</text>
+          <text class="t-edge" x="146" y="244">code + docs commit</text>
+          <text class="t-edge" x="146" y="262">next session</text>
         </g>
         <g class="legend">
           <path class="ln" pathLength="1" d="M330 206h40v26h-40z"/><path class="ln thin" pathLength="1" d="M334 210h32v18h-32z"/>
@@ -335,14 +499,14 @@ Pages live in `docs/architecture/` (6 pages, <span id="map-count">0 stale</span>
         <g class="bubbles">
           <g class="bubble-svg" data-step="1" tabindex="0" role="button" aria-label="Callout 1, session start" aria-describedby="note-1"><circle cx="24" cy="56" r="16"/><text x="24" y="61" text-anchor="middle">1</text></g>
           <g class="bubble-svg" data-step="2" tabindex="0" role="button" aria-label="Callout 2, agent works" aria-describedby="note-2"><circle cx="716" cy="56" r="16"/><text x="716" y="61" text-anchor="middle">2</text></g>
-          <g class="bubble-svg" data-step="3" tabindex="0" role="button" aria-label="Callout 3, stop hook" aria-describedby="note-3"><circle cx="936" cy="336" r="16"/><text x="936" y="341" text-anchor="middle">3</text></g>
+          <g class="bubble-svg" data-step="3" tabindex="0" role="button" aria-label="Callout 3, commit gate" aria-describedby="note-3"><circle cx="936" cy="336" r="16"/><text x="936" y="341" text-anchor="middle">3</text></g>
           <g class="bubble-svg" data-step="4" tabindex="0" role="button" aria-label="Callout 4, update" aria-describedby="note-4"><circle cx="590" cy="336" r="16"/><text x="590" y="341" text-anchor="middle">4</text></g>
           <g class="bubble-svg" data-step="5" tabindex="0" role="button" aria-label="Callout 5, sync" aria-describedby="note-5"><circle cx="244" cy="336" r="16"/><text x="244" y="341" text-anchor="middle">5</text></g>
         </g>
       </svg>
 
       <svg class="loop-svg loop-tall" viewBox="0 0 340 830" role="img" aria-labelledby="loop-tall-t">
-        <title id="loop-tall-t">The Archlens freshness loop, vertical layout: session start, agent works, stop hook, update, sync, then back to session start.</title>
+        <title id="loop-tall-t">The Archlens freshness loop, vertical layout: session start, agent works, commit gate, update, sync, then code and docs commit together and the loop returns to session start.</title>
         <g class="dimg">
           <path class="ln thin" pathLength="1" d="M60 56V26M300 56V26M60 34H300"/>
           <path class="ln" pathLength="1" d="M55 39l10-10M295 39l10-10"/>
@@ -350,7 +514,7 @@ Pages live in `docs/architecture/` (6 pages, <span id="map-count">0 stale</span>
         </g>
         <g class="node script" data-step="1"><path class="ln box" pathLength="1" d="M60 60h240v100H60z"/><path class="ln thin" pathLength="1" d="M66 66h228v88H66z"/><text class="t-title" x="84" y="100">Session start</text><text class="t-mono" x="84" y="124">Hook prints the page map</text><text class="t-mono" x="84" y="142">with stale flags</text></g>
         <g class="node" data-step="2"><path class="ln box" pathLength="1" d="M60 210h240v100H60z"/><text class="t-title" x="84" y="250">Agent works</text><text class="t-mono" x="84" y="274">Opened files name</text><text class="t-mono" x="84" y="292">their page once</text></g>
-        <g class="node script" data-step="3"><path class="ln box" pathLength="1" d="M60 360h240v100H60z"/><path class="ln thin" pathLength="1" d="M66 366h228v88H66z"/><text class="t-title" x="84" y="400">Stop hook</text><text class="t-mono" x="84" y="424">Fixes moved links,</text><text class="t-mono" x="84" y="442">flags cited changes</text></g>
+        <g class="node script" data-step="3"><path class="ln box" pathLength="1" d="M60 360h240v100H60z"/><path class="ln thin" pathLength="1" d="M66 366h228v88H66z"/><text class="t-title" x="84" y="400">Commit gate</text><text class="t-mono" x="84" y="424">Stop hook flags pages;</text><text class="t-mono" x="84" y="442">a commit waits once</text></g>
         <g class="node" data-step="4"><path class="ln box" pathLength="1" d="M60 510h240v100H60z"/><text class="t-title" x="84" y="550">Update</text><text class="t-mono" x="84" y="574">Isolated task reviews</text><text class="t-mono" x="84" y="592">only the stale pages</text></g>
         <g class="node script" data-step="5"><path class="ln box" pathLength="1" d="M60 660h240v100H60z"/><path class="ln thin" pathLength="1" d="M66 666h228v88H66z"/><text class="t-title" x="84" y="700">Sync</text><text class="t-mono" x="84" y="724">Records each reviewed</text><text class="t-mono" x="84" y="742">page’s new baseline</text></g>
         <g class="edges">
@@ -360,10 +524,10 @@ Pages live in `docs/architecture/` (6 pages, <span id="map-count">0 stale</span>
           <path class="ln" pathLength="1" d="M180 610V648"/><path class="head" d="M180 660l-4.5-14h9z"/>
           <path class="ln" pathLength="1" d="M60 710H26V110H48"/><path class="head" d="M60 110l-14-4.5v9z"/>
           <text class="t-edge" x="192" y="190">map + stale flags</text>
-          <text class="t-edge" x="192" y="340">turn ends</text>
-          <text class="t-edge" x="192" y="490">remind | auto</text>
+          <text class="t-edge" x="192" y="340">turn end · commit</text>
+          <text class="t-edge" x="192" y="490">commit | auto</text>
           <text class="t-edge" x="192" y="640">verified pages</text>
-          <text class="t-edge" x="18" y="410" text-anchor="middle" transform="rotate(-90 18 410)">next session</text>
+          <text class="t-edge" x="18" y="410" text-anchor="middle" transform="rotate(-90 18 410)">code + docs commit · next session</text>
         </g>
         <g class="legend">
           <path class="ln" pathLength="1" d="M60 784h36v22h-36z"/><path class="ln thin" pathLength="1" d="M64 788h28v14h-28z"/><text class="t-mono" x="106" y="800">local script · no tokens</text>
@@ -372,7 +536,7 @@ Pages live in `docs/architecture/` (6 pages, <span id="map-count">0 stale</span>
         <g class="bubbles">
           <g class="bubble-svg" data-step="1" tabindex="0" role="button" aria-label="Callout 1, session start" aria-describedby="note-1"><circle cx="300" cy="60" r="16"/><text x="300" y="65" text-anchor="middle">1</text></g>
           <g class="bubble-svg" data-step="2" tabindex="0" role="button" aria-label="Callout 2, agent works" aria-describedby="note-2"><circle cx="300" cy="210" r="16"/><text x="300" y="215" text-anchor="middle">2</text></g>
-          <g class="bubble-svg" data-step="3" tabindex="0" role="button" aria-label="Callout 3, stop hook" aria-describedby="note-3"><circle cx="300" cy="360" r="16"/><text x="300" y="365" text-anchor="middle">3</text></g>
+          <g class="bubble-svg" data-step="3" tabindex="0" role="button" aria-label="Callout 3, commit gate" aria-describedby="note-3"><circle cx="300" cy="360" r="16"/><text x="300" y="365" text-anchor="middle">3</text></g>
           <g class="bubble-svg" data-step="4" tabindex="0" role="button" aria-label="Callout 4, update" aria-describedby="note-4"><circle cx="300" cy="510" r="16"/><text x="300" y="515" text-anchor="middle">4</text></g>
           <g class="bubble-svg" data-step="5" tabindex="0" role="button" aria-label="Callout 5, sync" aria-describedby="note-5"><circle cx="300" cy="660" r="16"/><text x="300" y="665" text-anchor="middle">5</text></g>
         </g>
@@ -381,14 +545,40 @@ Pages live in `docs/architecture/` (6 pages, <span id="map-count">0 stale</span>
 
     <div class="keyed-notes">
       <h3 class="label">Keyed notes</h3>
-      <ol>
-        <li id="note-1" data-step="1"><b>Session start.</b> In a project with a handbook, a SessionStart hook prints the page map: one line per page, with stale flags. The budget is 3,000 bytes by default; this repository’s map is 1,630 bytes, about 408 tokens. Projects without a handbook get nothing.</li>
+      <ol data-stagger>
+        <li id="note-1" data-step="1"><b>Session start.</b> In a project with a handbook, a SessionStart hook prints the page map: one line per page, with stale flags. The budget is 3,000 bytes by default; this repository’s map is 1,630 bytes, about 408 tokens. Summaries come from a page’s “Summary” section when it has one. Projects without a handbook get nothing.</li>
         <li id="note-2" data-step="2"><b>Agent works.</b> The map says where to look. When the agent reads or edits a documented file, a hook names that file’s page, once per page per session. Pages summarize; source is authoritative.</li>
-        <li id="note-3" data-step="3"><b>Stop hook.</b> When a turn ends, a local script compares cited evidence with its baseline. Code that only moved gets its line links rewritten. Code that changed makes the page stale, and you see one line per new set of stale pages. 328&nbsp;ms on a 50,000-file repository.</li>
-        <li id="note-4" data-step="4"><b>Update.</b> With <code>"autoUpdate": "remind"</code> (default) you get the reminder. With <code>"auto"</code>, the agent runs the update itself in an isolated task. It fixes stale pages first, confirms review pages, and changes only prose the change made wrong.</li>
-        <li id="note-5" data-step="5"><b>Sync.</b> <code>sync</code> records the reviewed pages’ new baseline and refreshes the context file. It trusts the caller, so only pages someone checked against current source get synced.</li>
+        <li id="note-3" data-step="3"><b>Stop hook and commit gate.</b> <span class="delta delta-inline rev" aria-hidden="true">N</span> When a turn ends, a local script compares cited evidence with its baseline. Code that only moved, or a file Git reports as renamed, gets its links rewritten. Code that changed makes the page stale, and you see one line per new set of stale pages. 276&nbsp;ms on a 50,000-file repository. Before Claude runs <code>git commit</code>, a PreToolUse hook holds the commit once if it would leave pages stale.</li>
+        <li id="note-4" data-step="4"><b>Update.</b> With <code>"autoUpdate": "commit"</code> (the new default), the held commit runs the update first, in an isolated task. With <code>"auto"</code>, it runs at the end of every turn. It fixes stale pages first, confirms review pages, and changes only prose the change made wrong.</li>
+        <li id="note-5" data-step="5"><b>Sync.</b> <code>sync</code> records the reviewed pages’ new baseline and refreshes the context file. It trusts the caller, so only pages someone checked against current source get synced. Then the commit runs again, and code and docs land together.</li>
       </ol>
     </div>
+  </div>
+
+  <div class="split modes">
+    <div>
+      <h3 class="label">When docs update <span class="delta delta-inline rev" aria-hidden="true">N</span></h3>
+      <div class="table-scroll">
+        <table class="schedule schedule-compact">
+          <thead><tr><th scope="col"><code>autoUpdate</code></th><th scope="col">After each turn</th><th scope="col">When Claude runs <code>git commit</code></th><th scope="col">Model tokens</th></tr></thead>
+          <tbody>
+            <tr><th scope="row"><code>off</code></th><td>Nothing</td><td>Nothing</td><td>None</td></tr>
+            <tr><th scope="row"><code>remind</code></th><td>One message per new set of stale pages</td><td>Nothing</td><td>None</td></tr>
+            <tr class="row-key"><th scope="row"><code>commit</code> (default)</th><td>One message</td><td>Holds the commit once, runs the isolated update, then commits code and docs together</td><td>One update per commit that leaves pages stale</td></tr>
+            <tr><th scope="row"><code>auto</code></th><td>Runs the isolated update</td><td>Same as <code>commit</code></td><td>One update per turn that leaves pages stale</td></tr>
+          </tbody>
+        </table>
+      </div>
+      <p class="small">In every mode except <code>off</code>, the hooks first rewrite line links whose cited code only moved. Commits you make yourself in a terminal are not held: the turn-end message and the <code>archlens-stale</code> pre-push hook catch them. You add nothing to <code>CLAUDE.md</code>. The hooks are deterministic and cost no context until a page is actually stale. Other agents get the same rule through the <code>AGENTS.md</code> block.</p>
+    </div>
+    <figure class="tl" aria-labelledby="tl-title">
+      <figcaption>
+        <h3 class="label" id="tl-title">No churn while code is still changing</h3>
+        <p class="small">Three turns that each change cited code, then one commit.</p>
+      </figcaption>
+      <div class="tl-row"><p class="tl-k"><code>auto</code></p><ol class="tl-track" data-stagger aria-label="auto: three updates"><li>turn</li><li class="tl-up">update</li><li>turn</li><li class="tl-up">update</li><li>turn</li><li class="tl-up">update</li><li class="tl-commit">commit</li></ol></div>
+      <div class="tl-row tl-key"><p class="tl-k"><code>commit</code></p><ol class="tl-track" data-stagger aria-label="commit: one update"><li>turn</li><li>turn</li><li>turn</li><li class="tl-hold">held once</li><li class="tl-up">update</li><li class="tl-commit">commit</li></ol></div>
+    </figure>
   </div>
 
   <div class="where">
@@ -397,8 +587,8 @@ Pages live in `docs/architecture/` (6 pages, <span id="map-count">0 stale</span>
       <table class="schedule schedule-compact">
         <thead><tr><th scope="col">Where</th><th scope="col">Detects drift</th><th scope="col">Rewrites prose</th><th scope="col">Setup</th></tr></thead>
         <tbody>
-          <tr><th scope="row">Claude Code plugin</th><td>Stop hook, after each turn that changes covered files</td><td><code>autoUpdate: "auto"</code> runs isolated update</td><td>Install the plugin</td></tr>
-          <tr><th scope="row">Any agent that reads <code>AGENTS.md</code></th><td>The map block tells the agent to run the <code>status</code> check before relying on a page</td><td>Ask the agent to run the Archlens update operation</td><td><code>contextFile</code></td></tr>
+          <tr><th scope="row">Claude Code plugin</th><td>Stop hook after each turn; commit gate before each agent commit</td><td><code>autoUpdate: "commit"</code> (default) or <code>"auto"</code> runs the isolated update</td><td>Install the plugin</td></tr>
+          <tr><th scope="row">Any agent that reads <code>AGENTS.md</code></th><td>The map block tells the agent to run the <code>status</code> check before relying on a page, and to update stale pages before it commits code</td><td>Ask the agent to run the Archlens update operation</td><td><code>contextFile</code></td></tr>
           <tr><th scope="row">Git, any editor or agent</th><td><code>pre-push</code> hook</td><td>Developer or agent</td><td>pre-commit</td></tr>
           <tr><th scope="row">CI</th><td>Pull request check</td><td>Optional agent job</td><td>Workflow, see <span class="nowrap">I-601</span></td></tr>
         </tbody>
@@ -413,16 +603,16 @@ Pages live in `docs/architecture/` (6 pages, <span id="map-count">0 stale</span>
         <table class="schedule schedule-compact commands">
           <thead><tr><th scope="col">Command</th><th scope="col">What it does</th><th scope="col">Changes files?</th></tr></thead>
           <tbody>
-            <tr><th scope="row"><code>/archlens:setup</code></th><td>Writes a small handbook from source evidence and records the baseline</td><td>Docs only</td></tr>
+            <tr><th scope="row"><code>/archlens:setup</code></th><td>Adopts existing docs in place (<code>adopt</code>, the default when docs exist) or writes a small handbook (<code>new</code>), then records the baseline</td><td>Docs only</td></tr>
             <tr><th scope="row"><code>/archlens:update</code></th><td>Fixes stale pages first, confirms review pages, then syncs them</td><td>Docs only</td></tr>
-            <tr><th scope="row"><code>/archlens:check</code></th><td>Audits evidence, links, anchors, diagrams, stale references, and freshness</td><td>No</td></tr>
+            <tr><th scope="row"><code>/archlens:check</code></th><td>Audits evidence, links, anchors, diagrams, stale references, freshness, and ranges that cut a function short. Errors first; style is one <code>info</code> note per page</td><td>No</td></tr>
             <tr><th scope="row"><code>/archlens:explain</code></th><td>Traces one flow with a diagram and a source-linked step table</td><td>No</td></tr>
             <tr><th scope="row"><code>/archlens:decide</code></th><td>Drafts a decision record with options, tradeoffs, and a review trigger</td><td>Docs only</td></tr>
             <tr><th scope="row"><code>/archlens:learn</code></th><td>Tutors you: questions, <code>tour</code>, <code>quiz</code>, or <code>changes</code></td><td>No</td></tr>
           </tbody>
         </table>
       </div>
-      <p class="small">Five run in an isolated task, so exploration never fills your conversation. <code>learn</code> runs inline so you can keep asking. In other agents, ask for the same operations by name.</p>
+      <p class="small">Five run in an isolated task, so exploration never fills your conversation. <code>learn</code> runs inline so you can keep asking. In other agents, ask for the same operations by name. For page authors, <code>archlens.py cite</code> prints link-ready line ranges (Detail 3).</p>
     </div>
 
     <div>
@@ -445,6 +635,10 @@ Pages live in `docs/architecture/` (6 pages, <span id="map-count">0 stale</span>
           <div class="dim-track"><span class="dim-v" style="--at:0">nothing, unless cited evidence changed</span></div>
         </div>
         <div class="dim-row">
+          <p class="dim-k"><b>Commit gate</b><span>Before Claude runs <code>git commit</code></span></p>
+          <div class="dim-track"><span class="dim-v" style="--at:0">nothing, unless the commit leaves pages stale</span></div>
+        </div>
+        <div class="dim-row">
           <p class="dim-k"><b><code>learn</code></b><span>Inline, for follow-ups</span></p>
           <div class="dim-track"><span class="dim dim-ext" style="--from:0;--to:2200"></span><span class="dim-v" style="--at:0">≤ 2,200 B cold load</span></div>
         </div>
@@ -459,7 +653,7 @@ Pages live in `docs/architecture/` (6 pages, <span id="map-count">0 stale</span>
   </div>
 
   <div class="title-block" aria-hidden="true">
-    <div><b>Project</b>Archlens</div><div><b>Title</b>The loop</div><div><b>Sheet</b><i>A-201</i></div><div><b>Rev</b>0.3.0</div>
+    <div><b>Project</b>Archlens</div><div><b>Title</b>The loop</div><div><b>Sheet</b><i>A-201</i></div><div><b>Rev</b>N</div>
     <div><b>Drawn</b>agent</div><div><b>Checked</b>you</div><div class="tb-wide"><b>Scale</b>1 page = 1 question</div>
   </div>
 </div>
@@ -477,9 +671,9 @@ Pages live in `docs/architecture/` (6 pages, <span id="map-count">0 stale</span>
     </div>
   </header>
 
-  <div class="stats">
+  <div class="stats" data-stagger>
     <div class="stat">
-      <p class="stat-n">31<span>%</span></p>
+      <p class="stat-n" data-count>31<span>%</span></p>
       <p class="stat-l">fewer input tokens</p>
       <div class="cmp" style="--r:.6915">
         <span class="cmp-k">no handbook</span><span class="cmp-bar"></span><span class="cmp-v">24,952</span>
@@ -487,7 +681,7 @@ Pages live in `docs/architecture/` (6 pages, <span id="map-count">0 stale</span>
       </div>
     </div>
     <div class="stat">
-      <p class="stat-n">26<span>%</span></p>
+      <p class="stat-n" data-count>26<span>%</span></p>
       <p class="stat-l">fewer turns</p>
       <div class="cmp" style="--r:.7381">
         <span class="cmp-k">no handbook</span><span class="cmp-bar"></span><span class="cmp-v">4.2</span>
@@ -495,7 +689,7 @@ Pages live in `docs/architecture/` (6 pages, <span id="map-count">0 stale</span>
       </div>
     </div>
     <div class="stat">
-      <p class="stat-n">32<span>%</span></p>
+      <p class="stat-n" data-count>32<span>%</span></p>
       <p class="stat-l">lower cost per answer</p>
       <div class="cmp" style="--r:.6818">
         <span class="cmp-k">no handbook</span><span class="cmp-bar"></span><span class="cmp-v">$0.022</span>
@@ -503,7 +697,7 @@ Pages live in `docs/architecture/` (6 pages, <span id="map-count">0 stale</span>
       </div>
     </div>
     <div class="stat">
-      <p class="stat-n">27<span>%</span></p>
+      <p class="stat-n" data-count>27<span>%</span></p>
       <p class="stat-l">less time per answer</p>
       <div class="cmp" style="--r:.7292">
         <span class="cmp-k">no handbook</span><span class="cmp-bar"></span><span class="cmp-v">9.6 s</span>
@@ -579,11 +773,11 @@ Pages live in `docs/architecture/` (6 pages, <span id="map-count">0 stale</span>
 
     <div class="speed">
       <h3 class="label">Drift detection at scale</h3>
-      <p class="speed-big"><span>222</span>&nbsp;ms</p>
+      <p class="speed-big"><span data-count>199</span>&nbsp;ms</p>
       <p class="small"><code>status</code> on a synthetic repository of 50,000 files and 300 pages, after changing 25 files. Every page cites a line-range anchor, so the time includes anchor checks. Median of three runs, Apple Silicon laptop, Python 3.9.6.</p>
       <div class="speed-bars" style="--max:4.1">
         <div class="speed-row speed-old"><span class="speed-k">first implementation</span><span class="speed-track"><span class="speed-bar" style="--v:4.1"></span></span><span class="speed-v">4.1 s</span></div>
-        <div class="speed-row"><span class="speed-k">sorted prefix ranges</span><span class="speed-track"><span class="speed-bar" style="--v:.222"></span></span><span class="speed-v">0.22 s</span></div>
+        <div class="speed-row"><span class="speed-k">sorted prefix ranges</span><span class="speed-track"><span class="speed-bar" style="--v:.199"></span></span><span class="speed-v">0.20 s</span></div>
       </div>
       <p class="small">The first version scanned every file for every page. Sorted prefix ranges made it fast enough for a hook after every turn.</p>
     </div>
@@ -595,13 +789,13 @@ Pages live in `docs/architecture/` (6 pages, <span id="map-count">0 stale</span>
       <table class="data-table">
         <thead><tr><th scope="col">Synthetic repo</th><th scope="col">sync</th><th scope="col">status</th><th scope="col">context</th><th scope="col">Stop hook</th><th scope="col">check</th><th scope="col">Map bytes</th><th scope="col">State file</th></tr></thead>
         <tbody>
-          <tr><th scope="row">1,000 files, 20 pages</th><td>63 ms</td><td>49 ms</td><td>51 ms</td><td>82 ms</td><td>11 ms</td><td>2,069</td><td>36,215</td></tr>
-          <tr><th scope="row">10,000 files, 100 pages</th><td>92 ms</td><td>83 ms</td><td>89 ms</td><td>117 ms</td><td>36 ms</td><td>2,510</td><td>357,086</td></tr>
-          <tr><th scope="row">50,000 files, 300 pages</th><td>257 ms</td><td>222 ms</td><td>245 ms</td><td>328 ms</td><td>75 ms</td><td>2,982</td><td>1,828,468</td></tr>
+          <tr><th scope="row">1,000 files, 20 pages</th><td>61 ms</td><td>49 ms</td><td>49 ms</td><td>81 ms</td><td>10 ms</td><td>2,069</td><td>36,215</td></tr>
+          <tr><th scope="row">10,000 files, 100 pages</th><td>82 ms</td><td>75 ms</td><td>88 ms</td><td>109 ms</td><td>26 ms</td><td>3,000</td><td>357,086</td></tr>
+          <tr><th scope="row">50,000 files, 300 pages</th><td>228 ms</td><td>199 ms</td><td>216 ms</td><td>276 ms</td><td>59 ms</td><td>2,982</td><td>1,828,468</td></tr>
         </tbody>
       </table>
     </div>
-    <p class="small">The map stays inside its 3,000-byte budget at 300 pages: it drops summaries first, then coverage, then lists how many pages it left out.</p>
+    <p class="small">The map stays inside its 3,000-byte budget at 300 pages. It keeps each page’s summary before its coverage list, fills them in reading order while they fit, and lists how many pages it left out only when even titles do not fit. A 22-page adopted handbook keeps every summary in 2,979 bytes.</p>
   </details>
 
   <div class="limits">
@@ -624,7 +818,115 @@ python tools/render_charts.py</code></pre>
   <p class="small">Method, raw results, and questions: <a href="https://github.com/tushar-mahalya/archlens/blob/main/docs/benchmarks.md">docs/benchmarks.md</a>. The model benchmark spends real usage; start with <code>--reps 1</code>.</p>
 
   <div class="title-block" aria-hidden="true">
-    <div><b>Project</b>Archlens</div><div><b>Title</b>Evidence</div><div><b>Sheet</b><i>A-301</i></div><div><b>Rev</b>0.3.0</div>
+    <div><b>Project</b>Archlens</div><div><b>Title</b>Evidence</div><div><b>Sheet</b><i>A-301</i></div><div><b>Rev</b>N</div>
+    <div><b>Drawn</b>agent</div><div><b>Checked</b>you</div><div class="tb-wide"><b>Scale</b>1 page = 1 question</div>
+  </div>
+</div>
+</section>
+
+<!-- ============ A-302 REAL-PROJECT TRIAL ============ -->
+<section class="sheet" id="a-302" aria-labelledby="h-a-302">
+<div class="frame">
+  <div class="zones" aria-hidden="true"><span>1</span><span>2</span><span>3</span><span>4</span><span>5</span><span>6</span></div>
+  <header class="sheet-head">
+    <p class="sheet-id"><span class="sheet-no">A-302</span><span class="sheet-name">Real-project trial <span class="delta delta-inline rev" aria-hidden="true">N</span></span></p>
+    <div class="sheet-heading">
+      <h2 id="h-a-302">One real monorepo. A rule changed, tested, and committed with its docs in 4.6 minutes.</h2>
+      <p class="lede">We tried Archlens on a 50,000-line FastAPI + React/TypeScript monorepo with about 6,000 lines of existing docs. Claude Code ran headless on Opus. This is one trial on one repository, not a general benchmark.</p>
+    </div>
+  </header>
+
+  <div class="stats trial-stats" data-stagger>
+    <div class="stat">
+      <p class="stat-n" data-count>4.6<span>min</span></p>
+      <p class="stat-l">change, test, and commit</p>
+      <p class="stat-kv"><b>$1.25</b> for the whole task. One commit with code, test, and docs.</p>
+    </div>
+    <div class="stat">
+      <p class="stat-n" data-count>5.8<span>min</span></p>
+      <p class="stat-l">adopt-mode setup</p>
+      <p class="stat-kv"><b>$1.53</b>. 16 existing docs mapped in place; 3 real errors fixed.</p>
+    </div>
+    <div class="stat">
+      <p class="stat-n" data-count>4</p>
+      <p class="stat-l">warnings on the existing docs</p>
+      <div class="cmp" style="--r:.0098">
+        <span class="cmp-k">old checker</span><span class="cmp-bar"></span><span class="cmp-v">407</span>
+        <span class="cmp-k">now</span><span class="cmp-bar cmp-part"></span><span class="cmp-v">4</span>
+      </div>
+    </div>
+    <div class="stat">
+      <p class="stat-n" data-count>2</p>
+      <p class="stat-l">citations flagged by one change</p>
+      <div class="cmp" style="--r:.3333">
+        <span class="cmp-k">before</span><span class="cmp-bar"></span><span class="cmp-v">6</span>
+        <span class="cmp-k">now</span><span class="cmp-bar cmp-part"></span><span class="cmp-v">2</span>
+      </div>
+    </div>
+  </div>
+
+  <h3 class="label">Every measured run</h3>
+  <div class="table-scroll">
+    <table class="schedule schedule-compact trial-runs">
+      <thead><tr><th scope="col">Task</th><th scope="col">Time</th><th scope="col">Cost</th><th scope="col">What happened</th></tr></thead>
+      <tbody data-stagger>
+        <tr class="row-key"><th scope="row">Change one rule, run tests, and commit</th><td>4.6 min</td><td>$1.25</td><td>The commit was held once and the isolated update ran. One commit landed with code, test, and docs</td></tr>
+        <tr><th scope="row">Setup, adopt mode</th><td>5.8 min</td><td>$1.53</td><td>Mapped 16 existing docs in place and fixed 3 real errors in them: a missing <code>plan</code> node in a graph diagram, a threshold rule, and a broken ADR anchor</td></tr>
+        <tr><th scope="row">Setup that wrote new pages</th><td>about 10 min</td><td>$2.77</td><td>Wrote 6 source-linked pages. The runtime page’s sampled claims matched the code. Found a real bug, below</td></tr>
+        <tr><th scope="row">Update after two real code changes</th><td>93 s</td><td>$0.40</td><td>Fixed both drifted claims, including one the checker had only marked <code>review</code>, and added the missing source link</td></tr>
+        <tr><th scope="row">One <code>/archlens:learn</code> answer</th><td>45 s</td><td>$0.32</td><td>Runs inline, so you can ask follow-ups</td></tr>
+      </tbody>
+    </table>
+  </div>
+
+  <div class="split split-even redline-split">
+    <aside class="redline-note finding" aria-labelledby="trial-bug">
+      <p class="redline-tag"><span class="delta delta-inline" aria-hidden="true">!</span> Finding</p>
+      <h3 id="trial-bug">Setup found a real bug</h3>
+      <p>The web client’s messages for HTTP 503 and 504 can never show on the streaming endpoint.</p>
+      <p>Capacity and deadline failures arrive as an in-stream <code>error</code> event, after the server has already sent HTTP 200.</p>
+    </aside>
+    <figure class="detail noise" aria-labelledby="noise-title">
+      <figcaption class="detail-head">
+        <span class="bubble" aria-hidden="true"><span>5</span><span>A-302</span></span>
+        <span class="detail-title" id="noise-title">Detail 5: checker output on the existing docs</span>
+      </figcaption>
+      <div class="noise-row">
+        <p class="noise-k">old checker</p>
+        <div class="noise-strip noise-old" role="img" aria-label="407 semicolon warnings, with one real broken anchor among them"><span class="noise-hit"></span></div>
+        <p class="noise-v">407 semicolon warnings. <span class="t-stale">1 real broken anchor</span> buried among them.</p>
+      </div>
+      <div class="noise-row">
+        <p class="noise-k">now</p>
+        <div class="noise-strip noise-new" role="img" aria-label="4 warnings, plus one style note per page"><i></i><i></i><i></i><i></i><span class="noise-info">info · 1 per page</span></div>
+        <p class="noise-v">4 warnings, plus one style note per page that never fails <code>--strict</code>.</p>
+      </div>
+    </figure>
+  </div>
+
+  <div class="trial-notes">
+    <h3 class="label">What the trial changed</h3>
+    <ul>
+      <li>Style heuristics became one <code>info</code> note per page. Findings sort errors first.</li>
+      <li>Git-ignored paths, never-tracked names such as the MCP method <code>tools/list</code>, and paths in accepted decision records are no longer reported as stale references.</li>
+      <li>After the precision changes, the same code change flags <b>2</b> citations instead of 6. A comment-only edit no longer makes the glossary stale.</li>
+      <li>Editing a linked Markdown document marks pages for <code>review</code>, not <code>stale</code>. A docs fix that flagged 5 pages stale now gives <b>0 stale, 5 review</b>.</li>
+      <li><code>check</code> warns when a line range cuts off a function’s first or last code line by one or two lines. It found <b>1</b> real case, a test citation that dropped the <code>finally:</code> slot release, and no false positives.</li>
+    </ul>
+  </div>
+
+  <div class="limits">
+    <h3 class="label">Limits of this trial</h3>
+    <ol>
+      <li>One trial on one repository. It is not a general benchmark, and your times and costs will differ.</li>
+      <li>Times and costs are from Claude Code headless on Opus.</li>
+      <li>The runtime page was checked by sampling its claims, not line by line.</li>
+      <li>The repository is not named here. The 72-session benchmark on A-301 is the published, rerunnable measurement.</li>
+    </ol>
+  </div>
+
+  <div class="title-block" aria-hidden="true">
+    <div><b>Project</b>Archlens</div><div><b>Title</b>Trial</div><div><b>Sheet</b><i>A-302</i></div><div><b>Rev</b>N</div>
     <div><b>Drawn</b>agent</div><div><b>Checked</b>you</div><div class="tb-wide"><b>Scale</b>1 page = 1 question</div>
   </div>
 </div>
@@ -646,10 +948,20 @@ python tools/render_charts.py</code></pre>
   <div class="table-scroll">
     <table class="data-table survey" id="survey-table">
       <thead><tr><th scope="col">Tool</th><th scope="col">How it stays current</th><th scope="col">Always-loaded cost</th><th scope="col">Accuracy safeguards</th><th scope="col">Agents</th></tr></thead>
-      <tbody id="survey-body"></tbody>
+      <tbody id="survey-body" data-stagger>
+        <tr class="is-self"><th scope="row"><a href="https://github.com/tushar-mahalya/archlens">Archlens</a></th><td>Local fingerprints of cited functions (Python and C-family), line ranges, and covered files. Hooks flag drift and hold an agent&#x27;s commit until stale pages are updated; pre-commit or CI elsewhere. An isolated task rewrites</td><td>178 B description, plus a map of at most 3 KB only where a handbook exists</td><td>Evidence links, symbol-level drift, moved-anchor and renamed-file detection, stale prose references, &quot;unknown&quot; rule. Existing docs adopted with the same checks</td><td>Claude plugin with hooks; portable skill; <code>AGENTS.md</code> block</td></tr>
+        <tr><th scope="row"><a href="https://github.com/langchain-ai/openwiki">OpenWiki</a></th><td>Claims tied to line-range evidence; clean updates skip model work. Manual run or scheduled CI PR</td><td>A managed <code>AGENTS.md</code> block; size not stated</td><td>Grounded claims with versioned evidence</td><td>Runs through the host agent&#x27;s session or its own provider</td></tr>
+        <tr><th scope="row"><a href="https://github.com/repowise-dev/repowise">repowise</a></th><td>Per-commit incremental index; path, symbol, and command drift checks</td><td>Up to 10 MCP tools</td><td>Symbol findings need proof from Git</td><td>MCP clients</td></tr>
+        <tr><th scope="row"><a href="https://github.com/fiberplane/drift">Fiberplane drift</a></th><td>Doc anchors to <code>file#Symbol</code> with a normalized AST hash; CI fails when stale</td><td>Near zero</td><td>Symbol-level, ignores reformatting</td><td>Skill; detection only</td></tr>
+        <tr><th scope="row"><a href="https://docs.swimm.io/">Swimm</a></th><td>Docs coupled to code snippets and tokens; auto-sync check on PRs</td><td>Not stated</td><td>Element-level coupling</td><td>IDE and MCP; commercial</td></tr>
+        <tr><th scope="row"><a href="https://github.com/natsu1211/deepwiki-skill">deepwiki-skill</a></th><td>Model-driven <code>--update</code></td><td>About 526 B descriptions; 3.7 KB skill plus up to 70 KB references per task</td><td>Line citations, Mermaid validation</td><td>Skill hosts</td></tr>
+        <tr><th scope="row"><a href="https://github.com/severity1/claude-code-auto-memory">claude-code-auto-memory</a></th><td>Starts an updater agent at turn end whenever files changed</td><td>About 784 B descriptions plus managed <code>CLAUDE.md</code> sections</td><td>None stated</td><td>Claude Code</td></tr>
+        <tr><th scope="row"><a href="https://docs.devin.ai/work-with-devin/deepwiki">DeepWiki</a></th><td>Hosted regeneration</td><td>MCP tools, on demand</td><td>Code links; users report stale and wrong pages</td><td>Web and MCP</td></tr>
+        <tr><th scope="row"><a href="https://aider.chat/docs/repomap.html">Aider repo map</a>, <a href="https://github.com/colbymchenry/codegraph">CodeGraph</a>, <a href="https://github.com/oraios/serena">Serena</a></th><td>Recomputed from code</td><td>Symbol maps or MCP tools</td><td>Deterministic, but no rationale or design history</td><td>Varies</td></tr>
+      </tbody>
     </table>
   </div>
-  <noscript><p class="small">The survey table is drawn by script. Read the same table in <a href="https://github.com/tushar-mahalya/archlens/blob/main/docs/benchmarks.md#1-how-archlens-compares">docs/benchmarks.md, section 1</a>.</p></noscript>
+  <p class="small">Source table: <a href="https://github.com/tushar-mahalya/archlens/blob/main/docs/benchmarks.md#1-how-archlens-compares">docs/benchmarks.md, section 1</a>.</p>
   <p class="small">The model benchmark on A-301 compares Archlens with no handbook, not with these tools.</p>
 
   <div class="split split-even survey-notes">
@@ -662,63 +974,9 @@ python tools/render_charts.py</code></pre>
       <p>OpenWiki and repowise have far larger communities. Code-graph tools answer “who calls this” questions that a handbook does not. Swimm couples individual tokens, not just functions and line ranges.</p>
     </div>
   </div>
-  <script type="application/json" id="survey-data">
-{
-  "reviewed": "2026-11-08",
-  "source": "https://github.com/tushar-mahalya/archlens/blob/main/docs/benchmarks.md#1-how-archlens-compares",
-  "columns": ["current", "always", "safeguards", "agents"],
-  "rows": [
-    {"self": true, "links": [["Archlens", "https://github.com/tushar-mahalya/archlens"]],
-     "current": "Local fingerprints of cited functions, line ranges, and covered files. Hooks, pre-commit, or CI flag drift; an isolated task rewrites",
-     "always": "178 B description, plus a map of at most 3 KB only where a handbook exists",
-     "safeguards": "Evidence links, symbol-level drift, moved-anchor detection, stale prose references, \"unknown\" rule",
-     "agents": "Claude plugin with hooks; portable skill; `AGENTS.md` block"},
-    {"links": [["OpenWiki", "https://github.com/langchain-ai/openwiki"]],
-     "current": "Claims tied to line-range evidence; clean updates skip model work. Manual run or scheduled CI PR",
-     "always": "A managed `AGENTS.md` block; size not stated",
-     "safeguards": "Grounded claims with versioned evidence",
-     "agents": "Runs through the host agent's session or its own provider"},
-    {"links": [["repowise", "https://github.com/repowise-dev/repowise"]],
-     "current": "Per-commit incremental index; path, symbol, and command drift checks",
-     "always": "Up to 10 MCP tools",
-     "safeguards": "Symbol findings need proof from Git",
-     "agents": "MCP clients"},
-    {"links": [["Fiberplane drift", "https://github.com/fiberplane/drift"]],
-     "current": "Doc anchors to `file#Symbol` with a normalized AST hash; CI fails when stale",
-     "always": "Near zero",
-     "safeguards": "Symbol-level, ignores reformatting",
-     "agents": "Skill; detection only"},
-    {"links": [["Swimm", "https://docs.swimm.io/"]],
-     "current": "Docs coupled to code snippets and tokens; auto-sync check on PRs",
-     "always": "Not stated",
-     "safeguards": "Element-level coupling",
-     "agents": "IDE and MCP; commercial"},
-    {"links": [["deepwiki-skill", "https://github.com/natsu1211/deepwiki-skill"]],
-     "current": "Model-driven `--update`",
-     "always": "About 526 B descriptions; 3.7 KB skill plus up to 70 KB references per task",
-     "safeguards": "Line citations, Mermaid validation",
-     "agents": "Skill hosts"},
-    {"links": [["claude-code-auto-memory", "https://github.com/severity1/claude-code-auto-memory"]],
-     "current": "Starts an updater agent at turn end whenever files changed",
-     "always": "About 784 B descriptions plus managed `CLAUDE.md` sections",
-     "safeguards": "None stated",
-     "agents": "Claude Code"},
-    {"links": [["DeepWiki", "https://docs.devin.ai/work-with-devin/deepwiki"]],
-     "current": "Hosted regeneration",
-     "always": "MCP tools, on demand",
-     "safeguards": "Code links; users report stale and wrong pages",
-     "agents": "Web and MCP"},
-    {"links": [["Aider repo map", "https://aider.chat/docs/repomap.html"], ["CodeGraph", "https://github.com/colbymchenry/codegraph"], ["Serena", "https://github.com/oraios/serena"]],
-     "current": "Recomputed from code",
-     "always": "Symbol maps or MCP tools",
-     "safeguards": "Deterministic, but no rationale or design history",
-     "agents": "Varies"}
-  ]
-}
-  </script>
 
   <div class="title-block" aria-hidden="true">
-    <div><b>Project</b>Archlens</div><div><b>Title</b>Field survey</div><div><b>Sheet</b><i>S-401</i></div><div><b>Rev</b>0.3.0</div>
+    <div><b>Project</b>Archlens</div><div><b>Title</b>Field survey</div><div><b>Sheet</b><i>S-401</i></div><div><b>Rev</b>N</div>
     <div><b>Drawn</b>agent</div><div><b>Checked</b>you</div><div class="tb-wide"><b>Scale</b>1 page = 1 question</div>
   </div>
 </div>
@@ -745,13 +1003,13 @@ python tools/render_charts.py</code></pre>
         <div><dt><code>/archlens:learn quiz data flow</code></dt><dd>One question at a time about real behavior here. Grades each answer against evidence. Stops after five with a score and the pages to reread.</dd></div>
         <div><dt><code>/archlens:learn changes</code></dt><dd>Explains what the current branch changes, which flow or data it affects, and why it matters.</dd></div>
       </dl>
-      <p class="small">While a long task runs, Claude Code’s <code>/btw</code> can answer from the page map already in context.</p>
+      <p class="small">While a long task runs, Claude Code’s <code>/btw</code> can answer from the page map already in context. In the real-project trial (A-302), one tutor answer took 45 seconds and $0.32.</p>
     </div>
 
     <figure class="quiz" id="quiz" aria-labelledby="quiz-title">
       <figcaption class="detail-head">
-        <span class="bubble" aria-hidden="true"><span>4</span><span>A-501</span></span>
-        <span class="detail-title" id="quiz-title">Detail 4: a quiz on the order example</span>
+        <span class="bubble" aria-hidden="true"><span>6</span><span>A-501</span></span>
+        <span class="detail-title" id="quiz-title">Detail 6: a quiz on the order example</span>
       </figcaption>
       <p class="illustration-flag">Illustration · scripted in this page, not a live model</p>
       <div class="transcript">
@@ -777,7 +1035,7 @@ python tools/render_charts.py</code></pre>
   </div>
 
   <div class="title-block" aria-hidden="true">
-    <div><b>Project</b>Archlens</div><div><b>Title</b>Learn</div><div><b>Sheet</b><i>A-501</i></div><div><b>Rev</b>0.3.0</div>
+    <div><b>Project</b>Archlens</div><div><b>Title</b>Learn</div><div><b>Sheet</b><i>A-501</i></div><div><b>Rev</b>N</div>
     <div><b>Drawn</b>agent</div><div><b>Checked</b>you</div><div class="tb-wide"><b>Scale</b>1 page = 1 question</div>
   </div>
 </div>
@@ -809,7 +1067,7 @@ python tools/render_charts.py</code></pre>
       <div class="code-block"><pre><code>/plugin marketplace add tushar-mahalya/archlens
 /plugin install archlens@archlens
 /archlens:setup</code></pre></div>
-      <p>That is all. Setup writes a handbook under <code>docs/architecture/</code>, records a freshness baseline, and from then on the plugin keeps it in step with your edits.</p>
+      <p>That is all. If the project already has architecture docs, setup adopts them where they live (<code>/archlens:setup adopt</code>, the default then). Otherwise, or with <code>/archlens:setup new</code>, it writes a handbook under <code>docs/architecture/</code>. It records a freshness baseline. From then on the docs update once per commit, in the same commit as the code. You add nothing to <code>CLAUDE.md</code>.</p>
       <p class="small">From a terminal, the install equivalent is <code>claude plugin marketplace add tushar-mahalya/archlens</code> then <code>claude plugin install archlens@archlens --scope user</code>. Choose either the native plugin or the portable skill for Claude Code, not both.</p>
     </div>
 
@@ -821,7 +1079,7 @@ python tools/render_charts.py</code></pre>
       <blockquote class="prompt">Use the Archlens skill to set up architecture documentation for this project.</blockquote>
       <p>Setup offers to write the page map into <code>AGENTS.md</code>, which these agents read every session. To write it yourself, set <code>{ "contextFile": "AGENTS.md" }</code> in <code>.archlens.json</code> and run:</p>
       <div class="code-block"><pre><code>python &lt;skill-dir&gt;/scripts/archlens.py context --root . --write</code></pre></div>
-      <p class="small">Every <code>sync</code> refreshes the block. The written block has no stale flags, because freshness changes between commits; it tells the agent to run the <code>status</code> check before relying on a page. Portable hosts do not necessarily provide Claude’s isolated, manual-only behavior. The skills CLI has its own telemetry; set <code>DISABLE_TELEMETRY=1</code> to opt out. See <a href="https://github.com/tushar-mahalya/archlens/blob/main/docs/installation.md">installation</a> for adapters and caveats.</p>
+      <p class="small">Every <code>sync</code> refreshes the block. The written block has no stale flags, because freshness changes between commits; it tells the agent to run the <code>status</code> check before relying on a page, and to update stale pages before it commits code, in the same commit. Portable hosts do not necessarily provide Claude’s isolated, manual-only behavior. The skills CLI has its own telemetry; set <code>DISABLE_TELEMETRY=1</code> to opt out. See <a href="https://github.com/tushar-mahalya/archlens/blob/main/docs/installation.md">installation</a> for adapters and caveats.</p>
     </div>
 
     <div class="tabpanel" id="panel-git" role="tabpanel" aria-labelledby="tab-git" tabindex="0">
@@ -835,7 +1093,7 @@ python tools/render_charts.py</code></pre>
       - id: archlens-stale   # on pre-push: fail while cited code changed</code></pre></div>
       <p>Install both stages:</p>
       <div class="code-block"><pre><code>pre-commit install --hook-type pre-commit --hook-type pre-push</code></pre></div>
-      <p class="small"><code>archlens-check</code> runs on every commit and fails on structural errors. <code>archlens-stale</code> runs on <code>pre-push</code> and fails while covered source changed after the last sync.</p>
+      <p class="small"><code>archlens-check</code> runs on every commit and fails on structural errors. <code>archlens-stale</code> runs on <code>pre-push</code> and fails while covered source changed after the last sync. <code>rev: v0.3.0</code> pins the last release; items marked <span class="delta delta-inline rev">N</span> on this site are not in it yet.</p>
     </div>
 
     <div class="tabpanel" id="panel-ci" role="tabpanel" aria-labelledby="tab-ci" tabindex="0">
@@ -864,15 +1122,74 @@ jobs:
     <ul>
       <li>A stale flag means “check this page”. It does not prove the prose is wrong.</li>
       <li>Code shows what happens, not why a person chose it. Decisions stay <code>proposed</code> until a human accepts them.</li>
-      <li>Python files get symbol-level fingerprints; other languages use normalized line-range text.</li>
-      <li>The benchmark covers one small repository; large-repository and coding-task results are not measured yet.</li>
+      <li>Python and C-family files get symbol-level fingerprints. The C-family brace reader is a heuristic, not a parser. Other files use normalized line-range text.</li>
+      <li>The benchmark covers one small repository. The real-project trial (A-302) is one trial on one larger repository. Coding-task results are not measured yet.</li>
       <li>Archlens has no server, no telemetry, and no network calls. Your agent’s provider policy still applies.</li>
       <li>The writing style is STE-inspired, not certified ASD-STE100.</li>
     </ul>
   </div>
 
   <div class="title-block" aria-hidden="true">
-    <div><b>Project</b>Archlens</div><div><b>Title</b>Install</div><div><b>Sheet</b><i>I-601</i></div><div><b>Rev</b>0.3.0</div>
+    <div><b>Project</b>Archlens</div><div><b>Title</b>Install</div><div><b>Sheet</b><i>I-601</i></div><div><b>Rev</b>N</div>
+    <div><b>Drawn</b>agent</div><div><b>Checked</b>you</div><div class="tb-wide"><b>Scale</b>1 page = 1 question</div>
+  </div>
+</div>
+</section>
+
+<!-- ============ Q-701 QUESTIONS ============ -->
+<section class="sheet" id="q-701" aria-labelledby="h-q-701">
+<div class="frame">
+  <div class="zones" aria-hidden="true"><span>1</span><span>2</span><span>3</span><span>4</span><span>5</span><span>6</span></div>
+  <header class="sheet-head">
+    <p class="sheet-id"><span class="sheet-no">Q-701</span><span class="sheet-name">Questions</span></p>
+    <div class="sheet-heading">
+      <h2 id="h-q-701">Questions people ask before they install.</h2>
+      <p class="lede">Short answers. Each one points to the sheet with the details.</p>
+    </div>
+  </header>
+
+  <div class="faq" data-stagger>
+    <div class="faq-item">
+      <h3>What is Archlens?</h3>
+      <p>Archlens is a Claude Code plugin and a portable Agent Skill that keeps architecture docs in sync with your code. It writes a small, source-linked handbook or adopts the docs you already have. A local script flags pages whose cited code changed, and an isolated task updates them, by default in the same commit as the code. It also gives your coding agent a page map of the project in a few hundred tokens.</p>
+    </div>
+    <div class="faq-item">
+      <h3>How is Archlens different from DeepWiki or OpenWiki?</h3>
+      <p>DeepWiki regenerates a hosted wiki and serves it through the web and MCP. OpenWiki ties claims to line-range evidence and updates through a manual run or a scheduled CI pull request. Archlens keeps the docs in your repository, detects drift on the exact functions and line ranges each page cites with a local script and no model, and updates only the stale pages. Its always-loaded map has a byte budget that CI enforces. <a href="#s-401">The field survey (S-401)</a> compares more tools; vendor claims there are as published.</p>
+    </div>
+    <div class="faq-item">
+      <h3>Which coding agents does it support?</h3>
+      <p>Claude Code gets the native plugin with hooks. Codex, Cursor, GitHub Copilot, Gemini CLI, OpenCode, Roo, Devin, and other agents get the portable Agent Skill through skills.sh, and any agent that reads <code>AGENTS.md</code> can get the page map. The pre-commit hooks and the CI check work with any editor or agent.</p>
+    </div>
+    <div class="faq-item">
+      <h3>Does it need a server, an API key, or send telemetry?</h3>
+      <p>No. Archlens has no server, no telemetry, and makes no network calls. The Claude Code plugin needs no API key or Node installation; Python 3.9+ enables the hooks and checks. Your agent’s normal subscription or API usage and provider policy still apply. The skills CLI that installs the portable skill has its own telemetry; set <code>DISABLE_TELEMETRY=1</code> to opt out.</p>
+    </div>
+    <div class="faq-item">
+      <h3>What does keeping docs current cost?</h3>
+      <p>Detecting drift costs no model tokens, because it is a local script. By default, prose is rewritten once per commit that leaves pages stale. In the <a href="#a-302">real-project trial (A-302)</a>, an update after two real code changes took 93 seconds and $0.40 on Opus, and a whole change, test, and commit task with its docs took 4.6 minutes and $1.25. That is one trial on one repository.</p>
+    </div>
+    <div class="faq-item">
+      <h3>Does it work with the docs I already have?</h3>
+      <p>Yes. In a project with architecture docs, <code>/archlens:setup adopt</code>, the default then, maps them where they live, fixes statements the code contradicts with minimal edits, adds pages only for real gaps, and uses your decision-record folder and numbering. Mapped docs get the same checks and freshness tracking as new pages.</p>
+    </div>
+    <div class="faq-item">
+      <h3>How do I install it?</h3>
+      <p>In Claude Code, run <code>/plugin marketplace add tushar-mahalya/archlens</code>, then <code>/plugin install archlens@archlens</code>, then <code>/archlens:setup</code>. For other agents, run <code>npx skills@1.7.6 add tushar-mahalya/archlens --skill archlens --agent codex --copy --yes</code> in the project, and replace <code>codex</code> with your agent.</p>
+    </div>
+  </div>
+
+  <div class="star">
+    <p class="star-big">Free, MIT-licensed, and built in the open.</p>
+    <p>If Archlens keeps your docs honest, star the repository so other developers can find it. Bug reports and ideas are welcome.</p>
+    <div class="cta">
+      <a class="btn btn-ink" href="https://github.com/tushar-mahalya/archlens">Star Archlens on GitHub</a>
+      <a class="btn" href="https://github.com/tushar-mahalya/archlens/issues">Report an Archlens bug or idea</a>
+    </div>
+  </div>
+
+  <div class="title-block" aria-hidden="true">
+    <div><b>Project</b>Archlens</div><div><b>Title</b>Questions</div><div><b>Sheet</b><i>Q-701</i></div><div><b>Rev</b>N</div>
     <div><b>Drawn</b>agent</div><div><b>Checked</b>you</div><div class="tb-wide"><b>Scale</b>1 page = 1 question</div>
   </div>
 </div>
@@ -887,8 +1204,8 @@ jobs:
       <p id="foot-title" class="fb-word">Archlens</p>
       <p>Architecture docs that stay in sync with your code.</p>
     </div>
-    <div class="fb-cell"><b>Drawing set</b><p>Public site, 7 sheets</p></div>
-    <div class="fb-cell"><b>Revision</b><p>0.3.0 · 2026-11-08</p></div>
+    <div class="fb-cell"><b>Drawing set</b><p>Public site, 9 sheets</p></div>
+    <div class="fb-cell"><b>Revision</b><p>N, unreleased · after 0.3.0 (2026-11-08)</p></div>
     <div class="fb-cell"><b>Drawn</b><p>agent</p></div>
     <div class="fb-cell"><b>Checked</b><p>you</p></div>
     <div class="fb-cell"><b>Scale</b><p>1 page = 1 question</p></div>
@@ -896,9 +1213,10 @@ jobs:
     <nav class="fb-cell fb-links" aria-label="Project links">
       <b>Reference</b>
       <ul>
-        <li><a href="https://github.com/tushar-mahalya/archlens">GitHub repository</a></li>
+        <li><a href="https://github.com/tushar-mahalya/archlens">Archlens repository on GitHub</a></li>
         <li><a href="https://github.com/tushar-mahalya/archlens/blob/main/docs/installation.md">Installation</a></li>
         <li><a href="https://github.com/tushar-mahalya/archlens/blob/main/docs/automation.md">Automation</a></li>
+        <li><a href="https://github.com/tushar-mahalya/archlens/blob/main/docs/cli.md">CLI reference</a></li>
         <li><a href="https://github.com/tushar-mahalya/archlens/blob/main/docs/benchmarks.md">Benchmarks</a></li>
         <li><a href="https://github.com/tushar-mahalya/archlens/blob/main/docs/context-efficiency.md">Context budgets</a></li>
         <li><a href="https://github.com/tushar-mahalya/archlens/blob/main/docs/architecture/README.md">How Archlens works</a></li>
