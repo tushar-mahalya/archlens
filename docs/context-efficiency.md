@@ -57,6 +57,10 @@ The diagram shows logical loading, not literal removal of tokens from an active 
 | Source evidence | Names, then selected ranges | Expand only for a named missing fact |
 | Parent result | Links and conclusions | 200 words; explain can use 500 |
 
+`claude plugin details` reports about 315 always-on tokens for Archlens because it counts all six
+skill descriptions. Five skills set `disable-model-invocation: true`, which keeps their descriptions
+out of normal model context, so only the 178-byte `update` description loads in every session.
+
 CI checks byte budgets, routes, resource paths, and forbidden eager-loading surfaces.
 It also counts setup's required configuration and workflow sections, and decide's ADR frame.
 Hooks may only run the bundled script for SessionStart, PreToolUse, PostToolUse, and Stop, in exec form, never async.
@@ -78,7 +82,7 @@ These are instructions to the model, not enforced read limits.
 | Portable operation | Router + workflow + contract | Required cold load including named sections |
 |---|---:|---:|
 | setup | 6,346 bytes | 12,033 bytes |
-| update | 6,467 bytes | 6,467 bytes |
+| update | 6,542 bytes | 6,542 bytes |
 | check | 5,801 bytes | 5,801 bytes |
 | explain | 5,305 bytes | 5,305 bytes |
 | decide | 5,541 bytes | 6,678 bytes |

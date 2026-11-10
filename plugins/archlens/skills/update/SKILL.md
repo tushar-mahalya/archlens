@@ -35,6 +35,7 @@ Use `git diff <syncedCommit> -- <file>` when the report gives a commit.
 Trace affected contracts and consumers. A path match is not proof of stale prose.
 Change only prose that source now contradicts or leaves incomplete. Keep other prose,
 and the structure of mapped existing documents, stable. Update links when files moved.
+Link the claims you verified to source, so later drift checks are precise.
 If a page needs no change, give an evidence-based no-impact reason.
 For uncertain execution, read only "Trace execution and data" in the workflow reference.
 
