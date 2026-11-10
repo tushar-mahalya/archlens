@@ -50,12 +50,10 @@ A custom domain can be added later in **Workers & Pages → archlens-docs → Cu
   curl "https://api.indexnow.org/indexnow?url=https://archlens-docs.pages.dev/&key=af83e24b5969ec49b7603348dc2605b2"
   ```
 
-- **Google** does not support IndexNow. Verify the site once in Google Search Console:
-  1. Add a **URL prefix** property for `https://archlens-docs.pages.dev/`.
-  2. Choose **HTML tag**, copy the `google-site-verification` meta tag, and paste it in
-     `site/index.html` at the commented placeholder inside `<head>`. Commit and deploy.
-  3. Click **Verify**, then open **Sitemaps** and submit `https://archlens-docs.pages.dev/sitemap.xml`.
-  4. Keep the tag; removing it un-verifies the property.
+- **Google** does not support IndexNow. The site is verified in Google Search Console as a
+  **URL prefix** property for `https://archlens-docs.pages.dev/`, with the HTML file
+  `site/google4dcafa1fef06d189.html`. Keep that file byte-exact and deployed; removing it
+  un-verifies the property. The sitemap to submit is `https://archlens-docs.pages.dev/sitemap.xml`.
 - **Bing Webmaster Tools** can import the verified site from Search Console.
 
 ## Names that are already taken (checked 10 November 2026)

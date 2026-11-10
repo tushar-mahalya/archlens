@@ -19,8 +19,8 @@ repos:
       - id: check-symlinks
       - id: detect-private-key
       - id: end-of-file-fixer
-        # IndexNow key files must hold exactly the key, with no trailing newline.
-        exclude: ^site/[0-9a-f]{32}\.txt$
+        # Search-engine verification files must stay byte-exact as downloaded.
+        exclude: ^site/([0-9a-f]{32}\.txt|google[0-9a-f]+\.html)$
       - id: mixed-line-ending
         args: [--fix=lf]
       - id: trailing-whitespace
