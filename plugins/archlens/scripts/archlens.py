@@ -1317,12 +1317,13 @@ def build_context(root: Path, config: dict, budget: int | None = None, live: boo
                  + "Before you commit code, update the pages it marks stale and commit them together. ")
     header = ["## Architecture handbook (Archlens)", intro + "After an architectural change, update the affected pages.", ""]
 
-    def line(page, level):
+    def line(page, detail=(False, False)):
+        show_summary, show_covers = detail
         title, summary = briefs[page["id"]]
         text = f"- `{page['path']}` {title}"
-        if level == 0 and summary and summary.lower() != title.lower():
+        if show_summary and summary and summary.lower() != title.lower():
             text += f": {summary}"
-        if level <= 1 and page["covers"]:
+        if show_covers and page["covers"]:
             shown = ", ".join(page["covers"][:2]) + (f" +{len(page['covers']) - 2}" if len(page["covers"]) > 2 else "")
             text += f" [covers {shown}]"
         entry = states.get(page["id"]) if live else None
@@ -1331,28 +1332,30 @@ def build_context(root: Path, config: dict, budget: int | None = None, live: boo
             text += f" STALE: {count} cited change{'s' if count != 1 else ''}"
         return text
 
-    def fits(levels):
-        text = "\n".join(header + [line(page, levels[page["id"]]) for page in ordered])
+    def fits(details):
+        text = "\n".join(header + [line(page, details[page["id"]]) for page in ordered])
         return len(text.encode("utf-8")) <= budget
 
-    # Start from the shortest line per page, then add coverage and summaries in reading
-    # order while the budget allows, so one long page does not cost every page its detail.
-    levels = {page["id"]: 2 for page in ordered}
-    if fits(levels):
-        for target in (1, 0):
+    # Start from the shortest line per page. Then add summaries, then coverage, in reading
+    # order while the budget allows: one long page does not cost every page its detail,
+    # and a summary orients an agent better than a list of paths.
+    details = {page["id"]: (False, False) for page in ordered}
+    if fits(details):
+        for part in (0, 1):
             for page in ordered:
-                if target == 0 and page["kind"] == "decision":
+                if part == 0 and page["kind"] == "decision":
                     continue
-                previous, levels[page["id"]] = levels[page["id"]], target
-                if not fits(levels):
-                    levels[page["id"]] = previous
-        return "\n".join(header + [line(page, levels[page["id"]]) for page in ordered]) + "\n"
+                previous = details[page["id"]]
+                details[page["id"]] = (True, previous[1]) if part == 0 else (previous[0], True)
+                if not fits(details):
+                    details[page["id"]] = previous
+        return "\n".join(header + [line(page, details[page["id"]]) for page in ordered]) + "\n"
     kept = []
     for page in ordered:
-        candidate = "\n".join(header + kept + [line(page, 2), f"- +{len(ordered)} more pages in `{doc_rel}/map.json`"])
+        candidate = "\n".join(header + kept + [line(page), f"- +{len(ordered)} more pages in `{doc_rel}/map.json`"])
         if len(candidate.encode("utf-8")) > budget:
             break
-        kept.append(line(page, 2))
+        kept.append(line(page))
     rest = len(ordered) - len(kept)
     return "\n".join(header + kept + [f"- +{rest} more pages in `{doc_rel}/map.json`"]) + "\n"
 

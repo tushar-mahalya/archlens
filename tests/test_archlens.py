@@ -439,6 +439,7 @@ class ContextTests(Fixture):
         self.assertIn("`p0.md` Page 0", text)
         self.assertIn("`p39.md` Page 39", text, "every page still listed")
         self.assertNotIn("more pages", text)
+        self.assertGreater(text.count("This page explains"), text.count("[covers"), "summaries before coverage")
 
     def test_write_block_is_idempotent_and_preserves_text(self):
         self.pages(1)
