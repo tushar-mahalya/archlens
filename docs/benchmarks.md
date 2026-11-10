@@ -179,7 +179,7 @@ was inserted inside a template literal, which is a real change. Two deleted bloc
 copy elsewhere in the file, so the checker reported them as moved.
 
 Limits: one edit at a time. The 0.4.0 row has fewer real edits because that version found no
-enclosing symbol for some ranges. The monorepo is private, so only the last row can be rerun here
+enclosing symbol for some ranges. The monorepo is not part of this repository, so only the last row can be rerun here
 ([`benchmarks/results/drift.json`](../benchmarks/results/drift.json)); use `--root` on your own project.
 The benchmark tests fingerprints, not whether a page's prose is still right.
 
@@ -206,7 +206,7 @@ What this says:
   bytes of their whole pages, for 13 points less recall. Five sections close half of that gap.
 - Treat a section as a first read. Widen to the page when the answer is not there.
 
-Limits: the trial monorepo is private, so its column cannot be rerun from this repository, and its
+Limits: the trial monorepo is not part of this repository, so its column cannot be rerun here, and its
 eight answer keys were written from its own handbook. The question text is the query; an agent can
 choose better words. No model was called, so the effect on answer quality and cost is not measured.
 
