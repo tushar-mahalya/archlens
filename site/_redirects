@@ -1,0 +1,3 @@
+# Serve the Google Search Console verification file at its exact URL (200, no
+# redirect). Cloudflare Pages otherwise redirects *.html to the extensionless path.
+/google4dcafa1fef06d189.html /google4dcafa1fef06d189 200

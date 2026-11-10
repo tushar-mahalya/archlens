@@ -52,8 +52,9 @@ A custom domain can be added later in **Workers & Pages → archlens-docs → Cu
 
 - **Google** does not support IndexNow. The site is verified in Google Search Console as a
   **URL prefix** property for `https://archlens-docs.pages.dev/`, with the HTML file
-  `site/google4dcafa1fef06d189.html`. Keep that file byte-exact and deployed; removing it
-  un-verifies the property. The sitemap to submit is `https://archlens-docs.pages.dev/sitemap.xml`.
+  `site/google4dcafa1fef06d189.html`. `site/_redirects` serves it at its exact URL, because
+  Cloudflare Pages otherwise redirects `.html` URLs. Keep the file byte-exact and deployed;
+  removing it un-verifies the property. The sitemap to submit is `https://archlens-docs.pages.dev/sitemap.xml`.
 - **Bing Webmaster Tools** can import the verified site from Search Console.
 
 ## Names that are already taken (checked 10 November 2026)
