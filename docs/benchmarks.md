@@ -41,20 +41,23 @@ Apple Silicon laptop, Python 3.9.6.
 
 | Synthetic repo | sync | status | context | Stop hook | check | Map bytes | State file |
 |---|---:|---:|---:|---:|---:|---:|---:|
-| 1,000 files, 20 pages | 63 ms | 49 ms | 51 ms | 82 ms | 11 ms | 2,069 | 36,215 |
-| 10,000 files, 100 pages | 92 ms | 83 ms | 89 ms | 117 ms | 36 ms | 2,510 | 357,086 |
-| 50,000 files, 300 pages | 257 ms | 222 ms | 245 ms | 328 ms | 75 ms | 2,982 | 1,828,468 |
+| 1,000 files, 20 pages | 61 ms | 49 ms | 49 ms | 81 ms | 10 ms | 2,069 | 36,215 |
+| 10,000 files, 100 pages | 82 ms | 75 ms | 88 ms | 109 ms | 26 ms | 3,000 | 357,086 |
+| 50,000 files, 300 pages | 228 ms | 199 ms | 216 ms | 276 ms | 59 ms | 2,982 | 1,828,468 |
 
 Every synthetic page cites a line-range anchor, so these times include anchor checks.
-The map stays inside its 3,000-byte budget at 300 pages: it drops summaries first,
-then coverage, then lists how many pages it left out.
+The map stays inside its 3,000-byte budget at 300 pages. It keeps each page's summary before its
+coverage list, fills them in reading order while they fit, and lists how many pages it left out
+only when even titles do not fit.
 The first implementation scanned every file for every page and took 4.1 s at 50,000 files.
 Sorted prefix ranges cut that to about 0.3 s, fast enough for a per-turn hook.
+The stop hook now skips its second freshness pass when no link moved, which keeps it under 0.3 s
+even with symbol fingerprints for C-family files and per-range tracking inside functions.
 
 | Session map | Bytes | ~Tokens | Handbook bytes | Map / handbook |
 |---|---:|---:|---:|---:|
-| This repository | 1,630 | 408 | 17,591 | 9.3% |
-| Order example | 1,131 | 283 | 7,379 | 15.3% |
+| This repository | 1,630 | 408 | 19,867 | 8.2% |
+| Order example | 1,131 | 283 | 7,469 | 15.1% |
 
 ## 3. Answer quality and cost with real agent sessions
 

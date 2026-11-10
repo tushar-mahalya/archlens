@@ -201,16 +201,17 @@ def page_location(root: Path, docs: Path, value, label: str) -> tuple[str, Path]
     if lead == len(parts) or any(part in {"", ".", ".."} for part in parts[lead:]):
         raise ArchlensError(f"{label} may start with '../' but must not contain other empty, '.' or '..' segments")
     resolved = (docs / normalized).resolve()
-    if not resolved.is_relative_to(root.resolve()):
+    if not resolved.is_relative_to(root):
         raise ArchlensError(f"{label} escapes the project: {value}")
     if lead and resolved.is_relative_to(docs):
         raise ArchlensError(f"{label}: write pages inside the handbook without '..': {value}")
-    if ".git" in resolved.relative_to(root.resolve()).parts:
+    if ".git" in resolved.relative_to(root).parts:
         raise ArchlensError(f"{label} must not point into .git: {value}")
     return normalized, resolved
 
 
 def load_map(root: Path, config: dict) -> tuple[Path, list[dict]]:
+    root = root.resolve()
     docs = contained(root, config["docsRoot"], "docsRoot")
     map_path = contained(docs, "map.json", "document map")
     if not map_path.is_file():
@@ -240,6 +241,7 @@ def load_map(root: Path, config: dict) -> tuple[Path, list[dict]]:
         resolved_paths.add(resolved)
         page["path"] = path
         page["_file"] = resolved
+        page["_relative"] = resolved.relative_to(root).as_posix()
         if not isinstance(page["id"], str) or not re.fullmatch(r"[A-Z][A-Z0-9-]*", page["id"]):
             raise ArchlensError(f"{label}.id must be an uppercase identifier")
         if page["id"] in ids:
@@ -644,7 +646,7 @@ def changed_files(root: Path, base: str | None) -> tuple[list[str], str | None]:
 
 def page_file(root: Path, page: dict) -> str:
     """Project-relative path of a mapped page."""
-    return page["_file"].relative_to(root.resolve()).as_posix()
+    return page["_relative"]
 
 
 def page_evidence(root: Path, docs: Path, page_path: Path, mapped=frozenset()) -> tuple[list[str], list[tuple[str, int, int]]]:
@@ -1228,10 +1230,10 @@ def sync_pages(root: Path, config: dict, ids: list[str], every: bool) -> dict:
     return report
 
 
-def fix_anchors(root: Path, config: dict, ids: list[str] | None = None) -> dict:
+def fix_anchors(root: Path, config: dict, ids: list[str] | None = None, status: dict | None = None) -> dict:
     """Rewrite line links whose cited code moved but did not change. No model needed."""
     docs, pages = load_map(root, config)
-    status = freshness(root, config)
+    status = status or freshness(root, config)
     state = load_state(docs)
     by_id = {page["id"]: page for page in pages}
     fixed = []
@@ -1570,8 +1572,13 @@ def session_changes(root: Path, payload: dict) -> set[str]:
 
 def stale_from_changes(root: Path, config: dict, dirty: set[str]) -> tuple[list, list]:
     """Rewrite moved links, then list pages whose cited evidence this change set made stale."""
-    fixed = fix_anchors(root, config)["fixed"] if config["fixAnchors"] else []
     status = freshness(root, config)
+    fixed = []
+    moved = any(c["change"] == "evidence-moved" for e in status["needsSync"] for c in e["changed"])
+    if config["fixAnchors"] and moved:
+        fixed = fix_anchors(root, config, status=status)["fixed"]
+        if fixed:
+            status = freshness(root, config)
     affected = []
     for entry in status["needsSync"]:
         paths = [c["path"] for c in entry["changed"] if c["path"] in dirty and c["severity"] == "stale"]

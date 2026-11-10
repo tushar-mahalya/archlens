@@ -134,7 +134,8 @@ Syncing a page you did not review hides real drift.
 
 Prints a compact, freshness-aware page map within `contextBudget` bytes.
 Pages appear in reading order with their title, first sentence, coverage, and stale flag.
-When the budget is tight, it drops summaries, then coverage, then lists the remaining count.
+When the budget is tight, it keeps summaries before coverage, page by page in reading order,
+and lists the remaining count only when titles alone do not fit.
 A written block has no stale flags, because freshness changes between commits; it tells
 the agent to run `status` instead.
 `--write FILE` (or `--write` with `contextFile` set) replaces only the managed

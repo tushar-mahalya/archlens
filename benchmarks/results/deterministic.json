@@ -8,42 +8,42 @@
       "this repository": {
         "mapBytes": 1630,
         "roughTokens": 408,
-        "handbookBytes": 17591,
-        "ratio": 0.093
+        "handbookBytes": 19867,
+        "ratio": 0.082
       },
       "order example": {
         "mapBytes": 1131,
         "roughTokens": 283,
-        "handbookBytes": 7379,
-        "ratio": 0.153
+        "handbookBytes": 7469,
+        "ratio": 0.151
       }
     },
     "nativeCommands": {
-      "/archlens:check": 3984,
-      "/archlens:decide": 4864,
-      "/archlens:explain": 3477,
+      "/archlens:check": 4162,
+      "/archlens:decide": 5042,
+      "/archlens:explain": 3655,
       "/archlens:learn": 1907,
-      "/archlens:setup": 9179,
-      "/archlens:update": 4731
+      "/archlens:setup": 10323,
+      "/archlens:update": 4941
     },
     "portableOperations": {
-      "setup": 10708,
-      "update": 6305,
-      "check": 5596,
-      "explain": 5100,
-      "decide": 6473,
-      "learn": 3570
+      "setup": 11865,
+      "update": 6542,
+      "check": 5801,
+      "explain": 5305,
+      "decide": 6678,
+      "learn": 3597
     }
   },
   "performance": [
     {
       "files": 1000,
       "pages": 20,
-      "syncMs": 63,
+      "syncMs": 61,
       "statusMs": 49,
-      "contextMs": 51,
-      "stopHookMs": 82,
-      "checkMs": 11,
+      "contextMs": 49,
+      "stopHookMs": 81,
+      "checkMs": 10,
       "stalePages": 0,
       "mapBytes": 2069,
       "stateFileBytes": 36215
@@ -51,23 +51,23 @@
     {
       "files": 10000,
       "pages": 100,
-      "syncMs": 92,
-      "statusMs": 83,
-      "contextMs": 89,
-      "stopHookMs": 117,
-      "checkMs": 36,
+      "syncMs": 82,
+      "statusMs": 75,
+      "contextMs": 88,
+      "stopHookMs": 109,
+      "checkMs": 26,
       "stalePages": 0,
-      "mapBytes": 2510,
+      "mapBytes": 3000,
       "stateFileBytes": 357086
     },
     {
       "files": 50000,
       "pages": 300,
-      "syncMs": 257,
-      "statusMs": 222,
-      "contextMs": 245,
-      "stopHookMs": 328,
-      "checkMs": 75,
+      "syncMs": 228,
+      "statusMs": 199,
+      "contextMs": 216,
+      "stopHookMs": 276,
+      "checkMs": 59,
       "stalePages": 0,
       "mapBytes": 2982,
       "stateFileBytes": 1828468

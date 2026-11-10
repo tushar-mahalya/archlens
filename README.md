@@ -28,7 +28,7 @@ Gemini CLI, OpenCode, and other agents.
 
 | What goes wrong today | What Archlens does | Measured |
 |---|---|---|
-| Docs go stale a week after they are written | Fingerprints the exact functions and line ranges each page cites, and flags the page when that code changes, even after a commit | Checks 50,000 files in **0.22 s** |
+| Docs go stale a week after they are written | Fingerprints the exact functions and line ranges each page cites, and flags the page when that code changes, even after a commit | Checks 50,000 files in **0.20 s** |
 | Moved code breaks every `#L120` link | Rewrites links whose cited code only moved. No model, no tokens | Automatic after each Claude turn |
 | Agents re-explore the repository every session | Loads a compact page map at session start, or writes it into `AGENTS.md` | **408 tokens** for this repo; capped at 3,000 bytes |
 | Context files bloat every turn | One model-visible description; everything else loads only when used | **178 bytes** in every session |
