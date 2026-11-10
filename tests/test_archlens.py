@@ -718,8 +718,22 @@ class AnchorTests(Fixture):
         go = "func (s *Server) Start(port int) error {\n\tgo func() {\n\t}()\n\treturn nil\n}\n"
         self.assertEqual([s[:3] for s in archlens.brace_symbols(go, ".go")], [("Start", 1, 5)])
 
+    def test_comment_inside_symbol_moves_inner_and_whole_ranges(self):
+        source = "def run(x):\n    a = 1\n    b = 2\n    c = 3\n    return a + b + c\n"
+        self.write("src/inner.py", source)
+        self.write("docs/architecture/README.md",
+                   "# Orders\n\n[b](../../src/inner.py#L3-L4) and [run](../../src/inner.py#L1-L5).\n")
+        archlens.sync_pages(self.root, self.config, [], True)
+        self.write("src/inner.py", source.replace("    b = 2\n", "    # why b\n    b = 2\n"))
+        changes = {tuple(c["lines"]): c for c in self.changes()[1] if c.get("lines")}
+        self.assertEqual(changes[(3, 4)]["change"], "evidence-moved")
+        self.assertEqual(changes[(3, 4)]["newLines"], [4, 5])
+        self.assertEqual(changes[(1, 5)]["newLines"], [1, 6])
+        archlens.fix_anchors(self.root, self.config)
+        self.assertEqual(self.changes()[0], "review")
+
     def test_c_family_anchor_ignores_comments_and_follows_moves(self):
-        self.write("src/app.js", "const a = 1;\nfunction go() {\n  // explain\n  return a;\n}\n")
+        self.write("src/app.js", "const a = 1;\nfunction go() {\n  return a; // explain\n}\n")
         self.assertEqual(self.changes()[0], "review")
         self.write("src/app.js", "// banner\n\nconst a = 1;\nfunction go() {\n  return a;\n}\n")
         self.assertIn({"path": "src/app.js", "lines": [2, 4], "symbol": "go", "change": "evidence-moved",
@@ -735,6 +749,10 @@ class AnchorTests(Fixture):
 
     def test_comment_and_blank_line_inside_symbol_are_ignored(self):
         self.write("src/svc.py", self.SOURCE.replace("    return order\n", "    # checked\n\n    return order\n"))
+        state, changes = self.changes()
+        self.assertEqual([c["change"] for c in changes if c.get("symbol")], ["evidence-moved"], "the link now ends early")
+        self.assertEqual([c["newLines"] for c in changes if c.get("symbol")], [[4, 9]])
+        archlens.fix_anchors(self.root, self.config)
         self.assertEqual(self.changes()[0], "review")
 
     def test_moved_symbol_reports_new_lines(self):

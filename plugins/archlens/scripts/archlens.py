@@ -947,18 +947,26 @@ def check_anchor(root: Path, record: dict) -> dict | None:
             return dict(base, change="symbol-removed")
         # Same-named symbols (overloads, repeated test blocks): prefer an unchanged one, then the nearest.
         _, start, end, digest = min(match, key=lambda s: (s[3] != record.get("digest"), abs(s[1] - record["symbolLines"][0])))
-        shift = start - record["symbolLines"][0]
-        if digest != record.get("digest") and record.get("span"):
+        old_start, old_end = record["symbolLines"]
+        shift = start - old_start
+        if record.get("span"):
+            # A range inside a symbol follows its own code lines, which can move inside
+            # the symbol even when the symbol's fingerprint is unchanged (a new comment).
             found = find_span(code_lines(path, text), start, end, record, first + shift)
             if found == [first, last]:
                 return None
             if found:
                 return dict(base, change="evidence-moved", newLines=found)
+            expected = [first + shift, last + shift]
+        elif [first, last] == [old_start, old_end]:
+            expected = [start, end]
+        else:
+            expected = [first + shift, min(last + shift + (end - start) - (old_end - old_start), end)]
         if digest != record.get("digest"):
-            moved = {"newLines": [first + shift, last + shift]} if shift else {}
+            moved = {"newLines": expected} if expected != [first, last] else {}
             return dict(base, change="evidence-changed", **moved)
-        if shift:
-            return dict(base, change="evidence-moved", newLines=[first + shift, last + shift])
+        if expected != [first, last]:
+            return dict(base, change="evidence-moved", newLines=expected)
         return None
     if record.get("digest") is None:
         return None
