@@ -32,7 +32,9 @@ DESCRIPTION_LIMIT = 260
 # learn runs inline so the user can keep asking follow-up questions; it skips the contract.
 INLINE = {"learn"}
 # PostToolUse adds at most one short pointer per documented page per session.
-HOOK_EVENTS = {"SessionStart", "Stop", "PostToolUse"}
+# PreToolUse (Bash) prints nothing unless an agent commit would leave pages stale,
+# and then one short reason, once per stale set.
+HOOK_EVENTS = {"SessionStart", "Stop", "PostToolUse", "PreToolUse"}
 CONTEXT_BUDGET_LIMIT = 4000
 
 

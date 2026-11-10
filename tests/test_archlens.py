@@ -174,7 +174,8 @@ class MapTests(Fixture):
         cases = [
             [page(), page("other.md")],
             [page(), page("readme.md", id="OTHER")],
-            [page("../escape.md")], [page(kind="other")],
+            [page("../../../escape.md")], [page("../x/../y.md")], [page("../architecture/README.md")],
+            [page("../../.git/x.md")], [page("/abs.md")], [page(kind="other")],
             [page(owner="")], [page(reviewState="approved")],
             [page(verifiedCommit="HEAD")], [page(covers="src/*")],
             [page(covers=["src/[ab].py"])], [page(decisionStatus="accepted")],
@@ -185,6 +186,20 @@ class MapTests(Fixture):
             self.handbook(pages=pages)
             with self.subTest(pages=pages), self.assertRaises(archlens.ArchlensError):
                 archlens.load_map(self.root, self.config)
+
+    def test_existing_documents_map_in_place(self):
+        docs = self.handbook()
+        (self.root / "docs/API.md").write_text("# API\n\nSee [handbook](architecture/README.md).\n", encoding="utf-8")
+        (self.root / "README.md").write_text("# Project\n", encoding="utf-8")
+        write_json(docs / "map.json", {"version": 1, "pages": [
+            page(), page("../API.md", id="API", kind="component"), page("../../README.md", id="ROOT", kind="context")]})
+        _, pages = archlens.load_map(self.root, self.config)
+        self.assertEqual([archlens.page_file(self.root, p) for p in pages],
+                         ["docs/architecture/README.md", "docs/API.md", "README.md"])
+        self.assertFalse(archlens.check_documents(self.root, self.config)["findings"])
+        (self.root / "docs/API.md").write_text("# API\n\n[Gone](gone.md)\n", encoding="utf-8")
+        findings = archlens.check_documents(self.root, self.config)["findings"]
+        self.assertEqual([(f["path"], f["code"]) for f in findings], [("docs/API.md", "local-link")])
 
     def test_valid_decision(self):
         self.handbook(pages=[page(kind="decision", decisionStatus="proposed")])
@@ -228,9 +243,17 @@ class CheckTests(Fixture):
         report = archlens.check_documents(self.root, self.config)
         codes = [item["code"] for item in report["findings"]]
         self.assertEqual(codes.count("local-link"), 1)
-        self.assertIn("semicolon", codes)
+        self.assertIn("style", codes)
         self.assertIn("sequence-numbers", codes)
         self.assertIsNone(report["stylePassRate"])
+
+    def test_style_notes_are_one_info_per_page_after_real_problems(self):
+        self.handbook("# Overview\n\n" + "Text; with a semicolon.\n\n" * 30 + "[Missing](missing.md)\n")
+        findings = archlens.check_documents(self.root, self.config)["findings"]
+        self.assertEqual([f["code"] for f in findings], ["local-link", "style"])
+        self.assertEqual(findings[1]["severity"], "info")
+        self.assertEqual(len(findings[1]["lines"]), 30)
+        self.assertIn("30 line(s) with semicolons", findings[1]["message"])
 
     def test_unmapped_and_missing_pages(self):
         docs = self.handbook(pages=[page("missing.md")])
@@ -261,6 +284,9 @@ class CheckTests(Fixture):
 
     def test_default_and_strict_exit_codes(self):
         self.handbook("# Overview\n\nText; with a semicolon.\n")
+        self.assertEqual(self.run_cli("check")[0], 0)
+        self.assertEqual(self.run_cli("check", "--strict")[0], 0, "style notes never fail strict")
+        self.handbook("# Overview\n\nSee [x](#nowhere).\n")
         self.assertEqual(self.run_cli("check")[0], 0)
         self.assertEqual(self.run_cli("check", "--strict")[0], 1)
         self.handbook("# Overview\n\n[Missing](missing.md)\n")
@@ -405,6 +431,15 @@ class ContextTests(Fixture):
             self.assertLessEqual(len(text.encode("utf-8")), budget)
             self.assertIn("more pages in `docs/architecture/map.json`", text)
 
+    def test_tight_budget_keeps_detail_for_early_pages(self):
+        self.pages(40)
+        text = archlens.build_context(self.root, self.config, 3000)
+        self.assertLessEqual(len(text.encode("utf-8")), 3000)
+        self.assertIn("Understand this system: Orders move from the API to the database.", text)
+        self.assertIn("`p0.md` Page 0", text)
+        self.assertIn("`p39.md` Page 39", text, "every page still listed")
+        self.assertNotIn("more pages", text)
+
     def test_write_block_is_idempotent_and_preserves_text(self):
         self.pages(1)
         target = self.root / "AGENTS.md"
@@ -456,18 +491,22 @@ class FreshnessTests(Fixture):
         (self.root / "lib/helper.py").write_text("h = 2\n", encoding="utf-8")
         self.git("commit", "-qam", "change")
         report = self.state()
-        self.assertEqual(report["needsSync"][0]["changed"], [{"path": "lib/helper.py", "change": "modified", "severity": "stale"}])
+        self.assertEqual(report["needsSync"][0]["changed"], [{"path": "lib/helper.py", "change": "modified", "severity": "review"}])
+        (self.root / "lib/helper.py").write_text("helper = 2\n", encoding="utf-8")
+        self.git("commit", "-qam", "rename")
+        report = self.state()
+        self.assertEqual(report["needsSync"][0]["changed"], [{"path": "lib/helper.py", "change": "outline-changed", "severity": "stale"}])
         self.assertEqual(self.run_cli("status", "--fail-on-stale")[0], 1)
         self.assertNotIn("src/a.py", archlens.impact_report(self.root, self.config, None)["changedFiles"])
 
     def test_added_removed_and_linked_files(self):
         archlens.sync_pages(self.root, self.config, ["INDEX"], False)
         (self.root / "src/new.py").write_text("n = 1\n", encoding="utf-8")
-        (self.root / "lib/helper.py").write_text("h = 2\n", encoding="utf-8")
+        (self.root / "lib/helper.py").write_text("def helper():\n    return 2\n", encoding="utf-8")
         (self.root / "src/a.py").unlink()
         changed = self.state()["needsSync"][0]["changed"]
         self.assertEqual(changed, [
-            {"path": "lib/helper.py", "change": "modified", "severity": "stale"},
+            {"path": "lib/helper.py", "change": "outline-changed", "severity": "stale"},
             {"path": "src/new.py", "change": "added", "severity": "review"},
             {"path": "src/a.py", "change": "removed", "severity": "review"},
         ])
@@ -497,7 +536,7 @@ class FreshnessTests(Fixture):
             archlens.sync_pages(root, self.config, [], True)
             (root / "src/a.py").write_text("a = 3\n", encoding="utf-8")
             self.assertEqual(archlens.freshness(root, self.config)["counts"]["review"], 1)
-            (root / "lib/helper.py").write_text("h = 3\n", encoding="utf-8")
+            (root / "lib/helper.py").write_text("h3 = 3\n", encoding="utf-8")
             self.assertEqual(archlens.freshness(root, self.config)["counts"]["stale"], 1)
 
     def test_nested_project_with_uncommitted_changes(self):
@@ -513,7 +552,22 @@ class FreshnessTests(Fixture):
         archlens.sync_pages(nested, self.config, [], True)
         self.assertEqual(archlens.freshness(nested, self.config)["counts"]["fresh"], 1)
         (nested / "app.py").write_text("x = 3\n", encoding="utf-8")
+        self.assertEqual(archlens.freshness(nested, self.config)["counts"]["review"], 1)
+        (nested / "app.py").write_text("y = 3\n", encoding="utf-8")
         self.assertEqual(archlens.freshness(nested, self.config)["counts"]["stale"], 1)
+
+    def test_mapped_existing_document_is_a_page_not_evidence(self):
+        (self.root / "docs/GUIDE.md").write_text("# Guide\n\nSee [helper](../lib/helper.py#L1).\n", encoding="utf-8")
+        (self.docs / "README.md").write_text("# Overview\n\nSee [guide](../GUIDE.md).\n", encoding="utf-8")
+        write_json(self.docs / "map.json", {"version": 1, "pages": [
+            page(covers=[]), page("../GUIDE.md", id="GUIDE", kind="component", covers=[])]})
+        archlens.sync_pages(self.root, self.config, [], True)
+        (self.root / "docs/GUIDE.md").write_text("# Guide\n\nEdited. See [helper](../lib/helper.py#L1).\n", encoding="utf-8")
+        self.assertEqual(self.state()["counts"]["fresh"], 2, "editing a mapped page does not stale pages that link it")
+        (self.root / "lib/helper.py").write_text("h = 9\n", encoding="utf-8")
+        report = self.state()
+        self.assertEqual([e["page"] for e in report["needsSync"]], ["docs/GUIDE.md"])
+        self.assertEqual(report["needsSync"][0]["state"], "stale")
 
     def test_impact_includes_linked_evidence(self):
         (self.root / "lib/helper.py").write_text("h = 3\n", encoding="utf-8")
@@ -529,6 +583,8 @@ class FreshnessTests(Fixture):
             (self.root / "src/a.py").write_text("a = 4\n", encoding="utf-8")
             self.assertIsNone(archlens.hook_stop(self.root, self.config, {"session_id": "s"}))
             (self.root / "lib/helper.py").write_text("h = 4\n", encoding="utf-8")
+            self.assertIsNone(archlens.hook_stop(self.root, self.config, {"session_id": "s"}), "body edit: review only")
+            (self.root / "lib/helper.py").write_text("h4 = 4\n", encoding="utf-8")
             first = archlens.hook_stop(self.root, self.config, {"session_id": "s"})
             self.assertIn("/archlens:update", first["systemMessage"])
             self.assertIsNone(archlens.hook_stop(self.root, self.config, {"session_id": "s"}))
@@ -538,6 +594,28 @@ class FreshnessTests(Fixture):
             self.assertIn("INDEX", blocked["reason"])
             self.assertNotIn("decision", archlens.hook_stop(self.root, auto, {"session_id": "u", "stop_hook_active": True}))
             self.assertIsNone(archlens.hook_stop(self.root, dict(self.config, autoUpdate="off"), {"session_id": "v"}))
+
+    def test_commit_gate_holds_a_stale_commit_once(self):
+        archlens.sync_pages(self.root, self.config, [], True)
+        data = self.root / "plugin-data"
+        commit = {"session_id": "c", "tool_input": {"command": "git add -A && git commit -m 'feat: x'"}}
+        with patch.dict(os.environ, {"CLAUDE_PLUGIN_DATA": str(data)}):
+            self.assertIsNone(archlens.hook_commit(self.root, self.config, commit), "nothing stale")
+            (self.root / "lib/helper.py").write_text("renamed = 4\n", encoding="utf-8")
+            other = dict(commit, tool_input={"command": "git status"})
+            self.assertIsNone(archlens.hook_commit(self.root, self.config, other))
+            held = archlens.hook_commit(self.root, self.config, commit)["hookSpecificOutput"]
+            self.assertEqual(held["permissionDecision"], "deny")
+            self.assertIn("archlens:update skill with pages INDEX", held["permissionDecisionReason"])
+            self.assertIsNone(archlens.hook_commit(self.root, self.config, commit), "second attempt passes")
+            self.assertIsNone(archlens.hook_commit(self.root, self.config, commit), "and stays passed")
+            for mode in ("remind", "off"):
+                self.assertIsNone(archlens.hook_commit(self.root, dict(self.config, autoUpdate=mode), dict(commit, session_id=mode)))
+            self.assertIsNotNone(archlens.hook_commit(self.root, dict(self.config, autoUpdate="auto"), dict(commit, session_id="a")))
+        for command in ("git commit -m x", "cd app && git -C . commit --amend", "(git commit)"):
+            self.assertTrue(archlens.COMMIT_COMMAND.search(command), command)
+        for command in ("echo commit", "git log --grep commit", "gitcommit"):
+            self.assertFalse(archlens.COMMIT_COMMAND.search(command), command)
 
     def test_marker_folder_rejects_symlinks(self):
         target = self.root / "elsewhere"
@@ -613,7 +691,41 @@ class AnchorTests(Fixture):
 
     def test_records_python_symbol(self):
         record = archlens.load_state(self.root / "docs/architecture")["pages"]["INDEX"]["anchors"]
-        self.assertEqual([a.get("symbol") for a in record], [None, "validate"])
+        self.assertEqual([a.get("symbol") for a in record], ["go", "validate"])
+
+    def test_c_family_symbols(self):
+        source = (
+            "import { type Order } from './order';\n"
+            "// Submits one order.\n"
+            "export async function submit(order: Order): Promise<string> {\n"
+            "  if (order.quantity < 1) {\n"
+            "    throw new Error('bad }');\n"
+            "  }\n"
+            "  return `id-${order.id}`;\n"
+            "}\n\n"
+            "export class Queue {\n"
+            "  push(item: Order): void {\n"
+            "    this.items.push(item);\n"
+            "  }\n"
+            "}\n"
+            "export const LIMIT = { size: 5 };\n"
+        )
+        symbols = [s[:3] for s in archlens.brace_symbols(source, ".ts")]
+        self.assertEqual(symbols, [("submit", 3, 8), ("Queue", 10, 14), ("Queue.push", 11, 13), ("LIMIT", 15, 15)])
+        rust = "pub struct Order<'a> { id: &'a str }\n\nimpl<'a> Order<'a> {\n    pub fn new(id: &'a str) -> Self {\n        let c = '{';\n        Order { id }\n    }\n}\n"
+        self.assertEqual([s[:3] for s in archlens.brace_symbols(rust, ".rs")],
+                         [("Order", 1, 1), ("Order", 3, 8), ("Order.new", 4, 7), ("Order.new.c", 5, 5)])
+        go = "func (s *Server) Start(port int) error {\n\tgo func() {\n\t}()\n\treturn nil\n}\n"
+        self.assertEqual([s[:3] for s in archlens.brace_symbols(go, ".go")], [("Start", 1, 5)])
+
+    def test_c_family_anchor_ignores_comments_and_follows_moves(self):
+        self.write("src/app.js", "const a = 1;\nfunction go() {\n  // explain\n  return a;\n}\n")
+        self.assertEqual(self.changes()[0], "review")
+        self.write("src/app.js", "// banner\n\nconst a = 1;\nfunction go() {\n  return a;\n}\n")
+        self.assertIn({"path": "src/app.js", "lines": [2, 4], "symbol": "go", "change": "evidence-moved",
+                       "newLines": [4, 6], "severity": "stale"}, self.changes()[1])
+        self.write("src/app.js", "const a = 1;\nfunction go() {\n  return a + 1;\n}\n")
+        self.assertEqual(self.changes()[1][0]["change"], "evidence-changed")
 
     def test_edit_outside_cited_evidence_is_review(self):
         self.write("src/svc.py", self.SOURCE.replace("return 1", "return 2"))
@@ -681,6 +793,31 @@ class ReferenceAndPointerTests(Fixture):
             "Symbol not found in the repository: cancel_order()",
             "npm script not found in package.json: build",
         ])
+
+    def test_ignored_never_tracked_and_historical_references(self):
+        (self.root / ".gitignore").write_text("data/\n", encoding="utf-8")
+        (self.root / "data").mkdir()
+        (self.root / "tools").mkdir()
+        (self.root / "tools/old").write_text("x", encoding="utf-8")
+        subprocess.check_call(["git", "-C", str(self.root), "add", "."])
+        subprocess.check_call(["git", "-C", str(self.root), "-c", "user.name=t", "-c", "user.email=t@e",
+                               "commit", "-qm", "init"])
+        (self.root / "tools/old").unlink()
+        text = ("# Orders\n\nData lives in `data/raw/`. `tools/list` is an MCP method.\n"
+                "`tools/old` was removed. `tools/new.py` is a typo.\n")
+        docs = self.handbook(text, pages=[page(covers=["src/**"])])
+        (docs / "ADR-001.md").write_text("# ADR\n\n" + text, encoding="utf-8")
+        (docs / "ADR-002.md").write_text("# ADR\n\n" + text, encoding="utf-8")
+        pages = [page(covers=["src/**"]),
+                 page("ADR-001.md", id="ADR-001", kind="decision", decisionStatus="accepted"),
+                 page("ADR-002.md", id="ADR-002", kind="decision", decisionStatus="proposed")]
+        write_json(docs / "map.json", {"version": 1, "pages": pages})
+        findings = [(f["path"].rsplit("/", 1)[-1], f["message"])
+                    for f in archlens.check_documents(self.root, self.config)["findings"] if f["code"] == "stale-reference"]
+        expected = ["Path not found: tools/new.py", "Path not found: tools/old"]
+        self.assertEqual(sorted(m for p, m in findings if p == "README.md"), expected)
+        self.assertEqual(sorted(m for p, m in findings if p == "ADR-002.md"), expected)
+        self.assertFalse([m for p, m in findings if p == "ADR-001.md"])
 
     def test_file_pointer_once_per_page(self):
         payload = {"session_id": "p", "tool_input": {"file_path": str(self.root / "src/orders.py")}}

@@ -44,6 +44,20 @@ Keep a coverage table in the index:
 For a large system, choose a bounded scenario or subsystem.
 Do not claim complete execution coverage after tracing a sample.
 
+### Existing documents
+
+Use the mode the request names. Default to `adopt` when architecture documents exist.
+
+- `adopt`: map existing architecture documents and decision records in place, such as
+  `../ARCHITECTURE.md`. Give each one narrow `covers` and `reviewState: needs-review`.
+  Verify the documents that describe the priority journey. Fix each statement that
+  current source contradicts with the smallest edit, and link the fixed claim to source.
+  Do not restructure, restyle, or rewrite correct prose. Add pages only for real gaps.
+- `new`: write a separate handbook. Link existing documents, but do not edit them.
+
+Record new decisions in the project's existing decision folder, numbering, and format.
+In the handoff, list each edited existing document and the mapped documents still unverified.
+
 ## Trace execution and data
 
 Trace from an external trigger to its observable outcome:

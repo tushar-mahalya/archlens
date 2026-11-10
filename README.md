@@ -61,7 +61,9 @@ One small repository and 24 answers per condition; see [benchmarks](docs/benchma
 ```
 
 That is all. Setup writes a handbook under `docs/architecture/`, records a freshness baseline,
-and from then on the plugin keeps it in step with your edits. Choose **user scope** when asked,
+and from then on the plugin keeps it in step with your edits. If the project already has
+architecture docs, setup adopts them in place: it maps them, fixes statements the code
+contradicts, and tracks them from then on. Run `/archlens:setup new` for a separate handbook instead. Choose **user scope** when asked,
 so Archlens works in every project. Python 3.9+ on `PATH` as `python3` enables the hooks and
 checks (the macOS system Python works); the commands still run without it.
 
@@ -111,7 +113,8 @@ flowchart LR
    `stale`. Changes elsewhere in covered files only mark it for `review`.
 4. **Hooks close the loop** in Claude Code. Session start loads the map, opening a documented file
    names its page once, and the end of each turn fixes moved links and reports stale pages.
-   With `"autoUpdate": "auto"`, the agent runs the update itself in an isolated task.
+   By default (`"autoUpdate": "commit"`), when the agent commits, Archlens holds the commit once,
+   the agent runs the update in an isolated task, and the docs land in the same commit as the code.
 
 What the agent sees at session start (real output from the [example](examples/order-service/README.md)):
 
@@ -138,7 +141,7 @@ STALE docs/architecture/data.md [DATA] evidence-moved order_service.py#L10-L17 (
 
 | Command | What it does | Edits files |
 |---|---|---|
-| `/archlens:setup` | Writes a small handbook from source evidence and records the baseline | Docs only |
+| `/archlens:setup [adopt \| new]` | Writes a small handbook from source evidence, or adopts existing docs in place, and records the baseline | Docs only |
 | `/archlens:update` | Fixes stale pages first, confirms review pages, then syncs them | Docs only |
 | `/archlens:check` | Audits evidence, links, anchors, diagrams, stale references, and freshness | No |
 | `/archlens:explain <scenario>` | Traces one flow with a diagram and a source-linked step table | No |
@@ -190,14 +193,15 @@ Defaults work. To change them, add `.archlens.json` to a project, or
   "docsRoot": "docs/architecture",
   "contextBudget": 3000,
   "contextFile": "AGENTS.md",
-  "autoUpdate": "remind",
+  "autoUpdate": "commit",
   "fixAnchors": true,
   "filePointers": true
 }
 ```
 
-`autoUpdate` is `off`, `remind` (one message, no tokens), or `auto` (the agent updates the stale
-pages in an isolated task). See [configuration](docs/configuration.md) and [automation](docs/automation.md).
+`autoUpdate` is `off`, `remind` (one message, no tokens), `commit` (default: the agent updates
+stale pages in an isolated task before it commits, so docs ship with the code), or `auto`
+(update at the end of every turn). See [configuration](docs/configuration.md) and [automation](docs/automation.md).
 
 ## Command line
 
@@ -218,7 +222,8 @@ Use `python3` or `py -3` where needed. Everything except `sync`, `fix-anchors`, 
 
 - A stale flag means "check this page". It does not prove the prose is wrong.
 - Code shows what happens, not why a person chose it. Decisions stay `proposed` until a human accepts them.
-- Python files get symbol-level fingerprints; other languages use normalized line-range text.
+- Python and C-family files (JavaScript, TypeScript, Go, Rust, Java, C#, C/C++, and others) get
+  symbol-level fingerprints; the C-family reader is a heuristic, not a parser. Other files use normalized text.
 - The benchmark covers one small repository; large-repository and coding-task results are not measured yet.
 - Archlens has no server, no telemetry, and no network calls. Your agent's provider policy still applies.
 - The writing style is STE-inspired, not certified ASD-STE100.

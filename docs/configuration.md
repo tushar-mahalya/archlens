@@ -33,7 +33,7 @@ clear it or set `ARCHLENS_CONFIG` explicitly to choose another file.
 | `sessionContext` | `true` | Claude plugin: load the map at session start |
 | `fixAnchors` | `true` | Claude plugin stop hook: rewrite line links whose cited code only moved |
 | `filePointers` | `true` | Claude plugin: when the agent reads or edits a documented file, name its page once per session |
-| `autoUpdate` | `remind` | Claude plugin stop hook: `off`, `remind` (one message), or `auto` (ask the agent to run update) |
+| `autoUpdate` | `commit` | Claude plugin: `off`, `remind` (one message), `commit` (update before Claude commits), or `auto` (update at the end of each turn) |
 
 The checker does not calculate the style score or count implicit flowchart nodes.
 These limits guide authors; they are not universal readability thresholds.
@@ -55,6 +55,10 @@ No preference overrides repository instructions or permission policy.
 
 Place `map.json` in your document root.
 Every Markdown page there needs one entry.
+Existing documents elsewhere in the project can be mapped in place with a path that starts
+with `../`, for example `"path": "../ARCHITECTURE.md"` or `"path": "../adr/0001-cache.md"`.
+Archlens then checks their links and references, tracks their freshness, and lists them in
+the agent map, without moving them. `/archlens:setup adopt` does this for you.
 Use [the configuration contract](../plugins/archlens/references/configuration.md) for all fields and glob semantics.
 See the [sample map](../examples/order-service/docs/architecture/map.json).
 
@@ -76,5 +80,5 @@ For Codex, Cursor, Copilot, Gemini CLI, and other agents that read `AGENTS.md`:
 ```
 
 Then run `context --write` once. Every later `sync` refreshes the block.
-Use `autoUpdate: "auto"` only if you accept an extra isolated update task after
-turns that change documented code. See [automation](automation.md).
+The default `autoUpdate: "commit"` refreshes stale pages once, just before Claude commits,
+so docs land in the same commit as the code. See [automation](automation.md).

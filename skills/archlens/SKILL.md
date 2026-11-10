@@ -10,7 +10,7 @@ Select one operation from the user's request:
 
 | Request | Operation |
 |---|---|
-| Create or extend an architecture handbook | [setup](workflows/setup.md) |
+| Create, extend, or adopt existing docs into an architecture handbook | [setup](workflows/setup.md) |
 | Update the handbook for local changes | [update](workflows/update.md) |
 | Audit existing documents without editing | [check](workflows/check.md) |
 | Explain one execution or data scenario without editing | [explain](workflows/explain.md) |

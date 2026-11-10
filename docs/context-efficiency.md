@@ -48,6 +48,7 @@ The diagram shows logical loading, not literal removal of tokens from an active 
 | Session map | Session start, only where `map.json` exists | `contextBudget`, default 3,000 bytes; CI caps the default at 4,000 |
 | File pointer | After Read or Edit of a documented file | One line per page per session, naming the page |
 | Stop hook | After each turn | No output unless cited evidence changed; one message per stale set |
+| Commit gate | Before each Bash call | No output unless an agent `git commit` would leave pages stale; one reason per stale set |
 | Command | One task, one fork; `learn` runs inline | At most 2,600 UTF-8 bytes per skill |
 | Shared contract | Once within that task | At most 2,400 bytes |
 | Base instructions | Command plus contract | At most 5,000 bytes |
@@ -58,7 +59,7 @@ The diagram shows logical loading, not literal removal of tokens from an active 
 
 CI checks byte budgets, routes, resource paths, and forbidden eager-loading surfaces.
 It also counts setup's required configuration and workflow sections, and decide's ADR frame.
-Hooks may only run the bundled script for SessionStart, PostToolUse, and Stop, in exec form, never async.
+Hooks may only run the bundled script for SessionStart, PreToolUse, PostToolUse, and Stop, in exec form, never async.
 The cold-load limits are 10,500 bytes for setup, 6,500 for decide, 2,200 for inline learn, and 5,000 for the other commands.
 These limits exclude conditional source reads and template sections selected later in the task.
 It also tests report limits with oversized synthetic inputs.
@@ -76,12 +77,12 @@ These are instructions to the model, not enforced read limits.
 
 | Portable operation | Router + workflow + contract | Required cold load including named sections |
 |---|---:|---:|
-| setup | 6,308 bytes | 10,708 bytes |
-| update | 6,305 bytes | 6,305 bytes |
-| check | 5,596 bytes | 5,596 bytes |
-| explain | 5,100 bytes | 5,100 bytes |
-| decide | 5,336 bytes | 6,473 bytes |
-| learn | 3,570 bytes | 3,570 bytes |
+| setup | 6,346 bytes | 12,033 bytes |
+| update | 6,467 bytes | 6,467 bytes |
+| check | 5,801 bytes | 5,801 bytes |
+| explain | 5,305 bytes | 5,305 bytes |
+| decide | 5,541 bytes | 6,678 bytes |
+| learn | 3,597 bytes | 3,597 bytes |
 
 These are current UTF-8 byte counts with LF line endings, not measured tokens. Conditional source,
 template sections, tool output, and host context add to them. CI limits the

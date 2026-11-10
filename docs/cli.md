@@ -14,6 +14,7 @@ python plugins/archlens/scripts/archlens.py status --root <project> --fail-on-st
 python plugins/archlens/scripts/archlens.py sync --root <project> --page FLOW-001 --page DATA
 python plugins/archlens/scripts/archlens.py context --root <project> --write AGENTS.md
 python plugins/archlens/scripts/archlens.py fix-anchors --root <project>
+python plugins/archlens/scripts/archlens.py cite --root <project> src/orders.py submit_order --from docs/architecture/runtime/submit.md
 ```
 
 Replace angle-bracket arguments. Quote paths containing spaces.
@@ -37,7 +38,14 @@ Checks:
 - Heading anchors (`page.md#section`, warning) and line anchors past the end of a file (`#L120`, error).
 - Unknown Mermaid diagram types, such as a misspelled `flowchat`.
 - Backticked prose references that no longer exist: paths with a slash, `name()` symbols, and `npm run` scripts (warning).
-- Missing titles, semicolons, long prose lines, missing sequence numbering, and explicit participant counts.
+  Paths that Git ignores, extension-less names that never existed in Git history (such as the
+  MCP method `tools/list`), and names in accepted or past decision records are not reported.
+- Missing titles, missing sequence numbering, and explicit participant counts (warning).
+- Lines with semicolons and long prose lines: one `style` note per page with its line numbers (info).
+  Notes are editorial candidates and never fail `--strict`.
+
+Findings are sorted by severity, then broken links and missing references before
+presentation advice, so a `--summary` preview shows the most important records first.
 
 Limits:
 
@@ -76,10 +84,18 @@ Committed, staged, unstaged, and untracked changes all count, without a base ref
 | `review` | Only other covered files changed. The page may still be right |
 | `unsynced` | The page has no recorded baseline yet |
 
-A line-range link such as `orders.py#L40-L62` is an anchor. In a Python file, Archlens
-records the smallest function or class around the range and compares its syntax tree,
-so comments, blank lines, and formatting do not count, and a moved function is reported
-with its new lines. In other files it compares the normalized text and searches for moved text.
+A line-range link such as `orders.py#L40-L62` is an anchor. Archlens records the smallest
+function or class around the range: by syntax tree in Python, and with a comment- and
+string-aware brace reader in C-family files (`.js`, `.ts`, `.tsx`, `.go`, `.rs`, `.java`,
+`.kt`, `.cs`, `.c`, `.cpp`, `.swift`, `.php`, `.dart`, and similar). Comments, blank lines,
+and formatting do not count, and a moved function is reported with its new lines.
+A range inside a larger function also records its own code lines, so an edit elsewhere in
+that function does not flag it. Other files compare normalized text and search for moved text.
+
+A whole-file link to a code file goes `stale` when the file's declared names change
+(a function, class, or top-level constant added, removed, or renamed), and `review` when
+only bodies change. Cite line ranges for claims about behavior, limits, and defaults.
+A link to any other file goes `stale` when the file changes.
 A page with no evidence links treats every covered change as `stale`.
 
 `--fail-on-stale` exits 1 for stale or unsynced pages. `--fail-on-review` also fails on review pages.
@@ -90,6 +106,18 @@ Rewrites line links whose cited code moved but did not change, then re-records t
 For example, `orders.py#L20-L38` becomes `orders.py#L21-L39` after a line is added above.
 It edits only the link fragments in handbook pages. Changed evidence still needs a person or agent.
 The Claude stop hook runs it automatically when `fixAnchors` is true.
+
+### cite
+
+Prints link-ready line ranges for functions and classes in a source file, for Python and
+C-family languages. Name symbols to cite (qualified, such as `Queue.push`, or bare), or
+omit them to list the file's main symbols. `--from <page>` prints links relative to that page.
+Exits 1 when a named symbol does not exist. Read-only.
+
+```text
+$ archlens.py cite --root . src/orders.py submit_order --from docs/architecture/runtime/submit.md
+[submit_order](../../../src/orders.py#L20-L38)
+```
 
 ### sync
 
@@ -110,7 +138,9 @@ the agent to run `status` instead.
 
 ### hook
 
-`hook session-start`, `hook file-pointer`, and `hook stop` are the Claude Code plugin hooks.
+`hook session-start`, `hook file-pointer`, `hook stop`, and `hook commit-gate` are the Claude Code plugin hooks.
+`commit-gate` runs before each Bash call. It exits at once unless the command is a `git commit`,
+and with `autoUpdate` set to `commit` or `auto` it holds a commit once while it would leave pages stale.
 They read hook JSON on standard input, print nothing outside an Archlens project, and always exit 0.
 `file-pointer` names the page that documents a file the agent read or edited, once per page per session.
 
@@ -120,12 +150,12 @@ They read hook JSON on standard input, print nothing outside an Archlens project
 - `--json`: complete machine-readable report.
 - `--summary`: valid JSON of at most 6,000 UTF-8 bytes, excluding its final newline.
   Includes totals, whole preview records, and exact omission counts.
-  Preview order follows report order, not a severity ranking.
+  `check` previews errors first, then warnings, then style notes.
 
 | Exit | Meaning |
 |---|---|
 | `0` | Check passed, or report generated successfully |
-| `1` | Structural findings, strict warnings, or a requested impact or stale gate |
+| `1` | Structural findings, strict warnings, a requested impact or stale gate, or a missing `cite` symbol |
 | `2` | Invalid input, config, map, Git failure, or file-access error |
 
 By default, warnings do not fail `check`, and review candidates do not fail `impact`.

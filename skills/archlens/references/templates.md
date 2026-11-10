@@ -16,7 +16,7 @@ Put machine-readable metadata in `map.json`, as defined in the configuration ref
 
 ## Handbook index
 
-Title: Understand this system
+File: `README.md`, so code hosts show it for the folder. Title: Understand this system
 
 - Purpose, users, and non-goals.
 - Read first: context and deployable units.

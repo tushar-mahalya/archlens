@@ -2,6 +2,49 @@
 
 ## Unreleased
 
+Tested on a real 50,000-line monorepo (FastAPI, React/TypeScript, Modal) with 6,000 lines of existing docs.
+
+### Fix existing docs, not just new ones
+
+- Map existing documents in place with `../` page paths, such as `../ARCHITECTURE.md`.
+  Archlens checks their links and references, tracks their freshness, and lists them in the agent map.
+- `/archlens:setup adopt` (the default when docs exist) maps existing docs and decision records,
+  fixes statements the code contradicts with minimal edits, and adds pages only for gaps.
+  `/archlens:setup new` keeps the earlier behavior: a separate handbook that links existing docs.
+- `update` verifies named and `needs-review` pages even when they are fresh, and keeps the
+  structure of mapped existing documents.
+- New decisions follow the project's existing decision folder and numbering.
+
+### Update docs once per commit
+
+- Add `autoUpdate: "commit"`, now the default. Before Claude runs `git commit`, a new PreToolUse
+  hook holds the commit once while it would leave pages stale. The agent runs the isolated update,
+  and the docs land in the same commit as the code. `remind` and `auto` still work.
+- The `AGENTS.md` block tells other agents to update stale pages before they commit code.
+
+### Fewer false alarms, more precise drift
+
+- Fingerprint functions and classes in C-family files (JavaScript, TypeScript, Go, Rust, Java,
+  C#, C/C++, Swift, PHP, Dart, and others) with a comment- and string-aware brace reader.
+  Comment edits are ignored and moved functions are followed, as in Python.
+- A line range inside a larger function tracks only its own lines. One changed rule in a
+  40-line function no longer flags every citation inside it.
+- A whole-file link to code goes stale only when the file's declared names change; body
+  edits mark the page for review. A comment-only edit no longer makes a glossary stale.
+- `check` reports style heuristics as one `info` note per page that never fails `--strict`,
+  and sorts errors first. On the trial repository, 407 semicolon warnings had hidden one real broken anchor.
+- `check` skips Git-ignored paths, extension-less names that never existed (such as `tools/list`),
+  and paths named in accepted decision records.
+
+### Give agents better context
+
+- Add `cite`, which prints link-ready line ranges for symbols, so pages cite exact evidence.
+- Map summaries come from a page's "Summary" section when it has one.
+- When the map is over budget, it drops detail page by page in reading order, instead of
+  removing every summary at once.
+- Setup and update instructions now say how to cite code, including the line that sets each limit.
+  The handbook index is named `README.md` so code hosts show it for the folder.
+
 ## 0.3.0 - 2026-11-08
 
 Living documentation, agent context, and learning.

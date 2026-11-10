@@ -8,5 +8,5 @@
   "sessionContext": true,
   "filePointers": true,
   "fixAnchors": true,
-  "autoUpdate": "remind"
+  "autoUpdate": "commit"
 }

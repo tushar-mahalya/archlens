@@ -33,7 +33,8 @@ PAGE_KEYS = {
     "path", "id", "kind", "owner", "reviewState", "verifiedCommit", "covers",
     "decisionStatus",
 }
-AUTO_UPDATE = {"off", "remind", "auto"}
+AUTO_UPDATE = {"off", "remind", "commit", "auto"}
+COMMIT_COMMAND = re.compile(r"(?:^|[;&|(\s])git(?:\s+-[Cc]\s+\S+)*\s+commit\b")
 STATE_FILE = ".archlens-state.json"
 BLOCK_START = "<!-- archlens:context:start - generated from the handbook; edit pages, not this block -->"
 BLOCK_END = "<!-- archlens:context:end -->"
@@ -186,6 +187,28 @@ def glob_prefix(pattern: str) -> str:
     return "/".join(literal) + "/" if literal else ""
 
 
+def page_location(root: Path, docs: Path, value, label: str) -> tuple[str, Path]:
+    """A page path relative to the handbook. Leading '../' segments map an existing document
+    in place, such as '../ARCHITECTURE.md'; the page must stay inside the project."""
+    if not isinstance(value, str) or not value.strip() or "\0" in value:
+        raise ArchlensError(f"{label} must be a non-empty relative path")
+    normalized = value.replace("\\", "/")
+    if PureWindowsPath(value).drive or normalized.startswith("/"):
+        raise ArchlensError(f"{label} must not be an absolute path")
+    parts = normalized.split("/")
+    lead = next((i for i, part in enumerate(parts) if part != ".."), len(parts))
+    if lead == len(parts) or any(part in {"", ".", ".."} for part in parts[lead:]):
+        raise ArchlensError(f"{label} may start with '../' but must not contain other empty, '.' or '..' segments")
+    resolved = (docs / normalized).resolve()
+    if not resolved.is_relative_to(root.resolve()):
+        raise ArchlensError(f"{label} escapes the project: {value}")
+    if lead and resolved.is_relative_to(docs):
+        raise ArchlensError(f"{label}: write pages inside the handbook without '..': {value}")
+    if ".git" in resolved.relative_to(root.resolve()).parts:
+        raise ArchlensError(f"{label} must not point into .git: {value}")
+    return normalized, resolved
+
+
 def load_map(root: Path, config: dict) -> tuple[Path, list[dict]]:
     docs = contained(root, config["docsRoot"], "docsRoot")
     map_path = contained(docs, "map.json", "document map")
@@ -207,15 +230,15 @@ def load_map(root: Path, config: dict) -> tuple[Path, list[dict]]:
         unknown = page.keys() - PAGE_KEYS
         if missing or unknown:
             raise ArchlensError(f"{label}: missing keys {sorted(missing)}; unknown keys {sorted(unknown)}")
-        path = relative_path(page["path"], f"{label}.path")
+        path, resolved = page_location(root, docs, page["path"], f"{label}.path")
         if not path.endswith(".md"):
             raise ArchlensError(f"{label}.path must end in .md")
-        resolved = contained(docs, path, f"{label}.path")
         if path.casefold() in paths or resolved in resolved_paths:
             raise ArchlensError(f"Duplicate page path: {path}")
         paths.add(path.casefold())
         resolved_paths.add(resolved)
         page["path"] = path
+        page["_file"] = resolved
         if not isinstance(page["id"], str) or not re.fullmatch(r"[A-Z][A-Z0-9-]*", page["id"]):
             raise ArchlensError(f"{label}.id must be an uppercase identifier")
         if page["id"] in ids:
@@ -363,11 +386,17 @@ class References:
 
     SKIP = re.compile(r"[*<>{}$~\s|]|://|^[-/.]|^[A-Z]:")
 
-    def __init__(self, root: Path, docs: Path):
+    HISTORY_LOOKUPS = 40
+
+    def __init__(self, root: Path, docs: Path, pages=()):
         self.root = root
-        self.exclude = f":(exclude){docs.relative_to(root).as_posix()}"
+        handbook = docs.relative_to(root).as_posix()
+        self.exclude = [f":(exclude){handbook}"] + [f":(exclude){page}" for page in pages
+                                                     if not page.startswith(handbook + "/")]
         self.git = in_git(root)
         self.symbols: dict[str, bool] = {}
+        self.paths: dict[str, bool] = {}
+        self.lookups = 0
         try:
             self.scripts = set(read_json(root / "package.json").get("scripts", {}))
         except (ArchlensError, AttributeError):
@@ -388,13 +417,47 @@ class References:
                 first = path.split("/", 1)[0]
                 if not (self.root / first).exists() and not (page.parent / first).exists():
                     continue
-                if not (self.root / path).exists() and not (page.parent / path).exists():
+                if not (self.root / path).exists() and not (page.parent / path).exists() and self.missing(path):
                     yield f"Path not found: {token}"
+
+    def missing(self, path: str) -> bool:
+        """A missing path counts unless Git ignores it (generated or local files) or it is an
+        extension-less name that never existed, such as the MCP method `tools/list`."""
+        if not self.git:
+            return True
+        if path not in self.paths:
+            self.paths[path] = not self.ignored(path) and (
+                "." in path.rsplit("/", 1)[-1] or self.ever_tracked(path))
+        return self.paths[path]
+
+    def ignored(self, path: str) -> bool:
+        try:
+            result = subprocess.run(
+                ["git", "--no-pager", "-C", str(self.root), "check-ignore", "-q", "--", path],
+                stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL, timeout=10, check=False,
+            )
+        except (OSError, subprocess.TimeoutExpired):
+            return False
+        return result.returncode == 0
+
+    def ever_tracked(self, path: str) -> bool:
+        """True if any commit touched the path. Bounded so huge histories stay fast."""
+        if self.lookups >= self.HISTORY_LOOKUPS:
+            return True
+        self.lookups += 1
+        try:
+            result = subprocess.run(
+                ["git", "--no-pager", "-C", str(self.root), "log", "--all", "-1", "--format=%h", "--", path],
+                stdout=subprocess.PIPE, stderr=subprocess.DEVNULL, timeout=5, check=False,
+            )
+        except (OSError, subprocess.TimeoutExpired):
+            return True
+        return result.returncode != 0 or bool(result.stdout.strip())
 
     def symbol_exists(self, name: str) -> bool:
         if name not in self.symbols:
             try:
-                found = git(self.root, "grep", "--untracked", "-l", "-w", "-F", "-e", name, "--", ".", self.exclude)
+                found = git(self.root, "grep", "--untracked", "-l", "-w", "-F", "-e", name, "--", ".", *self.exclude)
                 self.symbols[name] = bool(found.strip())
             except ArchlensError:
                 self.symbols[name] = False
@@ -409,20 +472,22 @@ def check_documents(root: Path, config: dict) -> dict:
     def add(severity, path, line, code, message):
         findings.append({"severity": severity, "path": path, "line": line, "code": code, "message": message})
 
-    references = References(root, docs)
-    mapped = {page["path"] for page in pages}
+    references = References(root, docs, [page_file(root, page) for page in pages])
+    style: dict[str, dict[str, list[int]]] = {}
+    mapped = {page["_file"] for page in pages}
     for path in sorted(docs.rglob("*.md")):
         contained(docs, path.relative_to(docs).as_posix(), "documentation page")
-        relative = path.relative_to(docs).as_posix()
-        if relative not in mapped:
+        if path.resolve() not in mapped:
             add("error", path.relative_to(root).as_posix(), 1, "unmapped-page", "Add this page to map.json.")
     for page in pages:
-        path = contained(docs, page["path"], "page")
-        relative = path.relative_to(root).as_posix()
+        path = page["_file"]
+        relative = page_file(root, page)
         if not path.is_file():
             add("error", relative, 1, "missing-page", "Mapped page does not exist.")
             continue
         text = path.read_text(encoding="utf-8-sig")
+        # Decision records are history: a path they name may be gone by design.
+        historical = page["kind"] == "decision" and page.get("decisionStatus") != "proposed"
         prose, blocks, unclosed = markdown_sections(text)
         if unclosed:
             add("error", relative, unclosed, "unclosed-block", "Close the code fence or metadata block.")
@@ -438,14 +503,16 @@ def check_documents(root: Path, config: dict) -> dict:
                 if anchor:
                     code = "line-anchor" if anchor[1].startswith("Line") else "heading-anchor"
                     add(anchor[0], relative, number, code, anchor[1])
-            for problem in references.problems(path, line):
-                add("warning", relative, number, "stale-reference", problem)
+            if not historical:
+                for problem in references.problems(path, line):
+                    add("warning", relative, number, "stale-reference", problem)
             if line.strip() and not line.lstrip().startswith(("#", "|", "<!--", "[")):
                 plain = re.sub(r"`[^`]*`", "", line)
+                hits = style.setdefault(relative, {"semicolon": [], "long-line": []})
                 if ";" in plain:
-                    add("warning", relative, number, "semicolon", "Consider separate, direct sentences.")
+                    hits["semicolon"].append(number)
                 if len(re.findall(r"\b[\w'-]+\b", plain)) > 60:
-                    add("warning", relative, number, "long-line", "Review this long prose line; split complex sentences.")
+                    hits["long-line"].append(number)
         for number, language, body in blocks:
             if language != "mermaid":
                 continue
@@ -462,6 +529,22 @@ def check_documents(root: Path, config: dict) -> dict:
                 participants = len(re.findall(r"(?m)^\s*(?:participant|actor)\s+", body))
                 if participants > config["maxSequenceParticipants"]:
                     add("warning", relative, number, "sequence-density", "Consider splitting this sequence.")
+    for relative, hits in sorted(style.items()):
+        lines = sorted(set(hits["semicolon"]) | set(hits["long-line"]))
+        if not lines:
+            continue
+        parts = [f"{len(hits[key])} {label}" for key, label in (
+            ("semicolon", "line(s) with semicolons"), ("long-line", "long line(s)")) if hits[key]]
+        shown = ", ".join(map(str, lines[:5])) + (f" +{len(lines) - 5}" if len(lines) > 5 else "")
+        findings.append({
+            "severity": "info", "path": relative, "line": lines[0], "code": "style",
+            "message": f"Editorial candidates: {' and '.join(parts)} (lines {shown}). Split complex sentences where it helps.",
+            "lines": lines,
+        })
+    # Broken links and vanished references first; presentation advice last.
+    rank = {"error": 0, "warning": 1, "info": 2}
+    cosmetic = {"sequence-numbers", "sequence-density", "missing-title"}
+    findings.sort(key=lambda f: (rank[f["severity"]], f["code"] in cosmetic, f["path"], f["line"]))
     return {
         "command": "check", "root": str(root), "pages": len(pages),
         "mermaidBlocks": diagram_count, "findings": findings,
@@ -470,7 +553,7 @@ def check_documents(root: Path, config: dict) -> dict:
             "Mermaid rendering and semantic accuracy are not checked; only the diagram type is.",
             "Inline Markdown links, reference definitions, heading anchors, and line anchors are checked; remote URLs are not.",
             "Backticked paths, function() names, and npm scripts are checked for existence, not meaning.",
-            "Writing warnings are heuristics, not an STE score.",
+            "Style notes (info) are heuristics, not an STE score, and never fail --strict.",
         ],
     }
 
@@ -529,8 +612,14 @@ def changed_files(root: Path, base: str | None) -> tuple[list[str], str | None]:
     return sorted(changes), merge_base
 
 
-def page_evidence(root: Path, docs: Path, page_path: Path) -> tuple[list[str], list[tuple[str, int, int]]]:
-    """Linked project files or folders outside the handbook, plus line-range anchors."""
+def page_file(root: Path, page: dict) -> str:
+    """Project-relative path of a mapped page."""
+    return page["_file"].relative_to(root.resolve()).as_posix()
+
+
+def page_evidence(root: Path, docs: Path, page_path: Path, mapped=frozenset()) -> tuple[list[str], list[tuple[str, int, int]]]:
+    """Linked project files or folders outside the handbook and other mapped pages,
+    plus line-range anchors."""
     try:
         text = page_path.read_text(encoding="utf-8-sig")
     except OSError:
@@ -540,7 +629,7 @@ def page_evidence(root: Path, docs: Path, page_path: Path) -> tuple[list[str], l
     for _, line in prose:
         for target in local_targets(line):
             location, fragment, problem = resolve_link(root, page_path, target)
-            if problem or location is None or location.is_relative_to(docs):
+            if problem or location is None or location.is_relative_to(docs) or location in mapped:
                 continue
             relative = location.relative_to(root).as_posix()
             span = re.fullmatch(r"L(\d+)(?:C\d+)?(?:-L(\d+)(?:C\d+)?)?", fragment or "")
@@ -562,9 +651,10 @@ class Coverage:
 
     def __init__(self, root: Path, docs: Path, pages: list[dict]):
         self.rules, self.evidence = {}, {}
+        mapped = {page["_file"] for page in pages}
         for page in pages:
             patterns = [(glob_prefix(p), glob_regex(p)) for p in page["covers"]]
-            links, anchors = page_evidence(root, docs, contained(docs, page["path"], "page"))
+            links, anchors = page_evidence(root, docs, page["_file"], mapped)
             self.rules[page["id"]] = (patterns, sorted(set(links) | {a[0] for a in anchors}))
             self.evidence[page["id"]] = (links, anchors)
 
@@ -614,6 +704,180 @@ def python_symbols(text: str) -> list[tuple[str, int, int, ast.AST]]:
     return found
 
 
+BRACE_LANGUAGES = {
+    ".js", ".jsx", ".mjs", ".cjs", ".ts", ".tsx", ".mts", ".cts", ".go", ".rs", ".java", ".kt",
+    ".kts", ".scala", ".swift", ".c", ".h", ".cc", ".cpp", ".cxx", ".hpp", ".cs", ".php", ".dart",
+}
+KEYWORD_DECLARATION = re.compile(
+    r"(?:^|[^\w$.])(?:function\*?|class|interface|enum|struct|trait|impl(?:<[^>]*>)?|record|object|namespace|func|fn)"
+    r"\s+(?:\([^)]*\)\s*)?([A-Za-z_$][\w$]*)"
+    r"|^\s*(?:export\s+)?(?:default\s+)?(?:declare\s+)?(?:const|let|var|val)\s+([A-Za-z_$][\w$]*)"
+    r"|^\s*(?:export\s+)?(?:declare\s+)?type\s+([A-Za-z_$][\w$]*)\s*(?:<[^=]*>)?\s*(?:=|struct\b|interface\b)"
+)
+METHOD_DECLARATION = re.compile(
+    r"^\s*(?:(?:public|private|protected|internal|static|final|abstract|override|async|readonly|virtual|"
+    r"sealed|open|suspend|inline|export|default|get|set|synchronized|unsafe|extern|pub(?:\([^)]*\))?)\s+)*"
+    r"(?:[\w$<>\[\],.?*&:]+\s+)*?([A-Za-z_$][\w$]*)\s*(?:<[^>()]*>)?\s*\("
+)
+NOT_NAMES = {
+    "if", "for", "while", "switch", "catch", "return", "else", "do", "try", "new", "throw", "await",
+    "typeof", "sizeof", "with", "foreach", "using", "lock", "fixed", "when", "match", "select", "defer",
+    "func", "case", "elif", "function", "super", "this", "yield", "delete", "void", "in", "of", "assert",
+}
+
+
+QUOTE_STRINGS = {".js", ".jsx", ".mjs", ".cjs", ".ts", ".tsx", ".mts", ".cts", ".php", ".dart"}
+CHAR_LITERAL = re.compile(r"'(?:\\u\{[0-9A-Fa-f]+\}|\\[^\n]{1,9}|[^\\'\n])'")
+
+
+def strip_code(text: str, suffix: str = ".js") -> tuple[str, str]:
+    """Blank comments (first result) and also string contents (second), keeping offsets and newlines.
+    A heuristic lexer for C-family syntax: quotes close on the same line, templates may span lines.
+    Outside JavaScript-like languages a single quote starts only a short character literal,
+    so Rust lifetimes such as 'a do not hide code."""
+    keep, bare = list(text), list(text)
+    i, size = 0, len(text)
+    while i < size:
+        two = text[i:i + 2]
+        if two in ("//", "/*"):
+            end = text.find("\n", i) if two == "//" else text.find("*/", i + 2)
+            end = size if end < 0 else (end if two == "//" else end + 2)
+            for j in range(i, end):
+                if text[j] != "\n":
+                    keep[j] = bare[j] = " "
+            i = end
+            continue
+        char = text[i]
+        if char == "'" and suffix not in QUOTE_STRINGS:
+            literal = CHAR_LITERAL.match(text, i)
+            for k in range(i + 1, literal.end() - 1 if literal else i + 1):
+                bare[k] = " "
+            i = literal.end() if literal else i + 1
+            continue
+        if char in "\"'`" and (char != "`" or suffix in QUOTE_STRINGS):
+            j = i + 1
+            while j < size and text[j] != char and (char == "`" or text[j] != "\n"):
+                j += 2 if text[j] == "\\" else 1
+            if j >= size or text[j] != char:
+                i += 1
+                continue
+            for k in range(i + 1, j):
+                if text[k] != "\n":
+                    bare[k] = " "
+            i = j + 1
+            continue
+        i += 1
+    return "".join(keep), "".join(bare)
+
+
+def brace_symbols(text: str, suffix: str = ".js") -> list[tuple[str, int, int, str]]:
+    """Declarations in C-family files with qualified names, line spans, and comment-free digests.
+    A declaration ends at its matched body brace, or for keyword forms at a top-level ';'."""
+    kept, bare = strip_code(text, suffix)
+    closes, stack = {}, []
+    for index, char in enumerate(bare):
+        if char == "{":
+            stack.append(index)
+        elif char == "}" and stack:
+            closes[stack.pop()] = index
+    line_starts = [0] + [m.end() for m in re.finditer("\n", bare)]
+    kept_lines = kept.split("\n")
+    found = []
+    for number, start in enumerate(line_starts, 1):
+        end_of_line = bare.find("\n", start)
+        line = bare[start:end_of_line if end_of_line >= 0 else len(bare)]
+        keyword = KEYWORD_DECLARATION.search(line)
+        method = None if keyword else METHOD_DECLARATION.match(line)
+        name = next(filter(None, keyword.groups()), None) if keyword else (method[1] if method else None)
+        if not name or (method and NOT_NAMES & set(re.findall(r"\w+", method[0]))):
+            continue
+        depth, position, last, closed = 0, start + (keyword or method).start(), None, False
+        limit = min(len(bare), start + 4000)
+        while position < limit:
+            char = bare[position]
+            if char in "([":
+                depth += 1
+            elif char in ")]":
+                depth -= 1
+                closed = closed or depth == 0
+                if depth < 0:
+                    break
+            elif char == "{" and depth == 0:
+                close = closes.get(position)
+                if close is not None:
+                    last = bisect.bisect_right(line_starts, close)
+                break
+            elif depth == 0 and (char == ";" or (method and closed and char == "=")):
+                if keyword:
+                    last = bisect.bisect_right(line_starts, position)
+                break
+            position += 1
+        if last:
+            body = " ".join(" ".join(kept_lines[number - 1:last]).split())
+            found.append([name, number, last, short_hash(body)])
+    found.sort(key=lambda s: (s[1], -s[2]))
+    enclosing = []
+    for symbol in found:
+        while enclosing and enclosing[-1][2] < symbol[2]:
+            enclosing.pop()
+        qualified = ".".join([e[0] for e in enclosing] + [symbol[0]])
+        enclosing.append(list(symbol))
+        symbol[0] = qualified
+    return [tuple(symbol) for symbol in found]
+
+
+SYMBOL_CACHE: dict[tuple[str, str], list | None] = {}
+
+
+def code_symbols(path: str, text: str) -> list[tuple[str, int, int, str]] | None:
+    """(qualified name, first line, last line, digest) for supported languages, else None."""
+    suffix = PurePosixPath(path).suffix.lower()
+    if suffix != ".py" and suffix not in BRACE_LANGUAGES:
+        return None
+    key = (suffix, hashlib.sha1(text.encode("utf-8", "surrogateescape")).hexdigest())
+    if key not in SYMBOL_CACHE:
+        if len(SYMBOL_CACHE) > 256:
+            SYMBOL_CACHE.clear()
+        try:
+            SYMBOL_CACHE[key] = ([(name, first, last, short_hash(canonical(node)))
+                                  for name, first, last, node in python_symbols(text)]
+                                 if suffix == ".py" else brace_symbols(text, suffix))
+        except (SyntaxError, ValueError, RecursionError):
+            SYMBOL_CACHE[key] = None
+    return SYMBOL_CACHE[key]
+
+
+def code_lines(path: str, text: str) -> list[tuple[int, str]]:
+    """Numbered non-blank code lines with comments removed and spaces collapsed."""
+    suffix = PurePosixPath(path).suffix.lower()
+    source = strip_code(text, suffix)[0] if suffix in BRACE_LANGUAGES else text
+    result = []
+    for number, line in enumerate(source.splitlines(), 1):
+        stripped = line.strip()
+        if stripped and not (suffix == ".py" and stripped.startswith("#")):
+            result.append((number, " ".join(stripped.split())))
+    return result
+
+
+def span_digest(lines: list[tuple[int, str]]) -> str:
+    return short_hash("\n".join(code for _, code in lines))
+
+
+def outline(path: str, text: str) -> str | None:
+    """Digest of a code file's declared names: top-level symbols and constants, plus Python
+    class members. Renaming, adding, or removing one changes it; editing a body does not."""
+    symbols = code_symbols(path, text)
+    if symbols is None:
+        return None
+    python = path.lower().endswith(".py")
+    declared = {s[0] for s in symbols if s[0].count(".") <= (1 if python else 0)}
+    if python:
+        for node in ast.parse(text).body:
+            targets = node.targets if isinstance(node, ast.Assign) else [getattr(node, "target", None)]
+            declared.update(t.id for t in targets if isinstance(t, ast.Name))
+    return short_hash("\n".join(sorted(declared)))
+
+
 def canonical(node) -> str:
     """Version-stable syntax-tree text. ast.dump changes across Python releases, and new
     releases add optional fields, so empty fields and positions are left out."""
@@ -648,16 +912,18 @@ def fingerprint_anchor(root: Path, path: str, first: int, last: int) -> dict:
     text = read_source(root / path)
     if text is None:
         return record
-    if path.endswith(".py"):
-        try:
-            spans = [s for s in python_symbols(text) if s[1] <= first and s[2] >= last]
-        except (SyntaxError, ValueError, RecursionError):
-            spans = []
-        if spans:
-            name, start, end, node = min(spans, key=lambda s: s[2] - s[1])
-            record.update(symbol=name, symbolLines=[start, end],
-                          digest=short_hash(canonical(node)))
-            return record
+    spans = [s for s in code_symbols(path, text) or [] if s[1] <= first and s[2] >= last]
+    if spans:
+        name, start, end, digest = min(spans, key=lambda s: s[2] - s[1])
+        record.update(symbol=name, symbolLines=[start, end], digest=digest)
+        if (first, last) != (start, end):
+            # A range inside a symbol: also record its own code lines, so an edit
+            # elsewhere in the same function does not flag this citation.
+            cited = [line for line in code_lines(path, text) if first <= line[0] <= last]
+            if cited:
+                record.update(span=span_digest(cited), spanLines=len(cited),
+                              spanPad=[cited[0][0] - first, last - cited[-1][0]])
+        return record
     lines = text.splitlines()
     if last <= len(lines):
         record["digest"] = text_digest(lines[first - 1:last])
@@ -673,15 +939,22 @@ def check_anchor(root: Path, record: dict) -> dict | None:
         return dict(base, change="evidence-removed")
     if record.get("symbol"):
         base["symbol"] = record["symbol"]
-        try:
-            match = [s for s in python_symbols(text) if s[0] == record["symbol"]]
-        except (SyntaxError, ValueError, RecursionError):
+        symbols = code_symbols(path, text)
+        if symbols is None:
             return dict(base, change="evidence-changed")
+        match = [s for s in symbols if s[0] == record["symbol"]]
         if not match:
             return dict(base, change="symbol-removed")
-        _, start, end, node = match[0]
+        # Same-named symbols (overloads, repeated test blocks): prefer an unchanged one, then the nearest.
+        _, start, end, digest = min(match, key=lambda s: (s[3] != record.get("digest"), abs(s[1] - record["symbolLines"][0])))
         shift = start - record["symbolLines"][0]
-        if short_hash(canonical(node)) != record.get("digest"):
+        if digest != record.get("digest") and record.get("span"):
+            found = find_span(code_lines(path, text), start, end, record, first + shift)
+            if found == [first, last]:
+                return None
+            if found:
+                return dict(base, change="evidence-moved", newLines=found)
+        if digest != record.get("digest"):
             moved = {"newLines": [first + shift, last + shift]} if shift else {}
             return dict(base, change="evidence-changed", **moved)
         if shift:
@@ -697,6 +970,20 @@ def check_anchor(root: Path, record: dict) -> dict | None:
         if text_digest(lines[start:start + size]) == record["digest"]:
             return dict(base, change="evidence-moved", newLines=[start + 1, start + size])
     return dict(base, change="evidence-changed")
+
+
+def find_span(lines: list[tuple[int, str]], start: int, end: int, record: dict, expected: int) -> list[int] | None:
+    """New lines of a cited range inside a changed symbol, nearest to where it was expected."""
+    inside = [line for line in lines if start <= line[0] <= end]
+    size = record.get("spanLines") or 0
+    hits = [inside[i:i + size] for i in range(len(inside) - size + 1)
+            if size and span_digest(inside[i:i + size]) == record["span"]]
+    if not hits:
+        return None
+    lead, trail = record.get("spanPad") or [0, 0]
+    best = min(hits, key=lambda run: abs(run[0][0] - lead - expected))
+    # Keep blank or comment lines that the citation started or ended with.
+    return [best[0][0] - lead, best[-1][0] + trail]
 
 
 class SortedPaths:
@@ -718,7 +1005,7 @@ def blob_id(data: bytes) -> str:
     return hashlib.sha1(b"blob %d\0" % len(data) + data).hexdigest()
 
 
-def project_files(root: Path, docs: Path) -> dict[str, str]:
+def project_files(root: Path, docs: Path, pages=()) -> dict[str, str]:
     """Map project-relative source files to short Git-compatible content IDs."""
     files: dict[str, str] = {}
     if in_git(root):
@@ -748,9 +1035,10 @@ def project_files(root: Path, docs: Path) -> dict[str, str]:
                     continue
                 files[path.relative_to(root).as_posix()] = blob_id(path.read_bytes())
     docs_prefix = docs.relative_to(root).as_posix() + "/"
+    skip = {".archlens.json"} | set(pages)
     return {
         name: sha[:10] for name, sha in files.items()
-        if not name.startswith(docs_prefix) and name != ".archlens.json" and "\n" not in name
+        if not name.startswith(docs_prefix) and name not in skip and "\n" not in name
     }
 
 
@@ -793,6 +1081,7 @@ def page_changes(root: Path, coverage: Coverage, page_id: str, current: dict, re
             return "stale"
         return "review"
 
+    outlines = record.get("outlines") or {}
     changes = []
     for anchor in record.get("anchors") or []:
         change = check_anchor(root, anchor)
@@ -800,7 +1089,17 @@ def page_changes(root: Path, coverage: Coverage, page_id: str, current: dict, re
             changes.append(dict(change, severity="stale"))
     for path in sorted(current.keys() & old.keys()):
         if current[path] != old[path]:
-            changes.append({"path": path, "change": "modified", "severity": severity(path)})
+            level = severity(path)
+            if level == "stale" and path in outlines:
+                # A whole-file link to code goes stale when the file's declared names change.
+                # Body edits are worth a review; the cited ranges catch body changes precisely.
+                text = read_source(root / path)
+                if text is not None and outline(path, text) == outlines[path]:
+                    level = "review"
+                else:
+                    changes.append({"path": path, "change": "outline-changed", "severity": "stale"})
+                    continue
+            changes.append({"path": path, "change": "modified", "severity": level})
     for path in sorted(current.keys() - old.keys()):
         changes.append({"path": path, "change": "added", "severity": severity(path)})
     for path in sorted(old.keys() - current.keys()):
@@ -812,19 +1111,21 @@ def page_changes(root: Path, coverage: Coverage, page_id: str, current: dict, re
 def freshness(root: Path, config: dict) -> dict:
     """Compare each page's covered files and cited evidence with its last sync."""
     docs, pages = load_map(root, config)
-    files = project_files(root, docs)
+    page_paths = {page_file(root, page) for page in pages}
+    files = project_files(root, docs, page_paths)
     coverage = Coverage(root, docs, pages)
     state = load_state(docs)
-    doc_prefix = docs.relative_to(root).as_posix() + "/"
     ordered = SortedPaths(files)
     results = []
     for page in pages:
         current = {path: files[path] for path in coverage.files(page["id"], ordered)}
         record = state["pages"].get(page["id"])
-        entry = {"page": doc_prefix + page["path"], "id": page["id"], "kind": page["kind"]}
+        entry = {"page": page_file(root, page), "id": page["id"], "kind": page["kind"]}
         if not isinstance(record, dict) or not isinstance(record.get("files"), dict):
             entry.update(state="unsynced", changed=[], coveredFiles=len(current))
         else:
+            # A document mapped as a page since the last sync is no longer evidence for others.
+            record = dict(record, files={k: v for k, v in record["files"].items() if k not in page_paths})
             changes = page_changes(root, coverage, page["id"], current, record)
             level = "stale" if any(c["severity"] == "stale" for c in changes) else "review" if changes else "fresh"
             entry.update(
@@ -855,7 +1156,7 @@ def sync_pages(root: Path, config: dict, ids: list[str], every: bool) -> dict:
     if not every and not ids:
         raise ArchlensError("Name pages with --page ID (repeatable) or use --all")
     selected = known if every else set(ids)
-    files = project_files(root, docs)
+    files = project_files(root, docs, [page_file(root, page) for page in pages])
     coverage = Coverage(root, docs, pages)
     state = load_state(docs)
     state["pages"] = {key: value for key, value in state["pages"].items() if key in known}
@@ -864,12 +1165,21 @@ def sync_pages(root: Path, config: dict, ids: list[str], every: bool) -> dict:
     ordered = SortedPaths(files)
     for page in pages:
         if page["id"] in selected:
-            _, anchors = coverage.evidence[page["id"]]
-            state["pages"][page["id"]] = {
+            links, anchors = coverage.evidence[page["id"]]
+            entry = {
                 "files": {path: files[path] for path in coverage.files(page["id"], ordered)},
                 "anchors": [fingerprint_anchor(root, *anchor) for anchor in anchors],
                 "syncedAt": stamp, "syncedCommit": commit,
             }
+            shapes = {}
+            for link in links:
+                text = None if link.endswith("/") or link not in files else read_source(root / link)
+                shape = outline(link, text) if text is not None else None
+                if shape:
+                    shapes[link] = shape
+            if shapes:
+                entry["outlines"] = shapes
+            state["pages"][page["id"]] = entry
     save_state(docs, state)
     report = {"command": "sync", "root": str(root), "synced": sorted(selected), "stateFile": (docs / STATE_FILE).relative_to(root).as_posix()}
     if config.get("contextFile"):
@@ -889,7 +1199,7 @@ def fix_anchors(root: Path, config: dict, ids: list[str] | None = None) -> dict:
         record = state["pages"].get(entry["id"])
         if not moves or not isinstance(record, dict) or (ids and entry["id"] not in ids):
             continue
-        page_path = docs / by_id[entry["id"]]["path"]
+        page_path = by_id[entry["id"]]["_file"]
         text = page_path.read_text(encoding="utf-8-sig")
         for move in moves:
             target = Path(os.path.relpath(root / move["path"], page_path.parent)).as_posix()
@@ -908,6 +1218,33 @@ def fix_anchors(root: Path, config: dict, ids: list[str] | None = None) -> dict:
     return {"command": "fix-anchors", "root": str(root), "fixed": fixed}
 
 
+def cite(root: Path, config: dict, file: str, names: list[str], page: str | None) -> dict:
+    """Link-ready line ranges for symbols in a source file, so pages cite exact evidence."""
+    relative = relative_path(file, "file")
+    path = contained(root, relative, "file")
+    text = read_source(path) if path.is_file() else None
+    if text is None:
+        raise ArchlensError(f"Not a readable file: {relative}")
+    symbols = code_symbols(relative, text)
+    if symbols is None:
+        raise ArchlensError(f"No symbol support for {relative}; cite a line range such as {relative}#L10-L20")
+    base = relative
+    if page:
+        origin = contained(root, relative_path(page, "--from"), "--from")
+        base = Path(os.path.relpath(path, origin.parent)).as_posix()
+    if names:
+        chosen, missing = [], []
+        for name in names:
+            found = [s for s in symbols if s[0] == name] or [s for s in symbols if s[0].rsplit(".", 1)[-1] == name]
+            chosen.extend(found) if found else missing.append(name)
+    else:
+        python = relative.lower().endswith(".py")
+        chosen, missing = [s for s in symbols if s[0].count(".") <= (1 if python else 0)], []
+    entries = [{"symbol": name, "lines": [first, last], "link": f"{base}#L{first}-L{last}"}
+               for name, first, last, _ in chosen]
+    return {"command": "cite", "root": str(root), "file": relative, "symbols": entries, "missing": missing}
+
+
 def page_brief(path: Path) -> tuple[str, str]:
     """A page's title and first explanatory sentence."""
     try:
@@ -916,6 +1253,11 @@ def page_brief(path: Path) -> tuple[str, str]:
         return path.stem, ""
     prose, _, _ = markdown_sections(text)
     title, summary = "", ""
+    # Prefer a "Summary" section: a scope paragraph ("This page traces...") says less.
+    marker = next((i for i, (_, line) in enumerate(prose) if re.match(r"^##\s+Summary\s*$", line.strip(), re.I)), None)
+    if marker is not None:
+        title = next((m[1].strip() for _, line in prose if (m := re.match(r"^#\s+(.+)$", line.strip()))), "")
+        prose = prose[marker + 1:]
     for _, line in prose:
         stripped = line.strip()
         if not title:
@@ -950,7 +1292,7 @@ def build_context(root: Path, config: dict, budget: int | None = None, live: boo
     states = {entry["id"]: entry for entry in status["needsSync"]}
     doc_rel = docs.relative_to(root).as_posix()
     ordered = sorted(pages, key=lambda p: (KIND_ORDER.index(p["kind"]), p["path"]))
-    briefs = {p["id"]: page_brief(docs / p["path"]) for p in ordered}
+    briefs = {p["id"]: page_brief(p["_file"]) for p in ordered}
     stale, unsynced = status["counts"]["stale"], status["counts"]["unsynced"]
     freshness_note = f"{stale} stale" + (f", {unsynced} never synced" if unsynced else "")
     guidance = (
@@ -963,7 +1305,8 @@ def build_context(root: Path, config: dict, budget: int | None = None, live: boo
                  + "STALE means evidence the page cites changed after the last doc sync. ")
     else:
         intro = (f"Pages live in `{doc_rel}/` ({len(pages)} pages). " + guidance
-                 + "Freshness changes between commits: run the Archlens `status` check before relying on a page. ")
+                 + "Freshness changes between commits: run the Archlens `status` check before relying on a page. "
+                 + "Before you commit code, update the pages it marks stale and commit them together. ")
     header = ["## Architecture handbook (Archlens)", intro + "After an architectural change, update the affected pages.", ""]
 
     def line(page, level):
@@ -980,11 +1323,22 @@ def build_context(root: Path, config: dict, budget: int | None = None, live: boo
             text += f" STALE: {count} cited change{'s' if count != 1 else ''}"
         return text
 
-    for level in (0, 1, 2):
-        lines = [line(page, level if page["kind"] != "decision" or level else 1) for page in ordered]
-        text = "\n".join(header + lines)
-        if len(text.encode("utf-8")) <= budget:
-            return text + "\n"
+    def fits(levels):
+        text = "\n".join(header + [line(page, levels[page["id"]]) for page in ordered])
+        return len(text.encode("utf-8")) <= budget
+
+    # Start from the shortest line per page, then add coverage and summaries in reading
+    # order while the budget allows, so one long page does not cost every page its detail.
+    levels = {page["id"]: 2 for page in ordered}
+    if fits(levels):
+        for target in (1, 0):
+            for page in ordered:
+                if target == 0 and page["kind"] == "decision":
+                    continue
+                previous, levels[page["id"]] = levels[page["id"]], target
+                if not fits(levels):
+                    levels[page["id"]] = previous
+        return "\n".join(header + [line(page, levels[page["id"]]) for page in ordered]) + "\n"
     kept = []
     for page in ordered:
         candidate = "\n".join(header + kept + [line(page, 2), f"- +{len(ordered)} more pages in `{doc_rel}/map.json`"])
@@ -1029,7 +1383,9 @@ def impact_report(root: Path, config: dict, base: str | None) -> dict:
     docs, pages = load_map(root, config)
     changed, merge_base = changed_files(root, base)
     doc_prefix = docs.relative_to(root).as_posix() + "/"
-    source_changes = [path for path in changed if not path.startswith(doc_prefix) and path != ".archlens.json"]
+    page_paths = {page_file(root, page) for page in pages}
+    source_changes = [path for path in changed if not path.startswith(doc_prefix)
+                      and path != ".archlens.json" and path not in page_paths]
     coverage = Coverage(root, docs, pages)
     covered = set()
     candidates = []
@@ -1038,8 +1394,8 @@ def impact_report(root: Path, config: dict, base: str | None) -> dict:
         if matches:
             covered.update(matches)
             candidates.append({
-                "page": doc_prefix + page["path"], "id": page["id"], "changedSources": matches,
-                "pageAlsoChanged": doc_prefix + page["path"] in changed,
+                "page": page_file(root, page), "id": page["id"], "changedSources": matches,
+                "pageAlsoChanged": page_file(root, page) in changed,
             })
     return {
         "command": "impact", "root": str(root),
@@ -1119,7 +1475,7 @@ def hook_file_pointer(root: Path, config: dict, payload: dict) -> dict | None:
         return None
     relative = path.relative_to(root).as_posix()
     docs, pages = load_map(root, config)
-    if path.is_relative_to(docs):
+    if path.is_relative_to(docs) or any(path == page["_file"] for page in pages):
         return None
     coverage = Coverage(root, docs, pages)
     key = session_key(root, payload)
@@ -1131,8 +1487,7 @@ def hook_file_pointer(root: Path, config: dict, payload: dict) -> dict | None:
     if not fresh:
         return None
     write_marker(f"pointers-{key}.txt", "\n".join(sorted(seen | {p["id"] for p in fresh})))
-    doc_rel = docs.relative_to(root).as_posix()
-    listed = " and ".join(f"`{doc_rel}/{p['path']}` ({page_brief(docs / p['path'])[0]})" for p in fresh)
+    listed = " and ".join(f"`{page_file(root, p)}` ({page_brief(p['_file'])[0]})" for p in fresh)
     return {"hookSpecificOutput": {
         "hookEventName": "PostToolUse",
         "additionalContext": f"Archlens: `{relative}` is documented in {listed}. "
@@ -1156,10 +1511,8 @@ def marker_folder() -> Path | None:
     return folder
 
 
-def hook_stop(root: Path, config: dict, payload: dict) -> dict | None:
-    """Nudge once per new set of stale pages that this working tree changed."""
-    if config["autoUpdate"] == "off" or not opted_in(root, config) or not in_git(root):
-        return None
+def session_changes(root: Path, payload: dict) -> set[str]:
+    """Files changed in the working tree, staged, untracked, or committed during this session."""
     dirty = set(names(git(root, "diff", "HEAD", "--relative", "--no-ext-diff", "--no-renames", "--name-only", "-z")))
     dirty |= set(names(git(root, "ls-files", "--others", "--exclude-standard", "-z")))
     start = (read_marker(f"head-{session_key(root, payload)}.txt") or "").strip()
@@ -1168,27 +1521,49 @@ def hook_stop(root: Path, config: dict, payload: dict) -> dict | None:
             dirty |= set(names(git(root, "diff", "--relative", "--no-ext-diff", "--no-renames", "--name-only", "-z", start, "HEAD", "--")))
         except ArchlensError:
             pass
-    if not dirty:
-        return None
-    moved_fixed = 0
-    if config["fixAnchors"]:
-        moved_fixed = len(fix_anchors(root, config)["fixed"])
+    return dirty
+
+
+def stale_from_changes(root: Path, config: dict, dirty: set[str]) -> tuple[list, list]:
+    """Rewrite moved links, then list pages whose cited evidence this change set made stale."""
+    fixed = fix_anchors(root, config)["fixed"] if config["fixAnchors"] else []
     status = freshness(root, config)
     affected = []
     for entry in status["needsSync"]:
         paths = [c["path"] for c in entry["changed"] if c["path"] in dirty and c["severity"] == "stale"]
         if entry["state"] == "stale" and paths:
             affected.append((entry["page"], entry["id"], sorted(paths)))
-    note = f"Archlens updated {moved_fixed} moved line link(s) in the handbook. " if moved_fixed else ""
-    if not affected:
-        return {"systemMessage": note.strip()} if note else None
-    signature = hashlib.sha256(json.dumps(affected).encode()).hexdigest()
-    name = f"notified-{session_key(root, payload)}.txt"
-    if read_marker(name) == signature:
-        return None
-    write_marker(name, signature)
+    return affected, fixed
+
+
+def page_list(config: dict, affected: list) -> str:
     docs_prefix = config["docsRoot"].rstrip("/") + "/"
-    pages = ", ".join(page.removeprefix(docs_prefix) for page, _, _ in affected[:4]) + (f" +{len(affected) - 4}" if len(affected) > 4 else "")
+    return ", ".join(page.removeprefix(docs_prefix) for page, _, _ in affected[:4]) + (
+        f" +{len(affected) - 4}" if len(affected) > 4 else "")
+
+
+def once(root: Path, payload: dict, kind: str, value) -> bool:
+    """True the first time this session sees this value for this kind of notice."""
+    signature = hashlib.sha256(json.dumps(value).encode()).hexdigest()
+    name = f"{kind}-{session_key(root, payload)}.txt"
+    if read_marker(name) == signature:
+        return False
+    write_marker(name, signature)
+    return True
+
+
+def hook_stop(root: Path, config: dict, payload: dict) -> dict | None:
+    """Nudge once per new set of stale pages that this working tree changed."""
+    if config["autoUpdate"] == "off" or not opted_in(root, config) or not in_git(root):
+        return None
+    dirty = session_changes(root, payload)
+    if not dirty:
+        return None
+    affected, fixed = stale_from_changes(root, config, dirty)
+    note = f"Archlens updated {len(fixed)} moved line link(s) in the handbook. " if fixed else ""
+    if not affected or not once(root, payload, "notified", affected):
+        return {"systemMessage": note.strip()} if note else None
+    pages = page_list(config, affected)
     if config["autoUpdate"] == "auto" and not payload.get("stop_hook_active"):
         ids = " ".join(page_id for _, page_id, _ in affected)
         return {
@@ -1199,7 +1574,41 @@ def hook_stop(root: Path, config: dict, payload: dict) -> dict | None:
                 "Then end your turn. Skip this if the user said not to touch documentation."
             ),
         }
-    return {"systemMessage": f"{note}Archlens: {len(affected)} handbook page(s) cite code you changed ({pages}). Run /archlens:update to refresh them."}
+    later = "They update when Claude commits, or run" if config["autoUpdate"] == "commit" else "Run"
+    return {"systemMessage": f"{note}Archlens: {len(affected)} handbook page(s) cite code you changed ({pages}). {later} /archlens:update to refresh them."}
+
+
+def hook_commit(root: Path, config: dict, payload: dict) -> dict | None:
+    """Hold an agent's `git commit` once while it would leave cited pages stale, so the
+    update runs once per commit and the docs land in the same commit as the code."""
+    command = (payload.get("tool_input") or {}).get("command")
+    if not isinstance(command, str) or not COMMIT_COMMAND.search(command):
+        return None
+    if config["autoUpdate"] not in {"commit", "auto"} or not opted_in(root, config) or not in_git(root):
+        return None
+    dirty = session_changes(root, payload)
+    if not dirty:
+        return None
+    affected, fixed = stale_from_changes(root, config, dirty)
+    if not affected and not fixed:
+        return None
+    if not once(root, payload, "commit", affected or sorted({item["page"] for item in fixed})):
+        return None
+    if affected:
+        ids = " ".join(page_id for _, page_id, _ in affected)
+        reason = (
+            f"Archlens: this commit would leave handbook pages stale: {page_list(config, affected)}. "
+            f"Before committing, invoke the archlens:update skill with pages {ids}; it runs in an isolated task. "
+            "Then stage the updated pages and the handbook's .archlens-state.json, and run the commit again. "
+            "If the user said not to touch documentation, run the same commit again unchanged."
+        )
+    else:
+        pages = sorted({item["page"] for item in fixed})
+        reason = (f"Archlens rewrote moved line links in {', '.join(pages)}. "
+                  "Stage those pages and the handbook's .archlens-state.json, then run the commit again.")
+    return {"hookSpecificOutput": {
+        "hookEventName": "PreToolUse", "permissionDecision": "deny", "permissionDecisionReason": reason,
+    }}
 
 
 def run_hook(event: str) -> int:
@@ -1209,9 +1618,18 @@ def run_hook(event: str) -> int:
         payload = json.loads(raw) if raw.strip() else {}
         if not isinstance(payload, dict):
             payload = {}
+        if event == "commit-gate":
+            # Runs before every Bash call: leave quickly unless the command is a commit.
+            command = (payload.get("tool_input") or {}).get("command")
+            if not isinstance(command, str) or "commit" not in command:
+                return 0
         root = hook_root(payload)
         config, _ = load_config(root)
-        if event == "session-start":
+        if event == "commit-gate":
+            result = hook_commit(root, config, payload)
+            if result:
+                print(json.dumps(result))
+        elif event == "session-start":
             text = hook_session_start(root, config, payload)
             if text:
                 print(text, end="")
@@ -1231,7 +1649,7 @@ def run_hook(event: str) -> int:
 def make_parser() -> argparse.ArgumentParser:
     parser = argparse.ArgumentParser(description=__doc__)
     commands = parser.add_subparsers(dest="command", required=True)
-    for name in ("config", "check", "impact", "status", "sync", "context", "fix-anchors"):
+    for name in ("config", "check", "impact", "status", "sync", "context", "fix-anchors", "cite"):
         command = commands.add_parser(name)
         command.add_argument("--root", type=Path, default=Path.cwd(), help="Project root (default: current folder)")
         output = command.add_mutually_exclusive_group()
@@ -1250,18 +1668,23 @@ def make_parser() -> argparse.ArgumentParser:
         if name == "sync":
             command.add_argument("--page", action="append", default=[], help="Page ID to mark as synced (repeatable)")
             command.add_argument("--all", action="store_true", help="Mark every mapped page as synced")
+        if name == "cite":
+            command.add_argument("file", help="Project-relative source file")
+            command.add_argument("symbols", nargs="*", help="Function or class names (default: list the file's main symbols)")
+            command.add_argument("--from", dest="origin", metavar="PAGE",
+                                 help="Project-relative page that will contain the link; prints links relative to it")
         if name == "context":
             command.add_argument("--write", nargs="?", const="", metavar="FILE",
                                  help="Update the managed block in FILE (default: configured contextFile)")
             command.add_argument("--budget", type=int, help="Maximum digest bytes (default: contextBudget)")
     hook = commands.add_parser("hook", help="Claude Code hook entrypoint (silent unless the project opted in)")
-    hook.add_argument("event", choices=["session-start", "stop", "file-pointer"])
+    hook.add_argument("event", choices=["session-start", "stop", "file-pointer", "commit-gate"])
     return parser
 
 
 def bounded_report(report: dict, budget: int = 6000) -> dict:
     """Keep whole records and explicit omission counts, never silently truncate JSON."""
-    collection_keys = ("findings", "candidates", "uncoveredFiles", "changedFiles", "needsSync", "fresh", "fixed")
+    collection_keys = ("findings", "candidates", "uncoveredFiles", "changedFiles", "needsSync", "fresh", "fixed", "symbols")
     result = {key: value for key, value in report.items() if key not in collection_keys}
     result["totals"] = {key: len(report[key]) for key in collection_keys if key in report}
     result["omitted"] = dict(result["totals"])
@@ -1322,6 +1745,11 @@ def print_report(report: dict, as_json: bool):
         print(f"Fixed {len(report['fixed'])} moved line link(s).")
         for item in report["fixed"]:
             print(f"FIXED {item['page']}: {item['path']}#L{item['from'][0]}-L{item['from'][1]} -> #L{item['to'][0]}-L{item['to'][1]}")
+    elif report["command"] == "cite":
+        for entry in report["symbols"]:
+            print(f"[{entry['symbol']}]({entry['link']})")
+        for name in report["missing"]:
+            print(f"MISSING {name}: no such function or class in {report['file']}")
     elif report["command"] == "sync":
         print(f"Synced {len(report['synced'])} page(s): {', '.join(report['synced'])}")
         if report.get("contextFile"):
@@ -1350,7 +1778,8 @@ def main(argv=None) -> int:
             report = {"command": "config", "root": str(root), "config": config, "sources": sources}
         elif args.command == "check":
             report = check_documents(root, config)
-            failed = any(f["severity"] == "error" or args.strict for f in report["findings"])
+            failed = any(f["severity"] == "error" or (args.strict and f["severity"] == "warning")
+                         for f in report["findings"])
         elif args.command == "status":
             report = freshness(root, config)
             gate = {"stale", "unsynced"} | ({"review"} if args.fail_on_review else set())
@@ -1359,6 +1788,9 @@ def main(argv=None) -> int:
             report = sync_pages(root, config, args.page, args.all)
         elif args.command == "fix-anchors":
             report = fix_anchors(root, config, args.page or None)
+        elif args.command == "cite":
+            report = cite(root, config, args.file, args.symbols, args.origin)
+            failed = bool(report["missing"])
         elif args.command == "context":
             if args.budget is not None and not 600 <= args.budget <= 20000:
                 raise ArchlensError("--budget must be from 600 to 20000 bytes")

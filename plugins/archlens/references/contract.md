@@ -10,6 +10,8 @@ For bundled scripts, choose an available Python 3.9+ command such as `python3`,
 
 Distinguish implementation, test evidence, recorded intent, inference, and unknowns.
 Link important claims to source, contracts, tests, configuration, or decisions.
+Cite code as a relative link with a line range, such as `../../src/orders.py#L20-L38`.
+The bundled `cite` command prints exact symbol ranges. Cite the line that sets each limit.
 Code does not prove historical rationale. Do not invent approvals or verification.
 A page marked stale may be outdated. Verify it against current source before relying on it.
 Keep old decisions and link replacements.
