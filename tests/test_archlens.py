@@ -733,6 +733,15 @@ class AnchorTests(Fixture):
         archlens.fix_anchors(self.root, self.config)
         self.assertEqual(self.changes()[0], "review")
 
+    def test_off_by_one_symbol_range_is_flagged(self):
+        self.write("src/long.py", "\n\ndef long():\n" + "    x = 1\n" * 6 + "    return x\n")
+        self.write("docs/architecture/README.md",
+                   "# Orders\n\n[ok](../../src/long.py#L3-L10) [off](../../src/long.py#L2-L9) [part](../../src/long.py#L5-L6) "
+                   "[blank](../../src/long.py#L2-L10) [over](../../src/long.py#L1-L11)\n")
+        findings = [f for f in archlens.check_documents(self.root, self.config)["findings"] if f["code"] == "anchor-offset"]
+        self.assertEqual(len(findings), 1)
+        self.assertIn("#L2-L9 cuts off part of `long` (#L3-L10)", findings[0]["message"])
+
     def test_c_family_anchor_ignores_comments_and_follows_moves(self):
         self.write("src/app.js", "const a = 1;\nfunction go() {\n  return a; // explain\n}\n")
         self.assertEqual(self.changes()[0], "review")

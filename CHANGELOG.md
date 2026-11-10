@@ -39,6 +39,10 @@ Tested on a real 50,000-line monorepo (FastAPI, React/TypeScript, Modal) with 6,
 ### Give agents better context
 
 - Add `cite`, which prints link-ready line ranges for symbols, so pages cite exact evidence.
+- `check` warns when a line range cuts off a function's first or last code line by one or two lines.
+- A comment added inside a function now moves the citations inside it, so `fix-anchors` rewrites them;
+  before, those links silently pointed one line off.
+- Map summaries take priority over coverage lists when the map is over budget.
 - Map summaries come from a page's "Summary" section when it has one.
 - When the map is over budget, it drops detail page by page in reading order, instead of
   removing every summary at once.

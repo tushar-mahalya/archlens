@@ -40,6 +40,8 @@ Checks:
 - Backticked prose references that no longer exist: paths with a slash, `name()` symbols, and `npm run` scripts (warning).
   Paths that Git ignores, extension-less names that never existed in Git history (such as the
   MCP method `tools/list`), and names in accepted or past decision records are not reported.
+- Line ranges that cut off the first or last code line of a function or class by one or two lines,
+  ignoring blank and comment lines (warning). These are almost always off-by-one citations.
 - Missing titles, missing sequence numbering, and explicit participant counts (warning).
 - Lines with semicolons and long prose lines: one `style` note per page with its line numbers (info).
   Notes are editorial candidates and never fail `--strict`.

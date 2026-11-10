@@ -370,6 +370,31 @@ def check_fragment(page: Path, location: Path | None, fragment: str, page_text: 
     return None
 
 
+def near_symbol(root: Path, location: Path, fragment: str) -> str | None:
+    """A line range that cuts off the first or last code line of a function or class by
+    one or two lines is almost always an off-by-one citation. Blank and comment lines at
+    either end do not count. Name the exact range so the author can fix it."""
+    span = re.fullmatch(r"L(\d+)(?:-L(\d+))?", fragment or "")
+    if not span or not span[2] or not location.is_file():
+        return None
+    relative = location.relative_to(root.resolve()).as_posix()
+    text = read_source(location)
+    symbols = code_symbols(relative, text) if text is not None else None
+    if not symbols:
+        return None
+    code = [n for n, _ in code_lines(relative, text) if int(span[1]) <= n <= int(span[2])]
+    if not code:
+        return None
+    first, last = code[0], code[-1]
+    for name, start, end, _ in symbols:
+        if end - start < 4 or not (abs(start - first) <= 2 and abs(end - last) <= 2):
+            continue
+        if first > start or last < end:
+            return (f"#L{span[1]}-L{span[2]} cuts off part of `{name}` (#L{start}-L{end}) in {location.name}; "
+                    "cite the exact range (the `cite` command prints it).")
+    return None
+
+
 def mermaid_type(body: str) -> str | None:
     for line in body.splitlines():
         stripped = line.strip()
@@ -503,6 +528,10 @@ def check_documents(root: Path, config: dict) -> dict:
                 if anchor:
                     code = "line-anchor" if anchor[1].startswith("Line") else "heading-anchor"
                     add(anchor[0], relative, number, code, anchor[1])
+                elif location is not None:
+                    near = near_symbol(root, location, fragment)
+                    if near:
+                        add("warning", relative, number, "anchor-offset", near)
             if not historical:
                 for problem in references.problems(path, line):
                     add("warning", relative, number, "stale-reference", problem)
