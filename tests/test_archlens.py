@@ -493,6 +493,8 @@ class FreshnessTests(Fixture):
         self.git("commit", "-qam", "change")
         report = self.state()
         self.assertEqual(report["needsSync"][0]["changed"], [{"path": "lib/helper.py", "change": "modified", "severity": "review"}])
+        (self.root / "lib/helper.py").write_text("h = 2\nextra = 3\n", encoding="utf-8")
+        self.assertEqual(self.state()["needsSync"][0]["state"], "review", "an added name needs only a review")
         (self.root / "lib/helper.py").write_text("helper = 2\n", encoding="utf-8")
         self.git("commit", "-qam", "rename")
         report = self.state()

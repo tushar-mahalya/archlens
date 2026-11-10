@@ -897,9 +897,9 @@ def span_digest(lines: list[tuple[int, str]]) -> str:
     return short_hash("\n".join(code for _, code in lines))
 
 
-def outline(path: str, text: str) -> str | None:
-    """Digest of a code file's declared names: top-level symbols and constants, plus Python
-    class members. Renaming, adding, or removing one changes it; editing a body does not."""
+def outline(path: str, text: str) -> list[str] | None:
+    """Short hashes of a code file's declared names: top-level symbols and constants, plus
+    Python class members. Editing a body does not change them."""
     symbols = code_symbols(path, text)
     if symbols is None:
         return None
@@ -909,7 +909,7 @@ def outline(path: str, text: str) -> str | None:
         for node in ast.parse(text).body:
             targets = node.targets if isinstance(node, ast.Assign) else [getattr(node, "target", None)]
             declared.update(t.id for t in targets if isinstance(t, ast.Name))
-    return short_hash("\n".join(sorted(declared)))
+    return sorted({short_hash(name)[:8] for name in declared})
 
 
 def canonical(node) -> str:
@@ -1139,10 +1139,12 @@ def page_changes(root: Path, coverage: Coverage, page_id: str, current: dict, re
         if current[path] != old[path]:
             level = severity(path)
             if level == "stale" and path in outlines:
-                # A whole-file link to code goes stale when the file's declared names change.
-                # Body edits are worth a review; the cited ranges catch body changes precisely.
+                # A whole-file link to code goes stale when a declared name the page may
+                # mention is removed or renamed. Added names and body edits need only a review.
                 text = read_source(root / path)
-                if text is not None and outline(path, text) == outlines[path]:
+                now = outline(path, text) if text is not None else None
+                recorded = outlines[path]
+                if now is not None and (set(recorded) <= set(now) if isinstance(recorded, list) else False):
                     level = "review"
                 else:
                     changes.append({"path": path, "change": "outline-changed", "severity": "stale"})

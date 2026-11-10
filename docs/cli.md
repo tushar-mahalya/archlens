@@ -94,8 +94,8 @@ and formatting do not count, and a moved function is reported with its new lines
 A range inside a larger function also records its own code lines, so an edit elsewhere in
 that function does not flag it. Other files compare normalized text and search for moved text.
 
-A whole-file link to a code file goes `stale` when the file's declared names change
-(a function, class, or top-level constant added, removed, or renamed), and `review` when
+A whole-file link to a code file goes `stale` when one of the file's declared names (a function,
+class, or top-level constant) is removed or renamed, and `review` when names are only added or
 only bodies change. Cite line ranges for claims about behavior, limits, and defaults.
 A link to another document (`.md`, `.rst`, and similar) is a cross-reference: an edit marks the
 page for `review`. A link to any other file goes `stale` when the file changes.

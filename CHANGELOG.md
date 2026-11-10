@@ -29,8 +29,8 @@ Tested on a real 50,000-line monorepo (FastAPI, React/TypeScript, Modal) with 6,
   Comment edits are ignored and moved functions are followed, as in Python.
 - A line range inside a larger function tracks only its own lines. One changed rule in a
   40-line function no longer flags every citation inside it.
-- A whole-file link to code goes stale only when the file's declared names change; body
-  edits mark the page for review. A comment-only edit no longer makes a glossary stale.
+- A whole-file link to code goes stale only when a declared name in the file is removed or renamed;
+  added names and body edits mark the page for review. A comment-only edit no longer makes a glossary stale.
 - An edit to a linked document (Markdown and similar) marks a page for review, not stale, so fixing
   one existing doc no longer flags every page that links it. Deleting a linked file now makes a page stale;
   before, its broken link only marked the page for review.
