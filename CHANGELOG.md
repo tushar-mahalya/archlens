@@ -1,5 +1,93 @@
 # Changelog
 
+## 0.5.0 - 2026-11-11
+
+Found by measuring 0.4.0 on a real monorepo handbook (22 pages, 81 line-range citations) with three
+new model-free benchmarks. Numbers and method are in [benchmarks](docs/benchmarks.md).
+
+### No false alarms on harmless edits
+
+- A mutation benchmark makes one edit with a known right answer per citation. On the trial handbook,
+  0.4.0 flagged 52 of 420 harmless edits (12.4%) and missed 4 of 217 real changes. 0.5.0 flags 0 of 420
+  and detects 226 of 226. On every function in that codebase it is 3,611 of 3,613 detected.
+- Every cited range now has a fingerprint of its content lines, without comments and blank lines.
+  Before, a range that ended one blank line after a function, covered two functions, or covered
+  module-level constants or YAML used a hash of the raw text, so a new comment made the page stale.
+- A cited Python sub-range keeps its indentation. A statement that moves out of its `if` block is a change.
+- `sync --fresh` records fresh pages again. Run it once after you upgrade, to move fingerprints to
+  the new format. Records from 0.4.0 still compare correctly until then.
+
+### Hooks cost half as much, or less
+
+- Claude Code starts a process for every hook. A small entry, `scripts/hook.py`, now answers the
+  common cases first. A Bash call that is not a commit costs 14 ms, down from 36 ms. So does every
+  tool call in a project without a handbook.
+- `status` skips the parse of a cited file whose content is unchanged. Session start, turn end, and
+  the commit gate take about 100 ms on the trial monorepo, down from about 215 ms.
+- The file pointer keeps an index of page links and answers a repeated file at once: 34 ms, down from 55 ms.
+
+### Fixes from the trial review
+
+The trial pages were accurate. Their placement and metadata habits were the cost to a reader.
+
+### One home for each kind of document
+
+- `check` warns when a handbook decision record sits beside a project decision folder, such as
+  `docs/adr/` (`decision-split`). New decisions belong in the project's folder and numbering.
+- `check` warns when nothing outside the handbook links to it while the project has a `README.md`
+  (`unlinked-handbook`). Before, only the Claude session hook could find the handbook.
+- Setup fixes check warnings, not only errors. In adopt mode it extends or links a view that an
+  existing document already shows instead of redrawing it, and links the index from the README.
+- `decide` names the adopted decision folder explicitly.
+
+### Keep metadata out of prose
+
+- `check` notes commit IDs in handbook prose (`prose-metadata`) and table columns that say unknown
+  in every row (`unknown-column`). Both are `info` and never fail `--strict`.
+- Templates and the contract say that `map.json` holds the verified commit, owner, and review state,
+  and that pages describe the system, not the documentation session. Edits and reverts go in the handoff.
+- "Inferred" now means that no linked source states the claim. A rule read in code is observed.
+
+### Read one section, not a whole page
+
+- Add `query`: ranked sections for words, the sections that cite a file, a page outline, one diagram
+  with its text equivalent, or one step-table row. Every result has a line range. No model.
+- The file pointer names up to two sections that cite the file, with line ranges.
+- A diagram is the index to a flow: read it first, then ask for `--step 7` or `--row <unit>`.
+  `learn` tours show the diagram first, and `explain` reuses sections that already trace a scenario.
+- Measured without a model: on a trial monorepo with 220 KB of mapped documents, the top three
+  sections are a fifth of the bytes of their whole pages for 13 points less key-term recall. On this
+  repository's small handbook the gain is about a quarter with 11 points less recall, so the session map
+  names `query` only from eight pages up. See [benchmarks](docs/benchmarks.md).
+
+### One deterministic gate per commit
+
+- Add `precommit` and the `archlens` pre-commit hook. It rewrites moved links, fails on structural
+  errors, and fails when a staged file changes code that a page cites. Pages that were already stale
+  only produce a note, so an old repository can adopt the hook. `--stale warn` reports without failing.
+
+### Measured style and diagram checks
+
+- `check` reports `stylePassRate` for handbook pages: complete sentences that pass length, semicolon,
+  by-passive, and wordy-phrase rules. `--style` fails below `styleTarget`, which no command enforced
+  before. The rate is a mechanical floor, not an STE score.
+- `maxDiagramNodes` was validated but never used. `check` now counts flowchart nodes (`diagram-density`).
+- `check` compares a step table with its numbered sequence diagram (`sequence-steps`).
+- In adopted documents, presentation advice is a note, not a warning. Archlens does not restyle
+  documents it did not write, so `--strict` no longer fails on them.
+
+### Context map
+
+- Index and glossary pages no longer spend map bytes on coverage patterns that span the project.
+- When page summaries do not all fit, a folder of four or more decision records becomes one line.
+  On the trial monorepo, every working page now shows its summary inside the same 3,000 bytes.
+
+### Fewer false alarms
+
+- `decision-split` warns only for the folder with fewer records. `unlinked-handbook` also accepts a
+  parent `README.md` or `index.md`, and a root file that names the handbook folder.
+- `prose-metadata` needs a digit in the commit ID.
+
 ## 0.4.0 - 2026-11-10
 
 Tested on a real 50,000-line monorepo (FastAPI, React/TypeScript, Modal) with 6,000 lines of existing docs.

@@ -1,6 +1,6 @@
 ARCHLENS: LIVING ARCHITECTURE DOCS FOR CLAUDE CODE AND AI CODING AGENTS
 
-Source: https://github.com/tushar-mahalya/archlens (MIT license). Latest release: 0.4.0 (2026-11-10).
+Source: https://github.com/tushar-mahalya/archlens (MIT license). Latest release: 0.5.0 (2026-11-11).
 Unrelated to other products named Archlens or ArchLens.
 
 
@@ -43,10 +43,9 @@ Page map in AGENTS.md: set { "contextFile": "AGENTS.md" } in .archlens.json, the
 Git hooks (any editor or agent), in .pre-commit-config.yaml:
   repos:
     - repo: https://github.com/tushar-mahalya/archlens
-      rev: v0.4.0
+      rev: v0.5.0
       hooks:
-        - id: archlens-check   # links, anchors, diagrams, stale references
-        - id: archlens-stale   # on pre-push: fail while cited code changed
+        - id: archlens   # one gate: fix moved links, check structure, stop when cited code changed
   pre-commit install --hook-type pre-commit --hook-type pre-push
 
 CI check on pull requests (copy archlens.py into the repository first):

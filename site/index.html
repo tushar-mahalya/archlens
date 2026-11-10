@@ -43,7 +43,7 @@
  "description": "Living architecture docs for Claude Code and AI coding agents. A Claude Code plugin and portable Agent Skill that keeps architecture documentation in sync with code: local documentation drift detection on cited functions and line ranges, updates in the same commit as the code, and a compact page map for agents through a session hook or AGENTS.md.",
  "applicationCategory": "DeveloperApplication",
  "operatingSystem": "macOS, Linux, Windows",
- "softwareVersion": "0.4.0",
+ "softwareVersion": "0.5.0",
  "license": "https://opensource.org/licenses/MIT",
  "isAccessibleForFree": true,
  "offers": {
@@ -142,7 +142,7 @@
   <a class="brand" href="#a-000" aria-label="Archlens, cover sheet">
     <svg class="brand-mark" viewBox="0 0 32 32" aria-hidden="true"><circle cx="14" cy="16" r="10"/><path d="M4 16h20"/><path class="brand-arrow" d="M24 9l7 7-7 7z"/></svg>
     <span class="brand-word">Archlens</span>
-    <span class="brand-rev">Rev 0.4.0</span>
+    <span class="brand-rev">Rev 0.5.0</span>
   </a>
   <nav class="sheet-nav" aria-label="Sheet index">
     <ol>
@@ -212,6 +212,7 @@
         <table class="rev-table">
           <thead><tr><th scope="col">Rev</th><th scope="col">Date</th><th scope="col">Description</th></tr></thead>
           <tbody>
+            <tr><th scope="row">0.5.0</th><td>2026-11-11</td><td>No false alarms on harmless edits, faster hooks, <code>query</code>, one commit gate</td></tr>
             <tr><th scope="row"><span class="delta delta-inline rev" aria-hidden="true">4</span> 0.4.0</th><td>2026-11-10</td><td>Adopt existing docs, update once per commit, fewer false alarms, <code>cite</code></td></tr>
             <tr><th scope="row">0.3.0</th><td>2026-11-08</td><td>Freshness loop, page map, and <code>learn</code></td></tr>
           </tbody>
@@ -312,7 +313,7 @@ Pages live in `docs/architecture/` (6 pages, <span id="map-count">0 stale</span>
   </figure>
 
   <div class="title-block" aria-hidden="true">
-    <div><b>Project</b>Archlens</div><div><b>Title</b>Cover</div><div><b>Sheet</b><i>A-000</i></div><div><b>Rev</b>0.4.0</div>
+    <div><b>Project</b>Archlens</div><div><b>Title</b>Cover</div><div><b>Sheet</b><i>A-000</i></div><div><b>Rev</b>0.5.0</div>
     <div><b>Drawn</b>agent</div><div><b>Checked</b>you</div><div class="tb-wide"><b>Scale</b>1 page = 1 question</div>
   </div>
 </div>
@@ -412,7 +413,7 @@ Pages live in `docs/architecture/` (6 pages, <span id="map-count">0 stale</span>
   </div>
 
   <div class="title-block" aria-hidden="true">
-    <div><b>Project</b>Archlens</div><div><b>Title</b>The problem</div><div><b>Sheet</b><i>A-101</i></div><div><b>Rev</b>0.4.0</div>
+    <div><b>Project</b>Archlens</div><div><b>Title</b>The problem</div><div><b>Sheet</b><i>A-101</i></div><div><b>Rev</b>0.5.0</div>
     <div><b>Drawn</b>agent</div><div><b>Checked</b>you</div><div class="tb-wide"><b>Scale</b>1 page = 1 question</div>
   </div>
 </div>
@@ -651,7 +652,7 @@ Pages live in `docs/architecture/` (6 pages, <span id="map-count">0 stale</span>
   </div>
 
   <div class="title-block" aria-hidden="true">
-    <div><b>Project</b>Archlens</div><div><b>Title</b>The loop</div><div><b>Sheet</b><i>A-201</i></div><div><b>Rev</b>0.4.0</div>
+    <div><b>Project</b>Archlens</div><div><b>Title</b>The loop</div><div><b>Sheet</b><i>A-201</i></div><div><b>Rev</b>0.5.0</div>
     <div><b>Drawn</b>agent</div><div><b>Checked</b>you</div><div class="tb-wide"><b>Scale</b>1 page = 1 question</div>
   </div>
 </div>
@@ -816,7 +817,7 @@ python tools/render_charts.py</code></pre>
   <p class="small">Method, raw results, and questions: <a href="https://github.com/tushar-mahalya/archlens/blob/main/docs/benchmarks.md">docs/benchmarks.md</a>. The model benchmark spends real usage; start with <code>--reps 1</code>.</p>
 
   <div class="title-block" aria-hidden="true">
-    <div><b>Project</b>Archlens</div><div><b>Title</b>Evidence</div><div><b>Sheet</b><i>A-301</i></div><div><b>Rev</b>0.4.0</div>
+    <div><b>Project</b>Archlens</div><div><b>Title</b>Evidence</div><div><b>Sheet</b><i>A-301</i></div><div><b>Rev</b>0.5.0</div>
     <div><b>Drawn</b>agent</div><div><b>Checked</b>you</div><div class="tb-wide"><b>Scale</b>1 page = 1 question</div>
   </div>
 </div>
@@ -924,7 +925,7 @@ python tools/render_charts.py</code></pre>
   </div>
 
   <div class="title-block" aria-hidden="true">
-    <div><b>Project</b>Archlens</div><div><b>Title</b>Trial</div><div><b>Sheet</b><i>A-302</i></div><div><b>Rev</b>0.4.0</div>
+    <div><b>Project</b>Archlens</div><div><b>Title</b>Trial</div><div><b>Sheet</b><i>A-302</i></div><div><b>Rev</b>0.5.0</div>
     <div><b>Drawn</b>agent</div><div><b>Checked</b>you</div><div class="tb-wide"><b>Scale</b>1 page = 1 question</div>
   </div>
 </div>
@@ -974,7 +975,7 @@ python tools/render_charts.py</code></pre>
   </div>
 
   <div class="title-block" aria-hidden="true">
-    <div><b>Project</b>Archlens</div><div><b>Title</b>Field survey</div><div><b>Sheet</b><i>S-401</i></div><div><b>Rev</b>0.4.0</div>
+    <div><b>Project</b>Archlens</div><div><b>Title</b>Field survey</div><div><b>Sheet</b><i>S-401</i></div><div><b>Rev</b>0.5.0</div>
     <div><b>Drawn</b>agent</div><div><b>Checked</b>you</div><div class="tb-wide"><b>Scale</b>1 page = 1 question</div>
   </div>
 </div>
@@ -1033,7 +1034,7 @@ python tools/render_charts.py</code></pre>
   </div>
 
   <div class="title-block" aria-hidden="true">
-    <div><b>Project</b>Archlens</div><div><b>Title</b>Learn</div><div><b>Sheet</b><i>A-501</i></div><div><b>Rev</b>0.4.0</div>
+    <div><b>Project</b>Archlens</div><div><b>Title</b>Learn</div><div><b>Sheet</b><i>A-501</i></div><div><b>Rev</b>0.5.0</div>
     <div><b>Drawn</b>agent</div><div><b>Checked</b>you</div><div class="tb-wide"><b>Scale</b>1 page = 1 question</div>
   </div>
 </div>
@@ -1085,13 +1086,12 @@ python tools/render_charts.py</code></pre>
       <p>Works with any editor or agent. Add Archlens to <code>.pre-commit-config.yaml</code>:</p>
       <div class="code-block"><pre><code>repos:
   - repo: https://github.com/tushar-mahalya/archlens
-    rev: v0.4.0
+    rev: v0.5.0
     hooks:
-      - id: archlens-check   # links, anchors, diagrams, stale references
-      - id: archlens-stale   # on pre-push: fail while cited code changed</code></pre></div>
+      - id: archlens   # one gate: fix moved links, check structure, stop when cited code changed</code></pre></div>
       <p>Install both stages:</p>
       <div class="code-block"><pre><code>pre-commit install --hook-type pre-commit --hook-type pre-push</code></pre></div>
-      <p class="small"><code>archlens-check</code> runs on every commit and fails on structural errors. <code>archlens-stale</code> runs on <code>pre-push</code> and fails while covered source changed after the last sync. <code>rev: v0.4.0</code> pins the latest release.</p>
+      <p class="small">The <code>archlens</code> hook runs on every commit. It rewrites links to code that only moved, fails on structural errors, and fails when a staged file changes code that a page cites. Pages that were already stale do not block the commit. <code>rev: v0.5.0</code> pins the latest release.</p>
     </div>
 
     <div class="tabpanel" id="panel-ci" role="tabpanel" aria-labelledby="tab-ci" tabindex="0">
@@ -1128,7 +1128,7 @@ jobs:
   </div>
 
   <div class="title-block" aria-hidden="true">
-    <div><b>Project</b>Archlens</div><div><b>Title</b>Install</div><div><b>Sheet</b><i>I-601</i></div><div><b>Rev</b>0.4.0</div>
+    <div><b>Project</b>Archlens</div><div><b>Title</b>Install</div><div><b>Sheet</b><i>I-601</i></div><div><b>Rev</b>0.5.0</div>
     <div><b>Drawn</b>agent</div><div><b>Checked</b>you</div><div class="tb-wide"><b>Scale</b>1 page = 1 question</div>
   </div>
 </div>
@@ -1187,7 +1187,7 @@ jobs:
   </div>
 
   <div class="title-block" aria-hidden="true">
-    <div><b>Project</b>Archlens</div><div><b>Title</b>Questions</div><div><b>Sheet</b><i>Q-701</i></div><div><b>Rev</b>0.4.0</div>
+    <div><b>Project</b>Archlens</div><div><b>Title</b>Questions</div><div><b>Sheet</b><i>Q-701</i></div><div><b>Rev</b>0.5.0</div>
     <div><b>Drawn</b>agent</div><div><b>Checked</b>you</div><div class="tb-wide"><b>Scale</b>1 page = 1 question</div>
   </div>
 </div>
@@ -1203,7 +1203,7 @@ jobs:
       <p>Architecture docs that stay in sync with your code.</p>
     </div>
     <div class="fb-cell"><b>Drawing set</b><p>Public site, 9 sheets</p></div>
-    <div class="fb-cell"><b>Revision</b><p>0.4.0 (2026-11-10)</p></div>
+    <div class="fb-cell"><b>Revision</b><p>0.5.0 (2026-11-11)</p></div>
     <div class="fb-cell"><b>Drawn</b><p>agent</p></div>
     <div class="fb-cell"><b>Checked</b><p>you</p></div>
     <div class="fb-cell"><b>Scale</b><p>1 page = 1 question</p></div>

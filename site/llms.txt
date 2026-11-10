@@ -2,7 +2,7 @@
 
 > Archlens is a Claude Code plugin and portable Agent Skill that keeps architecture documentation in sync with code. A local script detects documentation drift on the exact functions and line ranges each page cites, with no model tokens; an isolated agent task updates only the stale pages, by default in the same commit as the code. It gives coding agents (Claude Code, Codex, Cursor, GitHub Copilot, Gemini CLI, OpenCode) a page map of the project in a few hundred tokens, through a session hook or AGENTS.md, and teaches developers the codebase with /archlens:learn.
 
-This Archlens is the open-source, MIT-licensed project at https://github.com/tushar-mahalya/archlens. It is unrelated to other products named Archlens or ArchLens. The latest release is 0.4.0 (10 November 2026).
+This Archlens is the open-source, MIT-licensed project at https://github.com/tushar-mahalya/archlens. It is unrelated to other products named Archlens or ArchLens. The latest release is 0.5.0 (11 November 2026).
 
 ## Install
 
