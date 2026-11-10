@@ -12,7 +12,7 @@
 </p>
 
 <p align="center">
-  <b><a href="https://tushar-mahalya.github.io/archlens/">Website</a></b> ·
+  <b><a href="https://archlens-docs.pages.dev/">Website</a></b> ·
   <a href="#quick-start">Quick start</a> ·
   <a href="docs/benchmarks.md">Benchmarks</a> ·
   <a href="examples/order-service/README.md">Example</a> ·

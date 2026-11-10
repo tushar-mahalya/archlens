@@ -1,0 +1,18 @@
+# Cloudflare Pages response headers. GitHub Pages ignores this file.
+/*
+  X-Content-Type-Options: nosniff
+  Referrer-Policy: strict-origin-when-cross-origin
+  Permissions-Policy: camera=(), microphone=(), geolocation=()
+  X-Frame-Options: DENY
+
+/*.css
+  Cache-Control: public, max-age=3600, must-revalidate
+
+/*.js
+  Cache-Control: public, max-age=3600, must-revalidate
+
+/og.png
+  Cache-Control: public, max-age=86400
+
+/llms*.txt
+  Content-Type: text/plain; charset=utf-8

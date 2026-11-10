@@ -1,6 +1,4 @@
-# site-url: change the Sitemap line when a custom domain is added (see docs/website.md).
-# Crawlers read robots.txt only at a host root. Under the current project path
-# (/archlens/) it is ignored; submit sitemap.xml in Google Search Console instead.
+# site-url: change the Sitemap line if the site moves (see docs/website.md).
 
 # Everyone, including AI search and agent crawlers, may read the whole site.
 User-agent: *
@@ -16,4 +14,4 @@ User-agent: Google-Extended
 User-agent: CCBot
 Allow: /
 
-Sitemap: https://tushar-mahalya.github.io/archlens/sitemap.xml
+Sitemap: https://archlens-docs.pages.dev/sitemap.xml

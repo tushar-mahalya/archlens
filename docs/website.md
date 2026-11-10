@@ -1,84 +1,77 @@
-# Moving the site to a custom domain
+# Project website
 
-The site currently lives at `https://tushar-mahalya.github.io/archlens/`. Every internal link,
-asset, and script is relative, so the same files work there and at a domain root. Only the
-absolute URLs listed in step 5 must change. Do not add a `CNAME` file before the domain is
-bought and configured. (This repository deploys with a GitHub Actions workflow, so GitHub ignores
-a `CNAME` file anyway; the domain is set in the repository settings.)
+The website is the static `site/` folder: HTML, CSS, and dependency-free JavaScript.
+It is served at **https://archlens-docs.pages.dev/** from Cloudflare Pages (project `archlens-docs`).
+The old address, `https://tushar-mahalya.github.io/archlens/`, redirects there.
 
-## Option A: a custom domain, such as `archlens.sh`
+## How it deploys
 
-1. Buy the domain from any registrar.
-2. In the repository, open **Settings → Pages → Custom domain**, enter the domain, and save.
-   Do this before you create DNS records, so nobody else can claim the domain on GitHub Pages.
-   Optionally verify the domain in your account's Pages settings for extra takeover protection.
-3. At the registrar, create DNS records. These values come from GitHub's
-   "Managing a custom domain for your GitHub Pages site" docs (checked 2026-11-10); recheck them there.
-   - Apex domain (`archlens.sh`), `A` records:
-     `185.199.108.153`, `185.199.109.153`, `185.199.110.153`, `185.199.111.153`
-   - Apex domain, `AAAA` records (optional, IPv6):
-     `2606:50c0:8000::153`, `2606:50c0:8001::153`, `2606:50c0:8002::153`, `2606:50c0:8003::153`
-   - `www` subdomain: a `CNAME` record pointing to `tushar-mahalya.github.io`
-     (without the repository name). With both set up, GitHub redirects between them.
-4. When the DNS check passes in **Settings → Pages**, turn on **Enforce HTTPS**.
-   The option can take up to 24 hours to appear.
-5. Replace `https://tushar-mahalya.github.io/archlens/` with the new URL in every line marked
-   `site-url` (`grep -rn site-url site/`):
-   - `site/index.html`: canonical link, `og:url`, `og:image`, `twitter:image`, and the `"url"`
-     in the `SoftwareApplication` JSON-LD
-   - `site/sitemap.xml`: `<loc>`
-   - `site/robots.txt`: `Sitemap:` line
-6. Update the links outside `site/`: the "Website" link in `README.md`, and the website field in
-   the repository's **About** settings.
-7. Check the result: open the new URL, a missing page (for the 404 sheet), and the share preview
-   (for example with a social card validator).
-8. Add the new URL as a new property in Google Search Console and Bing Webmaster Tools
-   (see below), and submit its `sitemap.xml` again.
+| Workflow | Trigger | What it does |
+|---|---|---|
+| [Cloudflare Pages](../.github/workflows/cloudflare-pages.yml) | Push to `main` that changes `site/` | Uploads `site/` with a pinned Wrangler version |
+| [Pages](../.github/workflows/pages.yml) | Same | Publishes a redirect page on GitHub Pages so old links and search results move to one URL |
 
-## Option B: free, `https://<name>.pages.dev` on Cloudflare Pages
+The Cloudflare workflow needs two repository secrets. Without them it skips with a notice.
 
-In the Cloudflare dashboard, create a Pages project connected to this repository, with
-production branch `main`, no build command, and build output directory `site`. Pick a project
-name that is still free, such as `archlens-docs`. The site is then served at a domain root with
-HTTPS and a CDN, and robots.txt starts to work. Then do steps 5 to 7 above with the new URL,
-and keep or remove the GitHub Pages workflow.
+1. `CLOUDFLARE_ACCOUNT_ID`: the account ID that `npx wrangler@4.159.0 whoami` prints.
+2. `CLOUDFLARE_API_TOKEN`: in the Cloudflare dashboard, open **My Profile → API Tokens →
+   Create Token → Create Custom Token**, give it **Account → Cloudflare Pages → Edit** for your
+   account, and create it. Store it without echoing it: `gh secret set CLOUDFLARE_API_TOKEN`
+   (the command prompts for the value).
+
+To deploy by hand, run from the repository root after `npx wrangler@4.159.0 login`:
+
+```text
+npx wrangler@4.159.0 pages deploy site --project-name archlens-docs --branch main
+```
+
+`site/_headers` sets security and cache headers on Cloudflare Pages.
+
+## Absolute URLs
+
+Internal links, assets, and scripts are relative. Only these lines hold the site URL; change all
+of them if the site moves, for example to a custom domain:
+
+- `site/index.html`: lines marked `site-url` (canonical, `og:url`, `og:image`, `twitter:image`)
+  and the `url` in the `SoftwareApplication` JSON-LD.
+- `site/sitemap.xml` (`<loc>`) and `site/robots.txt` (`Sitemap:`).
+- `README.md` (Website link), the redirect target in `.github/workflows/pages.yml`, and the
+  repository's website field (`gh repo edit --homepage <url>`).
+
+A custom domain can be added later in **Workers & Pages → archlens-docs → Custom domains**.
+`archlens.sh` had no registration record on 10 November 2026.
+
+## Search engines and agents
+
+- `robots.txt` allows every crawler, including AI search and agent crawlers, and lists the sitemap.
+- `llms.txt` and `llms-full.txt` give agents a short and a full plain-text summary.
+- The page has `SoftwareApplication` and `FAQPage` structured data.
+- **IndexNow** (Bing, Yandex, Seznam, Naver, and others): the key file is
+  `site/af83e24b5969ec49b7603348dc2605b2.txt`. After a deployment that changes content, notify them:
+
+  ```text
+  curl "https://api.indexnow.org/indexnow?url=https://archlens-docs.pages.dev/&key=af83e24b5969ec49b7603348dc2605b2"
+  ```
+
+- **Google** does not support IndexNow. Verify the site once in Google Search Console:
+  1. Add a **URL prefix** property for `https://archlens-docs.pages.dev/`.
+  2. Choose **HTML tag**, copy the `google-site-verification` meta tag, and paste it in
+     `site/index.html` at the commented placeholder inside `<head>`. Commit and deploy.
+  3. Click **Verify**, then open **Sitemaps** and submit `https://archlens-docs.pages.dev/sitemap.xml`.
+  4. Keep the tag; removing it un-verifies the property.
+- **Bing Webmaster Tools** can import the verified site from Search Console.
 
 ## Names that are already taken (checked 10 November 2026)
 
 Other, unrelated projects use the name: the GitHub organization `archlens` (so `archlens.github.io`
 is not available), `archlens.dev`, `archlens.io`, `archlens.app`, `archlens.pages.dev`,
-`archlens.netlify.app`, and `archlens.vercel.app`. `archlens.sh` had no registration record.
-Because of this, page titles, descriptions, and `llms.txt` lead with descriptive keywords
-("living architecture docs for Claude Code") so search engines and agents can tell the projects apart.
+`archlens.netlify.app`, and `archlens.vercel.app`. Page titles, descriptions, and `llms.txt` therefore
+lead with descriptive keywords ("living architecture docs for Claude Code"), and `llms.txt` states
+that this project is unrelated to the others, so search engines and agents can tell them apart.
 
-## Get the current URL indexed
+## Checks before publishing
 
-`robots.txt` only takes effect at a host root. On the current project-path URL
-(`https://tushar-mahalya.github.io/archlens/`) search engines ignore `site/robots.txt` and do
-not find `sitemap.xml` through it, so submit the sitemap by hand.
-
-Google Search Console:
-
-1. Open Search Console and add a property of type **URL prefix** with
-   `https://tushar-mahalya.github.io/archlens/` (a Domain property needs DNS access, which
-   `github.io` does not give you).
-2. Choose the **HTML tag** verification method and copy the
-   `<meta name="google-site-verification" content="...">` tag.
-3. Paste it in `site/index.html` where the commented placeholder says
-   "Search Console: paste the HTML-tag verification here", inside `<head>`. Remove the
-   comment markers around it, commit, and wait for the Pages deployment.
-4. Click **Verify**. Keep the tag in place; removing it un-verifies the property.
-5. Open **Sitemaps**, enter `https://tushar-mahalya.github.io/archlens/sitemap.xml`, and submit.
-   Optionally use **URL inspection → Request indexing** for the home page.
-
-Bing Webmaster Tools: sign in and choose **Import from Google Search Console**. It imports the
-verified site and its sitemap, so Bing needs no extra tag.
-
-## Notes
-
-- `robots.txt` allows all crawlers, including AI search and agent crawlers. It takes effect
-  once the site is served from a host root.
-- `llms.txt` and `llms-full.txt` summarize the project for agents. They use GitHub links only,
-  so they do not change with the domain.
-- `404.html` finds the site root at runtime (`/archlens/` or `/`). If the site ever moves to
-  another sub-path, update the pattern in its first `<script>`.
+- `node --check site/main.js`
+- Serve `site/` locally (`python3 -m http.server` inside it) and check both themes at desktop and
+  360 px width, with and without reduced motion.
+- Every `href="#..."` target exists, and every local asset returns 200.

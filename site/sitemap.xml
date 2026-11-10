@@ -2,7 +2,7 @@
 <!-- site-url: change <loc> when a custom domain is added (see docs/website.md). -->
 <urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">
   <url>
-    <loc>https://tushar-mahalya.github.io/archlens/</loc>
+    <loc>https://archlens-docs.pages.dev/</loc>
     <lastmod>2026-11-10</lastmod>
   </url>
 </urlset>
