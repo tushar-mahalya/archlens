@@ -32,7 +32,7 @@ the argument selects another folder. Do not assume conversation history is avail
 5. Add an index, coverage gaps, glossary terms, and a `map.json` document map.
 6. Draft decisions only when evidence supports a significant design choice.
    Mark missing historical rationale as unknown.
-7. Fix errors that `check --root <project> --summary` reports. Check diagrams locally.
+7. Fix errors and warnings from `check --root <project> --summary`. Check diagrams locally.
 8. With Python 3.9+, run `sync --root <project> --all` to record the freshness baseline.
    Without it, state that freshness is not tracked.
 9. Claude Code loads a short handbook map at session start. For other agents,

@@ -17,7 +17,9 @@ Question: $ARGUMENTS
 Read `${CLAUDE_PLUGIN_ROOT}/references/contract.md`.
 If no question was supplied, request a scenario and stop.
 Do not edit files or require an existing handbook.
-Start from the scenario's entrypoint or an existing index. Load configuration only
+Start from the scenario's entrypoint or an existing index. With a handbook and Python,
+run the bundled script's `query --root <project> <words>` first and reuse sections that
+already trace the scenario. Verify them against source. Load configuration only
 if needed to locate a custom handbook. Do not load templates or the style manual.
 
 Trace from the actual entrypoint to the outcome. Include identity and validation,

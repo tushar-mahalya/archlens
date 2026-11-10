@@ -10,10 +10,11 @@ Check routing, feature flags, deployment selection, and authorization.
 
 Label important claims:
 
-- **Implementation observed**: link to the implementation and relevant revision.
+- **Implementation observed**: link to the implementation. A rule read in code is observed.
 - **Test evidence**: link to the test; say whether it ran or was only inspected.
 - **Recorded intent**: link to an approved decision or proposal.
-- **Inferred**: explain the inference and request confirmation.
+- **Inferred**: no linked source states it, such as production effects or intent.
+  Explain the inference and request confirmation.
 - **Unknown**: state what is missing and who can confirm it.
 
 Code can show what happens. It cannot prove why a person chose a design.
@@ -53,9 +54,11 @@ Use the mode the request names. Default to `adopt` when architecture documents e
   Verify the documents that describe the priority journey. Fix each statement that
   current source contradicts with the smallest edit, and link the fixed claim to source.
   Do not restructure, restyle, or rewrite correct prose. Add pages only for real gaps.
+  Do not redraw a view that a mapped document already shows. Extend or link it.
 - `new`: write a separate handbook. Link existing documents, but do not edit them.
 
-Record new decisions in the project's existing decision folder, numbering, and format.
+Record new decisions in the project's decision folder, numbering, and format.
+Link the handbook index from the README or main architecture document.
 In the handoff, list each edited existing document and the mapped documents still unverified.
 
 ## Trace execution and data

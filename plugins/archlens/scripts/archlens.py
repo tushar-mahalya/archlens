@@ -8,13 +8,16 @@ import ast
 import bisect
 from datetime import datetime, timezone
 import hashlib
+import io
 import json
+import math
 import os
 from pathlib import Path, PurePosixPath, PureWindowsPath
 import re
 import subprocess
 import sys
 import tempfile
+import tokenize
 from urllib.parse import unquote, urlsplit
 
 
@@ -492,7 +495,290 @@ class References:
         return self.symbols[name]
 
 
-def check_documents(root: Path, config: dict) -> dict:
+COMMIT_IN_PROSE = re.compile(r"\bcommit\s+`?(?=[0-9a-f]*\d)[0-9a-f]{7,40}\b`?", re.I)
+
+
+def table_cells(line: str) -> list[str]:
+    """Cells of one Markdown table row; pipes inside code spans or escaped do not split."""
+    cells, current, code = [], "", False
+    body = line.strip()
+    body = body[1:] if body.startswith("|") else body
+    body = body[:-1] if body.endswith("|") and not body.endswith("\\|") else body
+    for index, char in enumerate(body):
+        if char == "`":
+            code = not code
+        if char == "|" and not code and (index == 0 or body[index - 1] != "\\"):
+            cells.append(current.strip())
+            current = ""
+        else:
+            current += char
+    return cells + [current.strip()]
+
+
+HEADING = re.compile(r"^ {0,3}(#{1,6})\s+(.+?)\s*#*\s*$")
+LIST_ITEM = re.compile(r"^\s*(?:([-*+])|(\d+)[.)])\s+(.*)$")
+TABLE_RULE = re.compile(r"^\s*\|?\s*:?-{2,}:?\s*(\|\s*:?-{2,}:?\s*)*\|?\s*$")
+
+
+def page_sections(text: str) -> list[dict]:
+    """Leaf sections of a page: each heading with the lines up to the next heading.
+
+    Line numbers are 1-based and inclusive, so an agent can read one section with an offset."""
+    total = len(text.splitlines())
+    prose, blocks, _ = markdown_sections(text)
+    heads = [(number, len(match[1]), match[2].strip()) for number, line in prose if (match := HEADING.match(line))]
+    sections, trail = [], []
+    first = heads[0][0] if heads else total + 1
+    if any(line.strip() for number, line in prose if number < first) or any(start < first for start, _, _ in blocks):
+        sections.append({"heading": "", "level": 0, "trail": [], "lines": [1, first - 1]})
+    for index, (number, level, title) in enumerate(heads):
+        trail = [item for item in trail if item[0] < level] + [(level, title)]
+        end = heads[index + 1][0] - 1 if index + 1 < len(heads) else total
+        sections.append({"heading": title, "level": level, "trail": [name for _, name in trail[:-1]], "lines": [number, end]})
+    for section in sections:
+        first, last = section["lines"]
+        section["diagrams"] = [
+            {"type": mermaid_type(body) or "unknown", "lines": [start, start + len(body.splitlines()) + 1]}
+            for start, language, body in blocks if language == "mermaid" and first <= start <= last
+        ]
+    return sections
+
+
+def page_tables(prose) -> list[dict]:
+    """Tables outside code fences: header cells and body rows with their line numbers."""
+    tables, rows = [], []
+    for number, line in [*prose, (0, "")]:
+        if line.lstrip().startswith("|"):
+            rows.append((number, line))
+            continue
+        if len(rows) >= 3 and TABLE_RULE.match(rows[1][1]):
+            tables.append({"line": rows[0][0], "header": table_cells(rows[0][1]),
+                           "rows": [(n, table_cells(row)) for n, row in rows[2:]]})
+        rows = []
+    return tables
+
+
+def plain_text(markdown: str) -> str:
+    """Prose without code, link targets, HTML, or emphasis marks. `X` stands for removed code."""
+    text = re.sub(r"`[^`]*`", " X ", markdown)
+    text = re.sub(r"!?\[([^\]]*)\]\([^)]*\)", r"\1", text)
+    text = re.sub(r"<[^>]+>|https?://\S+", " X ", text)
+    text = re.sub(r"\*{1,3}|~~|(?<!\w)_{1,3}|_{1,3}(?!\w)", "", text)
+    return re.sub(r"\s+", " ", text).strip()
+
+
+def cell_text(cell: str) -> str:
+    """A table cell as a reader sees it: link text and code kept, marks removed."""
+    text = re.sub(r"!?\[([^\]]*)\]\([^)]*\)", r"\1", cell)
+    return re.sub(r"\s+", " ", re.sub(r"[`*~]", "", text)).strip()
+
+
+def step_numbers(cell: str) -> set[int]:
+    """Step numbers named by a step-table cell, such as `7`, `4-5`, or `11, 13`."""
+    found = set()
+    for first, last in re.findall(r"(\d+)(?:\s*[-–]\s*(\d+))?", plain_text(cell)):
+        low, high = int(first), int(last or first)
+        if low <= high <= low + 200:
+            found.update(range(low, high + 1))
+    return found
+
+
+SEQUENCE_KEYWORDS = re.compile(
+    r"^\s*(?:note|participant|actor|loop|alt|else|opt|par|and|critical|option|break|rect|end|autonumber|"
+    r"activate|deactivate|title|box|create|destroy|links?|sequenceDiagram|%%)\b", re.I)
+SEQUENCE_ARROW = re.compile(r"(?:<<)?--?(?:>>|>|x|\))[+-]?\s*[^:]*:")
+FLOW_WORDS = {"subgraph", "end", "direction", "classdef", "class", "style", "linkstyle", "click", "flowchart", "graph",
+              "tb", "td", "bt", "lr", "rl"}
+
+
+def sequence_messages(body: str) -> int:
+    """Numbered messages in a Mermaid sequence diagram (what `autonumber` counts)."""
+    return sum(1 for line in body.splitlines()
+               if not SEQUENCE_KEYWORDS.match(line) and SEQUENCE_ARROW.search(line))
+
+
+def flowchart_nodes(body: str) -> int:
+    """Distinct node IDs in a Mermaid flowchart. A heuristic reader, not a parser."""
+    nodes = set()
+    for line in body.splitlines():
+        line = re.sub(r"%%.*$", "", line)
+        line = re.sub(r'"[^"]*"', "", line)
+        first = line.split(None, 1)[0].lower() if line.split() else ""
+        if first in {"classdef", "class", "style", "linkstyle", "click", "direction"} or first.startswith("%%"):
+            continue
+        if first == "subgraph":
+            continue
+        line = re.sub(r"\|[^|]*\|", " ", line)                      # edge labels
+        line = re.sub(r"--\s[^-|>]*?\s(?=--|-\.|==)", "--", line)    # inline edge text: A -- text --> B
+        line = re.sub(r"[\[({]+[^\[\](){}]*[\])}]+", " ", line)        # node shapes and labels
+        line = re.sub(r"[<xo]?(?:-{2,}|-\.+-|={2,})[>xo]?|-\.->|:::\w+|&|;", " ", line)
+        for token in re.findall(r"[A-Za-z_][\w-]*", line):
+            if token.lower() not in FLOW_WORDS:
+                nodes.add(token)
+    return len(nodes)
+
+
+SENTENCE_BREAK = re.compile(r"(?<=[.!?])[\"')\]]*\s+(?=[\"'(\[]?[A-Z0-9])")
+ABBREVIATION = re.compile(r"\b(?:e\.g|i\.e|etc|vs|cf|approx|No|Fig)\.[\"')\]]*$", re.I)
+WORDY = re.compile(
+    r"\b(in order to|in the event of|due to the fact that|a number of|utili[sz](?:e|es|ed|ing)|simply|"
+    r"basically|obviously|of course|and/or|etc|as needed|as appropriate|very)\b", re.I)
+PASSIVE_BY = re.compile(
+    r"\b(?:is|are|was|were|be|been|being)\s+(?:(?:not|also|never|always|only|then|\w+ly)\s+)*(\w+)\s+by\b", re.I)
+PARTICIPLES = {
+    "built", "bound", "brought", "caught", "chosen", "done", "drawn", "driven", "found", "given", "held", "hidden",
+    "kept", "known", "left", "lost", "made", "meant", "paid", "read", "run", "seen", "sent", "set", "shown", "sold",
+    "taken", "thrown", "told", "understood", "written",
+}
+DESCRIPTION_WORDS, PROCEDURE_WORDS = 25, 20
+
+
+def style_units(prose) -> list[tuple[list[tuple[int, str]], bool, bool]]:
+    """Prose units as (numbered lines, procedural, needs a full stop): paragraphs, list items, table cells."""
+    units, current = [], None
+    lines = list(prose)
+
+    def flush():
+        nonlocal current
+        if current and any(text.strip() for _, text in current[0]):
+            units.append(tuple(current))
+        current = None
+
+    for index, (number, line) in enumerate(lines):
+        stripped = re.sub(r"^\s*(?:>\s?)+", "", line).strip()
+        if not stripped or HEADING.match(line) or stripped.startswith(("<!--", "---", "***", "===")) \
+                or re.match(r"^\[[^\]]+\]:\s", stripped):
+            flush()
+            continue
+        if stripped.startswith("|"):
+            flush()
+            following = lines[index + 1][1] if index + 1 < len(lines) else ""
+            if TABLE_RULE.match(stripped) or TABLE_RULE.match(following.strip()):
+                continue
+            units.extend(([(number, cell)], False, True) for cell in table_cells(stripped) if cell)
+            continue
+        item = LIST_ITEM.match(line)
+        if item:
+            flush()
+            current = [[(number, item[3])], item[2] is not None, True]
+        elif current:
+            current[0].append((number, stripped))
+        else:
+            current = [[(number, stripped)], False, False]
+    flush()
+    return units
+
+
+def style_sentences(prose) -> list[dict]:
+    """Complete sentences with the mechanical rules each one breaks.
+
+    Checks length, semicolons, by-passives, and listed wordy phrases. It cannot judge
+    actors, terminology, or ambiguity, so a pass here is not a pass of the full rubric."""
+    sentences = []
+    for parts, procedural, needs_stop in style_units(prose):
+        # Clean the whole unit, so a link or code span that wraps over two lines stays whole.
+        # Then find the line of each sentence by its share of the unit's raw text.
+        raw = " ".join(text for _, text in parts)
+        text = plain_text(raw)
+        starts, offset = [], 0
+        for number, part in parts:
+            starts.append((offset, number))
+            offset += len(part) + 1
+        pieces, position = [], 0
+        for match in [*SENTENCE_BREAK.finditer(text), None]:
+            end = match.start() if match else len(text)
+            piece = text[position:end]
+            if pieces and ABBREVIATION.search(pieces[-1][1]):
+                pieces[-1] = (pieces[-1][0], pieces[-1][1] + " " + piece)
+            else:
+                pieces.append((position, piece))
+            position = match.end() if match else end
+        for position, piece in pieces:
+            words = [w for w in re.findall(r"[A-Za-z0-9][\w'\u2019/-]*", piece) if w != "X"]
+            ended = re.search(r"[.!?:][\"')\]]*$", piece) is not None
+            if len(words) < 3 or (needs_stop and not ended):
+                continue
+            # Map the cleaned offset back to a raw line by proportion; exact for one-line units.
+            scaled = position * len(raw) / max(1, len(text))
+            line = max((number for start, number in starts if start <= scaled + 1), default=parts[0][0])
+            limit = PROCEDURE_WORDS if procedural else DESCRIPTION_WORDS
+            reasons = []
+            if len(words) > limit:
+                reasons.append("long")
+            if ";" in piece:
+                reasons.append("semicolon")
+            passive = PASSIVE_BY.search(piece)
+            if passive and (passive[1].lower().endswith("ed") or passive[1].lower() in PARTICIPLES):
+                reasons.append("passive")
+            if WORDY.search(piece):
+                reasons.append("wordy")
+            sentences.append({"line": line, "words": len(words), "reasons": reasons})
+    return sentences
+
+
+def unknown_columns(prose) -> list[tuple[int, str]]:
+    """(header line, column name) for table columns whose every body cell says unknown."""
+    found = []
+    for table in page_tables(prose):
+        if len(table["rows"]) < 3:
+            continue
+        for column, name in enumerate(table["header"]):
+            values = {re.sub(r"[*_`]", "", cells[column]).strip().lower()
+                      for _, cells in table["rows"] if column < len(cells)}
+            if values == {"unknown"}:
+                found.append((table["line"], name or f"column {column + 1}"))
+    return found
+
+
+def mentions_handbook(root: Path, docs: Path, source: Path) -> bool:
+    """True when a file outside the handbook links to it, or a root file names its folder."""
+    try:
+        text = source.read_text(encoding="utf-8-sig")
+    except (OSError, UnicodeError):
+        return False
+    if source.parent == root and docs.relative_to(root).as_posix() in text:
+        return True
+    if source.suffix.lower() not in {".md", ".mdx", ".markdown"}:
+        return False
+    for _, line in markdown_sections(text)[0]:
+        for target in local_targets(line):
+            location, _, problem = resolve_link(root, source, target)
+            if location is not None and not problem and location.is_relative_to(docs):
+                return True
+    return False
+
+
+def placement_findings(root: Path, docs: Path, pages: list[dict]) -> list[tuple]:
+    """Handbook placement problems: a second decision folder, or a handbook nothing points to."""
+    findings = []
+    inside = [page for page in pages if page["_file"].is_relative_to(docs)]
+    outside = [page for page in pages if page not in inside]
+    own = [page for page in inside if page["kind"] == "decision"]
+    adopted = [page for page in outside if page["kind"] == "decision"]
+    # The project's decision home is where most records live. Flag only the minority folder.
+    if own and len(adopted) >= len(own):
+        folder = sorted({page_file(root, page).rsplit("/", 1)[0] for page in adopted})[0]
+        for page in own:
+            findings.append(("warning", page_file(root, page), 1, "decision-split",
+                             f"The project keeps decision records in `{folder}/`. Record this decision "
+                             "there with its numbering and format, and link it from the handbook."))
+    if docs != root and (root / "README.md").is_file() and inside:
+        sources = [path for path in sorted(root.iterdir()) if path.is_file()
+                   and path.suffix.lower() in {".md", ".mdx", ".markdown", ".yml", ".yaml", ".toml"}]
+        folder = docs.parent
+        while folder != root and folder.is_relative_to(root):
+            sources += [folder / name for name in ("README.md", "index.md") if (folder / name).is_file()]
+            folder = folder.parent
+        sources += [page["_file"] for page in outside]
+        if not any(mentions_handbook(root, docs, source) for source in sources):
+            entry = next((page for page in inside if page["kind"] == "index"), inside[0])
+            findings.append(("warning", page_file(root, entry), 1, "unlinked-handbook",
+                             "Nothing outside the handbook points to it. Link this page from README.md "
+                             "or the main architecture document, so people and other agents find it."))
+    return findings
+
+
+def check_documents(root: Path, config: dict, style_gate: bool = False) -> dict:
     docs, pages = load_map(root, config)
     findings = []
     diagram_count = 0
@@ -501,8 +787,10 @@ def check_documents(root: Path, config: dict) -> dict:
         findings.append({"severity": severity, "path": path, "line": line, "code": code, "message": message})
 
     references = References(root, docs, [page_file(root, page) for page in pages])
-    style: dict[str, dict[str, list[int]]] = {}
     mapped = {page["_file"] for page in pages}
+    style_total = style_passing = 0
+    for finding in placement_findings(root, docs, pages):
+        add(*finding)
     for path in sorted(docs.rglob("*.md")):
         contained(docs, path.relative_to(docs).as_posix(), "documentation page")
         if path.resolve() not in mapped:
@@ -514,13 +802,25 @@ def check_documents(root: Path, config: dict) -> dict:
             add("error", relative, 1, "missing-page", "Mapped page does not exist.")
             continue
         text = path.read_text(encoding="utf-8-sig")
+        owned = path.is_relative_to(docs)
+        # An adopted document keeps its own conventions: presentation advice is a note, not a warning.
+        advice = "warning" if owned else "info"
         # Decision records are history: a path they name may be gone by design.
         historical = page["kind"] == "decision" and page.get("decisionStatus") != "proposed"
         prose, blocks, unclosed = markdown_sections(text)
         if unclosed:
             add("error", relative, unclosed, "unclosed-block", "Close the code fence or metadata block.")
         if not re.search(r"(?m)^#\s+\S", "\n".join(line for _, line in prose)):
-            add("warning", relative, 1, "missing-title", "Add a level-one page title.")
+            add(advice, relative, 1, "missing-title", "Add a level-one page title.")
+        if owned:
+            commits = [number for number, line in prose if COMMIT_IN_PROSE.search(line)]
+            if commits and page["kind"] != "decision":
+                add("info", relative, commits[0], "prose-metadata",
+                    f"Commit IDs in prose (lines {', '.join(map(str, commits[:5]))}) repeat map.json and "
+                    "the sync state, and go stale after the next sync. Link the evidence instead.")
+            for number, name in unknown_columns(prose):
+                add("info", relative, number, "unknown-column",
+                    f"Column '{name}' is unknown in every row. Drop it and state the unknown once.")
         for number, line in prose:
             for target in local_targets(line):
                 location, fragment, problem = resolve_link(root, path, target)
@@ -538,16 +838,26 @@ def check_documents(root: Path, config: dict) -> dict:
             if not historical:
                 for problem in references.problems(path, line):
                     add("warning", relative, number, "stale-reference", problem)
-            if line.strip() and not line.lstrip().startswith(("#", "|", "<!--", "[")):
-                plain = re.sub(r"`[^`]*`", "", line)
-                hits = style.setdefault(relative, {"semicolon": [], "long-line": []})
-                if ";" in plain:
-                    hits["semicolon"].append(number)
-                if len(re.findall(r"\b[\w'-]+\b", plain)) > 60:
-                    hits["long-line"].append(number)
-        for number, language, body in blocks:
-            if language != "mermaid":
-                continue
+        sentences = style_sentences(prose)
+        failing = [sentence for sentence in sentences if sentence["reasons"]]
+        if owned:
+            style_total += len(sentences)
+            style_passing += len(sentences) - len(failing)
+        if failing:
+            lines = sorted({sentence["line"] for sentence in failing})
+            labels = (("long", "long"), ("semicolon", "with semicolons"), ("passive", "passive with 'by'"), ("wordy", "wordy"))
+            parts = [f"{count} {label}" for key, label in labels
+                     if (count := sum(key in sentence["reasons"] for sentence in failing))]
+            shown = ", ".join(map(str, lines[:5])) + (f" +{len(lines) - 5}" if len(lines) > 5 else "")
+            findings.append({
+                "severity": "info", "path": relative, "line": lines[0], "code": "style",
+                "message": f"Mechanical style: {len(sentences) - len(failing)} of {len(sentences)} sentences pass. "
+                           f"Candidates: {', '.join(parts)} (lines {shown}). Split or reword where it helps.",
+                "lines": lines, "sentences": len(sentences), "passing": len(sentences) - len(failing),
+            })
+        tables = page_tables(prose)
+        diagrams = sorted((number, body) for number, language, body in blocks if language == "mermaid")
+        for position, (number, body) in enumerate(diagrams):
             diagram_count += 1
             if not body.strip():
                 add("error", relative, number, "empty-diagram", "Add diagram source or remove the empty block.")
@@ -555,37 +865,57 @@ def check_documents(root: Path, config: dict) -> dict:
             kind = mermaid_type(body)
             if kind not in MERMAID_TYPES and kind != "frontmatter":
                 add("error", relative, number, "mermaid-type", f"Unknown Mermaid diagram type: {kind}")
+            if kind in {"flowchart", "graph"}:
+                nodes = flowchart_nodes(body)
+                if nodes > config["maxDiagramNodes"]:
+                    add(advice, relative, number, "diagram-density",
+                        f"{nodes} nodes exceed maxDiagramNodes ({config['maxDiagramNodes']}). Consider splitting this view.")
             if re.search(r"(?m)^\s*sequenceDiagram\s*$", body):
-                if not re.search(r"(?m)^\s*autonumber(?:\s.*)?$", body):
-                    add("warning", relative, number, "sequence-numbers", "Use autonumber to connect messages to steps.")
+                numbered = re.search(r"(?m)^\s*autonumber(?:\s.*)?$", body) is not None
+                if not numbered:
+                    add(advice, relative, number, "sequence-numbers", "Use autonumber to connect messages to steps.")
                 participants = len(re.findall(r"(?m)^\s*(?:participant|actor)\s+", body))
                 if participants > config["maxSequenceParticipants"]:
-                    add("warning", relative, number, "sequence-density", "Consider splitting this sequence.")
-    for relative, hits in sorted(style.items()):
-        lines = sorted(set(hits["semicolon"]) | set(hits["long-line"]))
-        if not lines:
-            continue
-        parts = [f"{len(hits[key])} {label}" for key, label in (
-            ("semicolon", "line(s) with semicolons"), ("long-line", "long line(s)")) if hits[key]]
-        shown = ", ".join(map(str, lines[:5])) + (f" +{len(lines) - 5}" if len(lines) > 5 else "")
-        findings.append({
-            "severity": "info", "path": relative, "line": lines[0], "code": "style",
-            "message": f"Editorial candidates: {' and '.join(parts)} (lines {shown}). Split complex sentences where it helps.",
-            "lines": lines,
-        })
+                    add(advice, relative, number, "sequence-density", "Consider splitting this sequence.")
+                # The step table between this diagram and the next one must name only real messages.
+                following = diagrams[position + 1][0] if position + 1 < len(diagrams) else float("inf")
+                steps = next((table for table in tables if number < table["line"] < following
+                              and re.match(r"(?i)^step\b", plain_text(table["header"][0]))), None)
+                if numbered and steps:
+                    messages = sequence_messages(body)
+                    named = {step: row for row, cells in steps["rows"] for step in step_numbers(cells[0])}
+                    beyond = sorted(step for step in named if step > messages)
+                    if beyond:
+                        add("warning", relative, named[beyond[0]], "sequence-steps",
+                            f"The step table names step {beyond[0]}, but the diagram has {messages} numbered messages.")
+                    missing = [step for step in range(1, messages + 1) if step not in named]
+                    if missing and not beyond:
+                        shown = ", ".join(map(str, missing[:6])) + (f" +{len(missing) - 6}" if len(missing) > 6 else "")
+                        add("info", relative, steps["line"], "sequence-steps",
+                            f"Diagram messages without a step row: {shown}.")
+    rate = round(style_passing / style_total, 2) if style_total >= 20 else None
+    if style_gate and rate is not None and rate < config["styleTarget"]:
+        entry = next((page for page in pages if page["kind"] == "index"), pages[0])
+        add("warning", page_file(root, entry), 1, "style-target",
+            f"Mechanical style pass rate {rate:.2f} is below styleTarget {config['styleTarget']} "
+            f"({style_passing} of {style_total} handbook sentences pass).")
     # Broken links and vanished references first; presentation advice last.
     rank = {"error": 0, "warning": 1, "info": 2}
-    cosmetic = {"sequence-numbers", "sequence-density", "missing-title"}
+    cosmetic = {"sequence-numbers", "sequence-density", "diagram-density", "missing-title", "style-target"}
     findings.sort(key=lambda f: (rank[f["severity"]], f["code"] in cosmetic, f["path"], f["line"]))
     return {
         "command": "check", "root": str(root), "pages": len(pages),
         "mermaidBlocks": diagram_count, "findings": findings,
-        "stylePassRate": None,
+        "stylePassRate": rate,
+        "style": {"sentences": style_total, "passing": style_passing, "target": config["styleTarget"]},
         "limits": [
-            "Mermaid rendering and semantic accuracy are not checked; only the diagram type is.",
+            "Mermaid rendering and semantic accuracy are not checked; diagram type, density, and step numbers are.",
             "Inline Markdown links, reference definitions, heading anchors, and line anchors are checked; remote URLs are not.",
             "Backticked paths, function() names, and npm scripts are checked for existence, not meaning.",
-            "Style notes (info) are heuristics, not an STE score, and never fail --strict.",
+            "Placement checks look at root files, parent README or index files, and mapped documents.",
+            "stylePassRate is a mechanical floor for handbook-owned pages: sentence length, semicolons, "
+            "by-passives, and listed wordy phrases. It is not an STE score or ASD-STE100 compliance.",
+            "Style notes (info) never fail --strict. Only --style gates on styleTarget.",
         ],
     }
 
@@ -893,8 +1223,85 @@ def code_lines(path: str, text: str) -> list[tuple[int, str]]:
     return result
 
 
-def span_digest(lines: list[tuple[int, str]]) -> str:
+HASH_COMMENT_SUFFIXES = {".py", ".yaml", ".yml", ".toml", ".sh", ".bash", ".zsh", ".ini", ".cfg", ".conf", ".env",
+                         ".tf", ".rb", ".pl", ".mk", ".properties"}
+HASH_COMMENT_NAMES = {"dockerfile", "makefile", ".gitignore", ".dockerignore", ".env"}
+
+
+CONTENT_CACHE: dict[tuple[str, str], list[tuple[int, str, int]]] = {}
+
+
+def without_hash_comments(text: str, python: bool) -> list[str]:
+    """Lines with `#` comments removed. Python uses its tokenizer; other files cut a
+    comment only where no quote comes before it, so a `#` inside a string stays."""
+    lines = text.splitlines()
+    if python:
+        try:
+            for token in tokenize.generate_tokens(io.StringIO(text).readline):
+                if token.type == tokenize.COMMENT and token.start[0] <= len(lines):
+                    row, column = token.start
+                    lines[row - 1] = lines[row - 1][:column]
+            return lines
+        except (tokenize.TokenError, SyntaxError, ValueError):
+            lines = text.splitlines()
+    for index, line in enumerate(lines):
+        if line.lstrip().startswith("#"):
+            lines[index] = ""
+            continue
+        quote = ""
+        for position, char in enumerate(line):
+            if quote:
+                quote = "" if char == quote and line[position - 1] != "\\" else quote
+            elif char in "\"'`":
+                quote = char
+            elif char == "#" and position and line[position - 1].isspace():
+                lines[index] = line[:position]
+                break
+    return lines
+
+
+def content_lines(path: str, text: str) -> list[tuple[int, str, int]]:
+    """Numbered content lines for any file: (line, text with spaces collapsed, indent).
+
+    Blank lines and comments are left out, so they never count as a change. Indent is kept
+    where it can carry meaning (Python, YAML, plain text) and is zero in brace languages."""
+    name = PurePosixPath(path)
+    suffix = name.suffix.lower()
+    key = (suffix or name.name.lower(), hashlib.sha1(text.encode("utf-8", "surrogateescape")).hexdigest())
+    if key in CONTENT_CACHE:
+        return CONTENT_CACHE[key]
+    brace = suffix in BRACE_LANGUAGES
+    if brace:
+        source = strip_code(text, suffix)[0].splitlines()
+    elif suffix in HASH_COMMENT_SUFFIXES or name.name.lower() in HASH_COMMENT_NAMES:
+        source = without_hash_comments(text, suffix == ".py")
+    else:
+        source = text.splitlines()
+    result = []
+    for number, line in enumerate(source, 1):
+        stripped = line.strip()
+        if not stripped:
+            continue
+        wide = line.expandtabs(4)
+        result.append((number, " ".join(stripped.split()), 0 if brace else len(wide) - len(wide.lstrip())))
+    if len(CONTENT_CACHE) > 256:
+        CONTENT_CACHE.clear()
+    CONTENT_CACHE[key] = result
+    return result
+
+
+def span_digest(lines) -> str:
+    """Hash of cited lines. Three-part lines also hash indent relative to the shallowest line,
+    so a block that moves as a whole still matches and a re-indented statement does not."""
+    if lines and len(lines[0]) == 3:
+        base = min(indent for _, _, indent in lines)
+        return short_hash("\n".join(f"{indent - base}:{code}" for _, code, indent in lines))
     return short_hash("\n".join(code for _, code in lines))
+
+
+def span_lines(path: str, text: str, record: dict):
+    """Lines in the form the record was fingerprinted with. Kind 1 is the form before 0.5."""
+    return content_lines(path, text) if record.get("spanKind") == 2 else code_lines(path, text)
 
 
 def outline(path: str, text: str) -> list[str] | None:
@@ -946,26 +1353,31 @@ def read_source(path: Path) -> str | None:
 
 
 def fingerprint_anchor(root: Path, path: str, first: int, last: int) -> dict:
-    """Record what a cited line range means: a Python symbol's AST, or the normalized text."""
+    """Record what a cited line range means: a symbol's syntax tree, and the range's content lines."""
     record = {"path": path, "lines": [first, last]}
     text = read_source(root / path)
     if text is None:
         return record
-    spans = [s for s in code_symbols(path, text) or [] if s[1] <= first and s[2] >= last]
+    lines = text.splitlines()
+    if last > len(lines):
+        return record
+    cited = [line for line in content_lines(path, text) if first <= line[0] <= last]
+    own = {"span": span_digest(cited), "spanLines": len(cited), "spanKind": 2,
+           "spanPad": [cited[0][0] - first, last - cited[-1][0]]} if cited else {}
+    # Blank and comment lines at either end do not decide which symbol the range belongs to.
+    low, high = (cited[0][0], cited[-1][0]) if cited else (first, last)
+    spans = [s for s in code_symbols(path, text) or [] if s[1] <= low and s[2] >= high]
     if spans:
         name, start, end, digest = min(spans, key=lambda s: s[2] - s[1])
         record.update(symbol=name, symbolLines=[start, end], digest=digest)
         if (first, last) != (start, end):
-            # A range inside a symbol: also record its own code lines, so an edit
-            # elsewhere in the same function does not flag this citation.
-            cited = [line for line in code_lines(path, text) if first <= line[0] <= last]
-            if cited:
-                record.update(span=span_digest(cited), spanLines=len(cited),
-                              spanPad=[cited[0][0] - first, last - cited[-1][0]])
+            # A range that is not exactly the symbol also records its own content lines, so an
+            # edit elsewhere in the same function does not flag this citation.
+            record.update(own)
         return record
-    lines = text.splitlines()
-    if last <= len(lines):
-        record["digest"] = text_digest(lines[first - 1:last])
+    # No single function or class holds the range: module-level code, several functions, or a
+    # file without symbol support. Its content lines are the fingerprint, wherever they move.
+    record.update(own or {"digest": text_digest(lines[first - 1:last])})
     return record
 
 
@@ -996,7 +1408,7 @@ def check_anchor(root: Path, record: dict) -> dict | None:
         if record.get("span"):
             # A range inside a symbol follows its own code lines, which can move inside
             # the symbol even when the symbol's fingerprint is unchanged (a new comment).
-            found = find_span(code_lines(path, text), start, end, record, first + shift)
+            found = find_span(span_lines(path, text, record), start, end, record, first + shift)
             if found == [first, last]:
                 return None
             if found:
@@ -1012,6 +1424,11 @@ def check_anchor(root: Path, record: dict) -> dict | None:
         if expected != [first, last]:
             return dict(base, change="evidence-moved", newLines=expected)
         return None
+    if record.get("span"):
+        found = find_span(span_lines(path, text, record), 1, sys.maxsize, record, first)
+        if found == [first, last]:
+            return None
+        return dict(base, change="evidence-moved", newLines=found) if found else dict(base, change="evidence-changed")
     if record.get("digest") is None:
         return None
     lines = text.splitlines()
@@ -1137,6 +1554,10 @@ def page_changes(root: Path, coverage: Coverage, page_id: str, current: dict, re
     outlines = record.get("outlines") or {}
     changes = []
     for anchor in record.get("anchors") or []:
+        # An identical file cannot hold a changed citation: skip the parse. This is most of
+        # the work on a real repository, where nearly every cited file is untouched.
+        if anchor["path"] in old and current.get(anchor["path"]) == old[anchor["path"]]:
+            continue
         change = check_anchor(root, anchor)
         if change:
             changes.append(dict(change, severity="stale"))
@@ -1207,16 +1628,21 @@ def freshness(root: Path, config: dict) -> dict:
     }
 
 
-def sync_pages(root: Path, config: dict, ids: list[str], every: bool) -> dict:
+def sync_pages(root: Path, config: dict, ids: list[str], every: bool, fresh: bool = False) -> dict:
     """Record the current content of covered files and cited anchors for reviewed pages."""
     docs, pages = load_map(root, config)
     known = {page["id"] for page in pages}
     unknown = sorted(set(ids) - known)
     if unknown:
         raise ArchlensError(f"Unknown page IDs: {', '.join(unknown)}")
-    if not every and not ids:
-        raise ArchlensError("Name pages with --page ID (repeatable) or use --all")
+    if not every and not ids and not fresh:
+        raise ArchlensError("Name pages with --page ID (repeatable), or use --all or --fresh")
     selected = known if every else set(ids)
+    if fresh:
+        # A fresh page has no change to review, so recording it again approves nothing new.
+        # It only rewrites the page's fingerprints in the current format.
+        waiting = {entry["id"] for entry in freshness(root, config)["needsSync"]}
+        selected |= known - waiting
     files = project_files(root, docs, [page_file(root, page) for page in pages])
     coverage = Coverage(root, docs, pages)
     state = load_state(docs)
@@ -1439,6 +1865,10 @@ def build_context(root: Path, config: dict, budget: int | None = None, live: boo
     if live:
         intro = (f"Pages live in `{doc_rel}/` ({len(pages)} pages, {freshness_note}). " + guidance
                  + "STALE means evidence the page cites changed after the last doc sync. ")
+        # Worth its bytes only where pages are many: a small handbook is cheap to read whole.
+        if budget >= 1500 and len(pages) >= 8:
+            intro += (f'To read one section and not a whole page, run `python3 "{Path(__file__).resolve()}" query '
+                      "--root . <words>` (or `--file <path>`, `--page <page>`). ")
     else:
         intro = (f"Pages live in `{doc_rel}/` ({len(pages)} pages). " + guidance
                  + "Freshness changes between commits: run the Archlens `status` check before relying on a page. "
@@ -1451,7 +1881,8 @@ def build_context(root: Path, config: dict, budget: int | None = None, live: boo
         text = f"- `{page['path']}` {title}"
         if show_summary and summary and summary.lower() != title.lower():
             text += f": {summary}"
-        if show_covers and page["covers"]:
+        # An index or glossary covers the whole project; its patterns do not route a reader.
+        if show_covers and page["covers"] and page["kind"] not in {"index", "glossary"}:
             shown = ", ".join(page["covers"][:2]) + (f" +{len(page['covers']) - 2}" if len(page["covers"]) > 2 else "")
             text += f" [covers {shown}]"
         entry = states.get(page["id"]) if live else None
@@ -1460,24 +1891,67 @@ def build_context(root: Path, config: dict, budget: int | None = None, live: boo
             text += f" STALE: {count} cited change{'s' if count != 1 else ''}"
         return text
 
-    def fits(details):
-        text = "\n".join(header + [line(page, details[page["id"]]) for page in ordered])
-        return len(text.encode("utf-8")) <= budget
+    def group_line(group):
+        _, folder, members = group
+        stems, used = [], 0
+        for member in members:
+            stem = PurePosixPath(member["path"]).stem
+            if used + len(stem) > 420:
+                break
+            stems.append(stem)
+            used += len(stem) + 2
+        more = f" +{len(members) - len(stems)}" if len(stems) < len(members) else ""
+        return f"- `{folder}/` {len(members)} decision records: {', '.join(stems)}{more}"
 
-    # Start from the shortest line per page. Then add summaries, then coverage, in reading
-    # order while the budget allows: one long page does not cost every page its detail,
-    # and a summary orients an agent better than a list of paths.
-    details = {page["id"]: (False, False) for page in ordered}
-    if fits(details):
+    def text_of(items, details):
+        return "\n".join(header + [group_line(item) if isinstance(item, tuple) else line(item, details[item["id"]])
+                                   for item in items])
+
+    def fill(items):
+        """Start from the shortest line per page. Then add summaries, then coverage, in reading
+        order while the budget allows: one long page does not cost every page its detail,
+        and a summary orients an agent better than a list of paths."""
+        details = {page["id"]: (False, False) for page in ordered}
+        if len(text_of(items, details).encode("utf-8")) > budget:
+            return None, 0
         for part in (0, 1):
-            for page in ordered:
-                if part == 0 and page["kind"] == "decision":
+            for item in items:
+                if isinstance(item, tuple) or (part == 0 and item["kind"] == "decision"):
                     continue
-                previous = details[page["id"]]
-                details[page["id"]] = (True, previous[1]) if part == 0 else (previous[0], True)
-                if not fits(details):
-                    details[page["id"]] = previous
-        return "\n".join(header + [line(page, details[page["id"]]) for page in ordered]) + "\n"
+                previous = details[item["id"]]
+                details[item["id"]] = (True, previous[1]) if part == 0 else (previous[0], True)
+                if len(text_of(items, details).encode("utf-8")) > budget:
+                    details[item["id"]] = previous
+        missed = sum(1 for item in items if not isinstance(item, tuple) and item["kind"] != "decision"
+                     and briefs[item["id"]][1] and not details[item["id"]][0])
+        return text_of(items, details) + "\n", missed
+
+    full, missed = fill(ordered)
+    if full is not None and not missed:
+        return full
+    # Summaries of working pages matter more than decision titles. When they do not all fit,
+    # list each folder of four or more decision records on one line by file name.
+    folders: dict[str, list[dict]] = {}
+    for page in ordered:
+        entry = states.get(page["id"]) if live else None
+        if page["kind"] == "decision" and not (entry and entry["state"] == "stale"):
+            folders.setdefault(PurePosixPath(page["path"]).parent.as_posix(), []).append(page)
+    grouped, seen = [], set()
+    for page in ordered:
+        folder = PurePosixPath(page["path"]).parent.as_posix()
+        members = folders.get(folder, [])
+        if page["kind"] == "decision" and page in members and len(members) >= 4:
+            if folder not in seen:
+                seen.add(folder)
+                grouped.append(("group", folder, members))
+        else:
+            grouped.append(page)
+    if seen:
+        compact, compact_missed = fill(grouped)
+        if compact is not None and (full is None or compact_missed < missed):
+            return compact
+    if full is not None:
+        return full
     kept = []
     for page in ordered:
         candidate = "\n".join(header + kept + [line(page), f"- +{len(ordered)} more pages in `{doc_rel}/map.json`"])
@@ -1549,6 +2023,322 @@ def impact_report(root: Path, config: dict, base: str | None) -> dict:
     }
 
 
+STOP_WORDS = frozenset(
+    "a an and are as at be by does do for from how in is it its of on or that the this to was what when where "
+    "which who why will with".split())
+
+
+def search_tokens(text: str) -> list[str]:
+    """Lowercase search words. Identifiers also yield their parts: `RagService` -> rag, service."""
+    found = []
+    for raw in re.findall(r"[A-Za-z0-9_]+", text):
+        parts = [part for part in re.sub(r"(?<=[a-z0-9])(?=[A-Z])", " ", raw).replace("_", " ").split() if part]
+        words = [part.lower() for part in parts]
+        if len(words) > 1:
+            words.append("".join(words))
+        for word in words:
+            if word in STOP_WORDS:
+                continue
+            for suffix, keep in (("ies", "y"), ("ing", ""), ("ed", ""), ("es", ""), ("s", "")):
+                if word.endswith(suffix) and len(word) - len(suffix) >= 4 and not word.endswith("ss"):
+                    word = word[: len(word) - len(suffix)] + keep
+                    break
+            found.append(word)
+    return found
+
+
+def resolve_page(root: Path, pages: list[dict], name: str) -> dict:
+    """Find one mapped page by ID, map path, project path, or a unique file name."""
+    wanted = name.replace("\\", "/").strip()
+    for key in (lambda p: p["id"].lower() == wanted.lower(), lambda p: p["path"] == wanted,
+                lambda p: page_file(root, p) == wanted.lstrip("./"),
+                lambda p: PurePosixPath(page_file(root, p)).name == wanted or PurePosixPath(page_file(root, p)).stem == wanted):
+        matches = [page for page in pages if key(page)]
+        if len(matches) == 1:
+            return matches[0]
+        if len(matches) > 1:
+            raise ArchlensError(f"Several pages match '{name}': {', '.join(page_file(root, p) for p in matches)}")
+    raise ArchlensError(f"No mapped page matches '{name}'. Use a page ID or path from map.json.")
+
+
+def section_record(root: Path, page: dict, section: dict, text_lines: list[str]) -> dict:
+    first, last = section["lines"]
+    while last > first and not text_lines[last - 1].strip():
+        last -= 1
+    body = "\n".join(text_lines[first - 1:last])
+    record = {
+        "page": page_file(root, page), "id": page["id"], "lines": [first, last],
+        "heading": " > ".join([*section["trail"][1:], section["heading"]] if section["level"] > 1 else [section["heading"] or "(top)"]),
+        "bytes": len(body.encode("utf-8")),
+    }
+    if section["diagrams"]:
+        record["diagrams"] = [d["type"] for d in section["diagrams"]]
+    return record
+
+
+def citing_sections(root: Path, docs: Path, page: dict, relative: str) -> list[dict]:
+    """Sections of a page that link to a project file or to a folder that contains it."""
+    try:
+        text = page["_file"].read_text(encoding="utf-8-sig")
+    except OSError:
+        return []
+    lines = text.splitlines()
+    prose, _, _ = markdown_sections(text)
+    found = []
+    for section in page_sections(text):
+        first, last = section["lines"]
+        ranges = set()
+        cites = False
+        for number, line in prose:
+            if not first <= number <= last:
+                continue
+            for target in local_targets(line):
+                location, fragment, problem = resolve_link(root, page["_file"], target)
+                if problem or location is None or location.is_relative_to(docs):
+                    continue
+                link = location.relative_to(root).as_posix()
+                if link == relative or (location.is_dir() and relative.startswith(link + "/")):
+                    cites = True
+                    if re.fullmatch(r"L\d+(?:-L\d+)?", fragment or ""):
+                        ranges.add(fragment)
+        if cites:
+            record = section_record(root, page, section, lines)
+            record["cites"] = sorted(ranges, key=lambda value: int(re.match(r"L(\d+)", value)[1]))
+            found.append(record)
+    return found
+
+
+def query_handbook(root: Path, config: dict, terms: list[str], page_name: str | None = None, file: str | None = None,
+                   step: int | None = None, row: str | None = None, diagram: int | None = None, limit: int = 5) -> dict:
+    """Find the smallest part of the handbook that answers a need, without a model.
+
+    Returns sections with line ranges, so the reader opens a few lines and not a whole page."""
+    docs, pages = load_map(root, config)
+    report = {"command": "query", "root": str(root), "mode": "search", "results": [],
+              "limits": ["Word match only: no synonyms or meaning. Pages summarize; confirm in the linked source."]}
+    try:
+        states = {entry["id"]: entry["state"] for entry in freshness(root, config)["needsSync"]}
+    except (ArchlensError, OSError):
+        states = {}
+    selected = [resolve_page(root, pages, page_name)] if page_name else sorted(
+        pages, key=lambda p: (KIND_ORDER.index(p["kind"]), p["path"]))
+    if (step is not None or row or diagram is not None) and not page_name:
+        raise ArchlensError("--step, --row, and --diagram need --page")
+
+    def mark(record: dict, page: dict) -> dict:
+        if states.get(page["id"]) in {"stale", "unsynced"}:
+            record["state"] = states[page["id"]]
+        return record
+
+    if file:
+        target = Path(file)
+        target = (target if target.is_absolute() else root / target).resolve()
+        if not target.is_relative_to(root):
+            raise ArchlensError(f"File is outside the project: {file}")
+        relative = target.relative_to(root).as_posix()
+        coverage = Coverage(root, docs, pages)
+        report.update(mode="file", file=relative)
+        for page in selected:
+            report["results"] += [mark(record, page) for record in citing_sections(root, docs, page, relative)]
+        cited = {record["id"] for record in report["results"]}
+        report["coveredBy"] = [page_file(root, page) for page in selected
+                               if page["id"] not in cited and coverage.matches(page["id"], relative)]
+        return report
+
+    texts = {}
+    for page in selected:
+        try:
+            texts[page["id"]] = page["_file"].read_text(encoding="utf-8-sig")
+        except OSError:
+            continue
+
+    if page_name and (step is not None or row):
+        page = selected[0]
+        prose = markdown_sections(texts.get(page["id"], ""))[0]
+        report.update(mode="rows", page=page_file(root, page))
+        for table in page_tables(prose):
+            is_steps = re.match(r"(?i)^step\b", plain_text(table["header"][0])) is not None
+            if step is not None and not is_steps:
+                continue
+            for number, cells in table["rows"]:
+                first = cell_text(cells[0]) if cells else ""
+                hit = step in step_numbers(cells[0]) if step is not None else row.lower() in first.lower()
+                if hit:
+                    report["results"].append(mark({
+                        "page": page_file(root, page), "id": page["id"], "lines": [number, number],
+                        "cells": {cell_text(name) or f"column {index + 1}": cell
+                                  for index, (name, cell) in enumerate(zip(table["header"], cells))},
+                    }, page))
+        return report
+
+    if page_name and diagram is not None:
+        page = selected[0]
+        text = texts.get(page["id"], "")
+        lines = text.splitlines()
+        found = [d for section in page_sections(text) for d in section["diagrams"]]
+        if not 1 <= diagram <= len(found):
+            raise ArchlensError(f"{page_file(root, page)} has {len(found)} diagram(s); --diagram {diagram} does not exist")
+        first, last = found[diagram - 1]["lines"]
+        source = "\n".join(lines[first - 1:last])
+        tail = next((index for index in range(last, min(last + 4, len(lines))) if lines[index].strip()), None)
+        if tail is not None and re.match(r"(?i)^text equivalent\b", lines[tail].strip()):
+            end = tail
+            while end + 1 < len(lines) and lines[end + 1].strip():
+                end += 1
+            source += "\n\n" + "\n".join(lines[tail:end + 1])
+            last = end + 1
+        report.update(mode="diagram", page=page_file(root, page))
+        report["results"].append(mark({"page": page_file(root, page), "id": page["id"], "lines": [first, last],
+                                       "type": found[diagram - 1]["type"], "source": source}, page))
+        return report
+
+    records = []
+    for page in selected:
+        text = texts.get(page["id"])
+        if text is None:
+            continue
+        lines = text.splitlines()
+        title = next((section["heading"] for section in page_sections(text) if section["level"] == 1), "")
+        for section in page_sections(text):
+            record = mark(section_record(root, page, section, lines), page)
+            body = lines[section["lines"][0] - 1:section["lines"][1]]
+            records.append((record, section, title, body))
+    if page_name and not terms:
+        report.update(mode="outline", page=page_file(root, selected[0]))
+        for record, section, _, _ in records:
+            record["level"] = section["level"]
+            report["results"].append(record)
+        return report
+    wanted = search_tokens(" ".join(terms))
+    if not wanted:
+        raise ArchlensError("Give search words, or --page, or --file")
+    documents = []
+    for record, section, title, body in records:
+        words = search_tokens("\n".join(body[1:] if section["level"] else body))
+        words += search_tokens(section["heading"]) * 3 + search_tokens(" ".join(section["trail"])) + search_tokens(title)
+        documents.append(words)
+    average = sum(map(len, documents)) / max(1, len(documents))
+    scored = []
+    for (record, section, _, body), words in zip(records, documents):
+        score = 0.0
+        for term in set(wanted):
+            count = words.count(term)
+            if not count:
+                continue
+            containing = sum(term in other for other in documents)
+            idf = math.log(1 + (len(documents) - containing + 0.5) / (containing + 0.5))
+            score += idf * count * 2.2 / (count + 1.2 * (0.25 + 0.75 * len(words) / max(1.0, average)))
+        if score > 0:
+            best = max(body[1:] or body, key=lambda line: (len(set(search_tokens(line)) & set(wanted)), -len(line)), default="")
+            snippet = re.sub(r"\s+", " ", best).strip()
+            record["score"] = round(score, 2)
+            record["snippet"] = snippet[:157] + "..." if len(snippet) > 160 else snippet
+            scored.append(record)
+    scored.sort(key=lambda r: (-r["score"], r["page"], r["lines"][0]))
+    report["results"] = scored[:max(1, limit)]
+    report["matches"] = len(scored)
+    return report
+
+
+def print_query(report: dict, budget: int = 6000):
+    """Terse text for an agent: one line per section, then the detail it asked for."""
+    out = []
+    results = report["results"]
+    for record in results:
+        where = f"{record['page']}:{record['lines'][0]}-{record['lines'][1]}"
+        flag = f"  {record['state'].upper()}" if record.get("state") else ""
+        if report["mode"] == "rows":
+            out.append(where + flag)
+            out += [f"  {name}: {cell}" for name, cell in record["cells"].items()]
+        elif report["mode"] == "diagram":
+            out += [f"{where}  {record['type']}{flag}", record["source"]]
+        else:
+            indent = "  " * max(0, record.get("level", 1) - 1) if report["mode"] == "outline" else ""
+            extra = f"  [{', '.join(record['diagrams'])}]" if record.get("diagrams") else ""
+            extra += f"  cites {', '.join(record['cites'])}" if record.get("cites") else ""
+            out.append(f"{indent}{where}  {record['heading']}  ({record['bytes']} B){extra}{flag}")
+            if record.get("snippet"):
+                out.append(f"    {record['snippet']}")
+    if report.get("coveredBy"):
+        out.append("Covered without a citation: " + ", ".join(report["coveredBy"][:6]))
+    if not results and not report.get("coveredBy"):
+        out.append("No matching section.")
+    elif report.get("matches", 0) > len(results):
+        out.append(f"+{report['matches'] - len(results)} more; raise --limit or add words.")
+    text = "\n".join(out)
+    if len(text.encode("utf-8")) > budget:
+        text = text.encode("utf-8")[:budget].decode("utf-8", "ignore").rsplit("\n", 1)[0] + \
+            "\n... truncated. Read the line ranges above for the rest."
+    print(text)
+
+
+def staged_paths(root: Path) -> set[str]:
+    return set(names(git(root, "diff", "--cached", "--relative", "--no-ext-diff", "--no-renames", "--name-only", "-z")))
+
+
+def precommit(root: Path, config: dict, stale_mode: str = "fail", style_gate: bool = False) -> dict:
+    """One deterministic gate for a commit: rewrite moved links, check structure, and stop
+    when the commit changes code that a page cites. No model, no network."""
+    report = {"command": "precommit", "root": str(root), "fixed": [], "findings": [], "stale": [], "alreadyStale": 0}
+    tracked = in_git(root)
+    staged = staged_paths(root) if tracked else set()
+    status = freshness(root, config)
+    if config["fixAnchors"] and any(c["change"] in {"evidence-moved", "evidence-removed", "removed"}
+                                    for entry in status["needsSync"] for c in entry["changed"]):
+        report["fixed"] = fix_anchors(root, config, status=status)["fixed"]
+        if report["fixed"]:
+            status = freshness(root, config)
+    checked = check_documents(root, config, style_gate)
+    report["findings"] = [f for f in checked["findings"]
+                          if f["severity"] == "error" or f["code"] == "style-target"]
+    report["stylePassRate"] = checked["stylePassRate"]
+    for entry in status["needsSync"]:
+        hard = [c for c in entry["changed"] if c["severity"] == "stale"]
+        if entry["state"] == "unsynced":
+            caused = not staged or entry["page"] in staged
+        else:
+            caused = entry["state"] == "stale" and (not staged or any(c["path"] in staged for c in hard))
+        if caused and stale_mode != "off":
+            report["stale"].append({"page": entry["page"], "id": entry["id"], "state": entry["state"], "changed": hard[:6]})
+        elif entry["state"] in {"stale", "unsynced"}:
+            report["alreadyStale"] += 1
+    report["staleMode"] = stale_mode
+    report["stateFile"] = (contained(root, config["docsRoot"], "docsRoot") / STATE_FILE).relative_to(root).as_posix()
+    report["failed"] = bool(report["fixed"] or report["findings"] or (report["stale"] and stale_mode == "fail"))
+    return report
+
+
+def print_precommit(report: dict):
+    print(f"Archlens pre-commit: {'FAIL' if report['failed'] else 'PASS'}")
+    for item in report["fixed"][:10]:
+        if item.get("renamedTo"):
+            print(f"FIXED {item['page']}: {item['path']} -> {item['renamedTo']}")
+        else:
+            print(f"FIXED {item['page']}: {item['path']}#L{item['from'][0]}-L{item['from'][1]} -> #L{item['to'][0]}-L{item['to'][1]}")
+    if report["fixed"]:
+        print(f"Archlens rewrote {len(report['fixed'])} moved link(s). Stage those pages and {report['stateFile']}, then commit again.")
+    for finding in report["findings"][:10]:
+        print(f"{finding['severity'].upper()} {finding['path']}:{finding['line']} [{finding['code']}] {finding['message']}")
+    if len(report["findings"]) > 10:
+        print(f"+{len(report['findings']) - 10} more; run the check command for all of them.")
+    label = "STALE" if report["staleMode"] == "fail" else "WARN"
+    for entry in report["stale"][:10]:
+        if entry["state"] == "unsynced":
+            print(f"{label} {entry['page']} [{entry['id']}] never synced")
+            continue
+        detail = ", ".join(
+            f"{c['change']} {c['path']}" + (f"#L{c['lines'][0]}-L{c['lines'][1]}" if c.get("lines") else "")
+            + (f" ({c['symbol']})" if c.get("symbol") else "") for c in entry["changed"][:3])
+        print(f"{label} {entry['page']} [{entry['id']}] {detail}")
+    if report["stale"]:
+        ids = " ".join(f"--page {entry['id']}" for entry in report["stale"][:10])
+        print("This commit changes code that these pages cite. Verify each page against the change, edit it if needed,")
+        print(f"then run: archlens.py sync --root . {ids}")
+        print(f"Stage the pages and {report['stateFile']}. A coding agent can run the Archlens update operation instead.")
+    if report["alreadyStale"]:
+        print(f"Note: {report['alreadyStale']} other page(s) were stale before this commit. They do not block it.")
+
+
 def hook_root(payload: dict) -> Path:
     for value in (os.environ.get("CLAUDE_PROJECT_DIR"), payload.get("cwd"), os.getcwd()):
         if value:
@@ -1600,6 +2390,35 @@ def hook_session_start(root: Path, config: dict, payload: dict | None = None) ->
     return build_context(root, config)
 
 
+def pointer_index(root: Path, docs: Path, pages: list[dict]) -> dict[str, tuple[list[str], list[str]]]:
+    """Per page: the files and folders it links to, and the files it cites by line range.
+
+    Reading every page costs most of a pointer's time, so the result is kept in the marker
+    folder until the map or a page changes."""
+    stamp = []
+    for path in [docs / "map.json", *(page["_file"] for page in pages)]:
+        try:
+            info = path.stat()
+            stamp.append(f"{path}|{info.st_mtime_ns}|{info.st_size}")
+        except OSError:
+            stamp.append(f"{path}|missing")
+    signature = hashlib.sha256("\n".join(stamp).encode("utf-8", "surrogateescape")).hexdigest()
+    name = f"index-{hashlib.sha256(str(root).encode('utf-8', 'surrogateescape')).hexdigest()[:16]}.json"
+    try:
+        cached = json.loads(read_marker(name) or "{}")
+        if cached.get("signature") == signature and set(cached["pages"]) == {page["id"] for page in pages}:
+            return {page_id: (entry[0], entry[1]) for page_id, entry in cached["pages"].items()}
+    except (ValueError, KeyError, TypeError, IndexError, AttributeError):
+        pass
+    mapped = {page["_file"] for page in pages}
+    index = {}
+    for page in pages:
+        links, anchors = page_evidence(root, docs, page["_file"], mapped)
+        index[page["id"]] = (links, sorted({anchor[0] for anchor in anchors}))
+    write_marker(name, json.dumps({"signature": signature, "pages": index}))
+    return index
+
+
 def hook_file_pointer(root: Path, config: dict, payload: dict) -> dict | None:
     """Point the agent to the page that documents a file it just read or edited, once per page."""
     if not config["filePointers"] or not opted_in(root, config):
@@ -1613,24 +2432,46 @@ def hook_file_pointer(root: Path, config: dict, payload: dict) -> dict | None:
     if not path.is_relative_to(root):
         return None
     relative = path.relative_to(root).as_posix()
+    key = session_key(root, payload)
+    # Agents read and edit the same file many times. Answer a repeat before any page is opened.
+    done = set(filter(None, (read_marker(f"files-{key}.txt") or "").split("\n")))
+    if relative in done:
+        return None
     docs, pages = load_map(root, config)
     if path.is_relative_to(docs) or any(path == page["_file"] for page in pages):
         return None
-    coverage = Coverage(root, docs, pages)
-    key = session_key(root, payload)
+    evidence = pointer_index(root, docs, pages)
     seen = set(filter(None, (read_marker(f"pointers-{key}.txt") or "").split("\n")))
-    cited = [p for p in pages if coverage.whole_file_evidence(p["id"], relative)
-             or any(a[0] == relative for a in coverage.evidence[p["id"]][1])]
-    matched = cited + [p for p in pages if p not in cited and coverage.matches(p["id"], relative)]
-    fresh = [p for p in matched if p["id"] not in seen][:2]
+
+    def links_to(page):
+        links, anchored = evidence[page["id"]]
+        return relative in anchored or any(relative == link or (link.endswith("/") and relative.startswith(link)) for link in links)
+
+    def covers(page):
+        return any(relative.startswith(glob_prefix(pattern)) and glob_regex(pattern).fullmatch(relative)
+                   for pattern in page["covers"])
+
+    cited = [p for p in pages if links_to(p)]
+    matched = cited + [p for p in pages if p not in cited and covers(p)]
+    unseen = [p for p in matched if p["id"] not in seen]
+    if len(unseen) <= 2 and len(done) < 2000:
+        write_marker(f"files-{key}.txt", "\n".join(sorted(done | {relative})))
+    fresh = unseen[:2]
     if not fresh:
         return None
     write_marker(f"pointers-{key}.txt", "\n".join(sorted(seen | {p["id"] for p in fresh})))
-    listed = " and ".join(f"`{page_file(root, p)}` ({page_brief(p['_file'])[0]})" for p in fresh)
+    def where(page):
+        sections = citing_sections(root, docs, page, relative) if page in cited else []
+        if not sections:
+            return f"`{page_file(root, page)}` ({page_brief(page['_file'])[0]})"
+        spots = ", ".join(f"{s['heading']} L{s['lines'][0]}-{s['lines'][1]}" for s in sections[:2])
+        return f"`{page_file(root, page)}` ({spots}{f' +{len(sections) - 2}' if len(sections) > 2 else ''})"
+
+    listed = " and ".join(where(p) for p in fresh)
     return {"hookSpecificOutput": {
         "hookEventName": "PostToolUse",
         "additionalContext": f"Archlens: `{relative}` is documented in {listed}. "
-                             "Read it for intent before larger changes; update it if behavior changes.",
+                             "Read those lines for intent before larger changes; update the page if behavior changes.",
     }}
 
 
@@ -1756,10 +2597,11 @@ def hook_commit(root: Path, config: dict, payload: dict) -> dict | None:
     }}
 
 
-def run_hook(event: str) -> int:
+def run_hook(event: str, raw: str | None = None) -> int:
     """Claude Code hook entrypoint. Never fails the session and stays silent when not opted in."""
     try:
-        raw = sys.stdin.read() if not sys.stdin.isatty() else ""
+        if raw is None:
+            raw = sys.stdin.read() if not sys.stdin.isatty() else ""
         payload = json.loads(raw) if raw.strip() else {}
         if not isinstance(payload, dict):
             payload = {}
@@ -1794,7 +2636,7 @@ def run_hook(event: str) -> int:
 def make_parser() -> argparse.ArgumentParser:
     parser = argparse.ArgumentParser(description=__doc__)
     commands = parser.add_subparsers(dest="command", required=True)
-    for name in ("config", "check", "impact", "status", "sync", "context", "fix-anchors", "cite"):
+    for name in ("config", "check", "impact", "status", "sync", "context", "fix-anchors", "cite", "query", "precommit"):
         command = commands.add_parser(name)
         command.add_argument("--root", type=Path, default=Path.cwd(), help="Project root (default: current folder)")
         output = command.add_mutually_exclusive_group()
@@ -1802,6 +2644,22 @@ def make_parser() -> argparse.ArgumentParser:
         output.add_argument("--summary", action="store_true", help="Emit bounded JSON (at most 6000 UTF-8 bytes)")
         if name == "check":
             command.add_argument("--strict", action="store_true", help="Also fail on warnings")
+            command.add_argument("--style", action="store_true",
+                                 help="Also fail when the mechanical style pass rate is below styleTarget")
+        if name == "query":
+            command.add_argument("terms", nargs="*", help="Words to find in handbook sections")
+            command.add_argument("--page", help="Page ID or path: outline it, or limit the search to it")
+            command.add_argument("--file", help="Project file: list the sections that cite it")
+            command.add_argument("--step", type=int, help="With --page: step-table rows for this diagram step")
+            command.add_argument("--row", help="With --page: table rows whose first cell contains this text")
+            command.add_argument("--diagram", type=int, nargs="?", const=1, metavar="N",
+                                 help="With --page: print diagram N (default 1) and its text equivalent")
+            command.add_argument("--limit", type=int, default=5, help="Most sections to return (default 5)")
+        if name == "precommit":
+            command.add_argument("--stale", choices=["fail", "warn", "off"], default="fail",
+                                 help="What to do when the commit changes cited code (default: fail)")
+            command.add_argument("--style", action="store_true",
+                                 help="Also fail when the mechanical style pass rate is below styleTarget")
         if name == "impact":
             command.add_argument("--base", help="Local Git revision; compare merge base plus working tree")
             command.add_argument("--fail-on-impact", action="store_true", help="Exit 1 for candidates or uncovered source files")
@@ -1813,6 +2671,8 @@ def make_parser() -> argparse.ArgumentParser:
         if name == "sync":
             command.add_argument("--page", action="append", default=[], help="Page ID to mark as synced (repeatable)")
             command.add_argument("--all", action="store_true", help="Mark every mapped page as synced")
+            command.add_argument("--fresh", action="store_true",
+                                 help="Record fresh pages again, to move their fingerprints to this version's format")
         if name == "cite":
             command.add_argument("file", help="Project-relative source file")
             command.add_argument("symbols", nargs="*", help="Function or class names (default: list the file's main symbols)")
@@ -1829,7 +2689,8 @@ def make_parser() -> argparse.ArgumentParser:
 
 def bounded_report(report: dict, budget: int = 6000) -> dict:
     """Keep whole records and explicit omission counts, never silently truncate JSON."""
-    collection_keys = ("findings", "candidates", "uncoveredFiles", "changedFiles", "needsSync", "fresh", "fixed", "symbols")
+    collection_keys = ("findings", "candidates", "uncoveredFiles", "changedFiles", "needsSync", "fresh", "fixed", "symbols",
+                       "results", "stale")
     result = {key: value for key, value in report.items() if key not in collection_keys}
     result["totals"] = {key: len(report[key]) for key in collection_keys if key in report}
     result["omitted"] = dict(result["totals"])
@@ -1857,6 +2718,12 @@ def print_report(report: dict, as_json: bool):
     if as_json:
         print(json.dumps(report, indent=2, ensure_ascii=True))
         return
+    if report["command"] == "query":
+        print_query(report)
+        return
+    if report["command"] == "precommit":
+        print_precommit(report)
+        return
     if report["command"] == "context":
         print(report["context"], end="")
         if report.get("written"):
@@ -1868,6 +2735,9 @@ def print_report(report: dict, as_json: bool):
         print("Sources:\n  " + "\n  ".join(report["sources"]))
     elif report["command"] == "check":
         print(f"{report['pages']} pages; {report['mermaidBlocks']} Mermaid blocks (not rendered).")
+        style = report["style"]
+        rate = f"{report['stylePassRate']:.0%}" if report["stylePassRate"] is not None else "not rated (under 20 sentences)"
+        print(f"Mechanical style, handbook pages: {style['passing']} of {style['sentences']} sentences pass; {rate}; target {style['target']:.0%}.")
         for finding in report["findings"]:
             print(f"{finding['severity'].upper()} {finding['path']}:{finding['line']} [{finding['code']}] {finding['message']}")
     elif report["command"] == "status":
@@ -1926,15 +2796,20 @@ def main(argv=None) -> int:
         if args.command == "config":
             report = {"command": "config", "root": str(root), "config": config, "sources": sources}
         elif args.command == "check":
-            report = check_documents(root, config)
+            report = check_documents(root, config, args.style)
             failed = any(f["severity"] == "error" or (args.strict and f["severity"] == "warning")
-                         for f in report["findings"])
+                         or f["code"] == "style-target" for f in report["findings"])
+        elif args.command == "query":
+            report = query_handbook(root, config, args.terms, args.page, args.file, args.step, args.row, args.diagram, args.limit)
+        elif args.command == "precommit":
+            report = precommit(root, config, args.stale, args.style)
+            failed = report["failed"]
         elif args.command == "status":
             report = freshness(root, config)
             gate = {"stale", "unsynced"} | ({"review"} if args.fail_on_review else set())
             failed = (args.fail_on_stale or args.fail_on_review) and any(e["state"] in gate for e in report["needsSync"])
         elif args.command == "sync":
-            report = sync_pages(root, config, args.page, args.all)
+            report = sync_pages(root, config, args.page, args.all, args.fresh)
         elif args.command == "fix-anchors":
             report = fix_anchors(root, config, args.page or None)
         elif args.command == "cite":

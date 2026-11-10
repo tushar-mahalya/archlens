@@ -14,6 +14,11 @@ Put machine-readable metadata in `map.json`, as defined in the configuration ref
 6. **Evidence and gaps**: source, tests, decisions, and unknowns.
 7. **Related pages**: a clear next step.
 
+Name evidence by link. `map.json` and the sync state hold the verified commit, owner,
+and review state. Do not copy them into prose, where they go stale after the next sync.
+Drop a table column whose every value is unknown, and state that unknown once.
+Describe the system, not the documentation session that changed it.
+
 ## Handbook index
 
 File: `README.md`, so code hosts show it for the folder. Title: Understand this system
@@ -25,6 +30,9 @@ File: `README.md`, so code hosts show it for the folder. Title: Understand this 
 - Understand choices: decisions and quality goals.
 - Operate the system: deployment, recovery, and runbook links.
 - Coverage table, element catalog, glossary, owners, and known gaps.
+
+Link this index from the project README or main architecture document.
+When an adopted document already shows a view, link its section instead of a new page.
 
 ## Context and containers
 

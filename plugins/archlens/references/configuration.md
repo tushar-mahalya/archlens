@@ -29,9 +29,9 @@ Use the available Python 3.9+ command for your platform.
 | Key | Allowed values | Default |
 |---|---|---|
 | `docsRoot` | Relative path inside the project, no parent traversal | `docs/architecture` |
-| `styleTarget` | Number from 0 to 1 | `0.8` |
-| `maxDiagramNodes` | Integer from 2 to 30 | `12` |
-| `maxSequenceParticipants` | Integer from 2 to 15 | `7` |
+| `styleTarget` | Number from 0 to 1: pass rate that `check --style` requires | `0.8` |
+| `maxDiagramNodes` | Integer from 2 to 30: flowchart nodes before a density note | `12` |
+| `maxSequenceParticipants` | Integer from 2 to 15: participants before a density note | `7` |
 | `contextBudget` | Integer from 600 to 20000 bytes | `3000` |
 | `contextFile` | `null` or a project-relative Markdown file, such as `AGENTS.md` | `null` |
 | `sessionContext` | `true` or `false`: Claude plugin loads the map at session start | `true` |

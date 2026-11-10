@@ -1,5 +1,12 @@
 # Hooks for projects that use Archlens. Works with any coding agent or editor.
 # See docs/automation.md for setup.
+- id: archlens
+  name: Archlens handbook gate
+  description: Rewrite moved line links, check structure, and stop when the commit changes code a page cites. No model.
+  entry: skills/archlens/scripts/archlens.py precommit --root .
+  language: script
+  pass_filenames: false
+  always_run: true
 - id: archlens-check
   name: Archlens handbook structure
   description: Check the handbook map, links, anchors, and Mermaid fences.

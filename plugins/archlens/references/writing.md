@@ -49,8 +49,12 @@ Include complete sentences in captions and table cells.
 Review diagram labels, fragments, and paragraph structure separately.
 Automated word counting may differ from the standard's counting rules.
 
-The Python checker does not calculate this score. It flags long paragraphs and
-semicolons as editorial candidates, without pretending to evaluate meaning.
+The Python checker measures a mechanical floor of this rate for handbook pages.
+It counts complete sentences and fails one that has more than 25 words (20 in a numbered
+procedure), a semicolon, a passive with "by", or a listed wordy phrase such as "in order to".
+It reports `stylePassRate` from 20 sentences up. `check --style` fails below `styleTarget`.
+The checker cannot judge actors, terms, or ambiguity. A sentence that passes it can still
+fail this rubric, so never report its rate as the audited rate.
 Wrong facts, invented evidence, and ambiguous access rules are not acceptable at any score.
 
 ## Choose the diagram by the question
@@ -85,6 +89,9 @@ A C4 container means a deployable application or store, not necessarily a Docker
 - Do not add a diagram when three sentences explain the point better.
 
 Each important sequence needs a step table with source and test links.
+Name its first column "Step" and use the diagram's message numbers, such as `7` or `4-5`.
+The checker compares these numbers with the diagram, and `query --step` returns one row.
+Start the paragraph after a diagram with "Text equivalent:" so that `query --diagram` returns it.
 Each data view needs ownership, validation, consistency, retention, and deletion rules.
 Each decision table needs precedence and a default case.
 

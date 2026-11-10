@@ -18,8 +18,9 @@ If records are omitted, save full `--json` output locally and inspect relevant b
 Inspect source and tests to check important claims. Rendering is not semantic validation.
 Check runtime branches, data ownership, recovery paths, decision provenance, and source links.
 Render locally with an existing renderer when available. Do not upload private diagrams.
-Read the "80% target" section of the writing reference only for a requested style audit.
-Apply it only with a real, declared audit count. Otherwise report style as not measured.
+The checker's `stylePassRate` is a mechanical floor: length, semicolons, by-passives, wordy phrases.
+Report it with that label. Read the "80% target" section of the writing reference only for a
+requested style audit. Apply it only with a real, declared audit count.
 
 Return findings ordered by impact, page links, evidence, coverage gaps, and checks actually run.
 Never report "fully documented", formal STE compliance, or a passing render that did not occur.

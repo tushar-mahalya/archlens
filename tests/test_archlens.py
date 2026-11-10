@@ -197,7 +197,7 @@ class MapTests(Fixture):
         self.assertEqual([archlens.page_file(self.root, p) for p in pages],
                          ["docs/architecture/README.md", "docs/API.md", "README.md"])
         self.assertFalse(archlens.check_documents(self.root, self.config)["findings"])
-        (self.root / "docs/API.md").write_text("# API\n\n[Gone](gone.md)\n", encoding="utf-8")
+        (self.root / "docs/API.md").write_text("# API\n\n[Handbook](architecture/README.md)\n[Gone](gone.md)\n", encoding="utf-8")
         findings = archlens.check_documents(self.root, self.config)["findings"]
         self.assertEqual([(f["path"], f["code"]) for f in findings], [("docs/API.md", "local-link")])
 
@@ -253,7 +253,7 @@ class CheckTests(Fixture):
         self.assertEqual([f["code"] for f in findings], ["local-link", "style"])
         self.assertEqual(findings[1]["severity"], "info")
         self.assertEqual(len(findings[1]["lines"]), 30)
-        self.assertIn("30 line(s) with semicolons", findings[1]["message"])
+        self.assertIn("0 of 30 sentences pass. Candidates: 30 with semicolons", findings[1]["message"])
 
     def test_unmapped_and_missing_pages(self):
         docs = self.handbook(pages=[page("missing.md")])
@@ -293,6 +293,48 @@ class CheckTests(Fixture):
         code, output, _ = self.run_cli("check", "--json")
         self.assertEqual(code, 1)
         self.assertFalse(json.loads(output)["ok"])
+
+    def test_placement_decision_folder_and_entry_link(self):
+        docs = self.handbook(pages=[
+            page(),
+            page("decisions/DEC-001.md", id="DEC-001", kind="decision", decisionStatus="proposed"),
+            page("../adr/0001-x.md", id="ADR-0001", kind="decision", decisionStatus="accepted"),
+        ])
+        (docs / "decisions").mkdir()
+        (docs / "decisions/DEC-001.md").write_text("# DEC-001\n", encoding="utf-8")
+        (self.root / "docs/adr").mkdir(parents=True)
+        (self.root / "docs/adr/0001-x.md").write_text("# ADR 0001\n", encoding="utf-8")
+        codes = lambda: [(f["code"], f["path"]) for f in archlens.check_documents(self.root, self.config)["findings"]]
+        self.assertEqual(codes(), [("decision-split", "docs/architecture/decisions/DEC-001.md")],
+                         "no README, so no entry-link warning")
+        (self.root / "README.md").write_text("# Project\n", encoding="utf-8")
+        self.assertIn(("unlinked-handbook", "docs/architecture/README.md"), codes())
+        (self.root / "README.md").write_text("# Project\n\n[Architecture](docs/architecture/)\n", encoding="utf-8")
+        self.assertNotIn("unlinked-handbook", [code for code, _ in codes()])
+        (self.root / "README.md").write_text("# Project\n", encoding="utf-8")
+        (self.root / "docs/adr/0001-x.md").write_text("# ADR 0001\n\n[Handbook](../architecture/README.md)\n", encoding="utf-8")
+        self.assertNotIn("unlinked-handbook", [code for code, _ in codes()], "an adopted document links it")
+
+    def test_prose_metadata_and_unknown_columns_on_handbook_pages_only(self):
+        table = "| Unit | Owner |\n|---|---|\n| API | unknown |\n| Worker | *unknown* |\n| Store | Unknown |\n"
+        text = f"# Overview\n\nImplementation observed at commit `c640576`.\n\n{table}"
+        docs = self.handbook(text, pages=[
+            page(),
+            page("decisions/ADR-001.md", id="ADR-001", kind="decision", decisionStatus="accepted"),
+            page("../OLD.md", id="OLD", kind="containers"),
+        ])
+        (docs / "decisions").mkdir()
+        (docs / "decisions/ADR-001.md").write_text("# ADR-001\n\nFirst stated in commit ff349fc.\n", encoding="utf-8")
+        (self.root / "docs/OLD.md").write_text(text, encoding="utf-8")
+        findings = archlens.check_documents(self.root, self.config)["findings"]
+        found = sorted((f["code"], f["path"], f["severity"]) for f in findings)
+        self.assertEqual(found, [
+            ("prose-metadata", "docs/architecture/README.md", "info"),
+            ("unknown-column", "docs/architecture/README.md", "info"),
+        ])
+        self.assertIn("'Owner'", next(f["message"] for f in findings if f["code"] == "unknown-column"))
+        self.assertEqual(self.run_cli("check", "--strict")[0], 0, "info notes never fail strict")
+        self.assertEqual(archlens.table_cells("| `a|b` | c \\| d |"), ["`a|b`", "c \\| d"])
 
     def test_example_passes(self):
         report = archlens.check_documents(ROOT / "examples/order-service", self.config)
@@ -424,6 +466,7 @@ class ContextTests(Fixture):
         text = archlens.build_context(self.root, self.config)
         self.assertIn("`README.md` Understand this system: Orders move from the API to the database.", text)
         self.assertIn("[covers src/p0/**]", text)
+        self.assertNotIn("[covers src/**]", text, "an index's coverage does not route a reader")
         self.assertIn("(4 pages, 0 stale, 4 never synced)", text)
         self.pages(400)
         for budget in (600, 3000):

@@ -61,8 +61,8 @@ def audit_hooks():
         for group in groups:
             for hook in group["hooks"]:
                 args = hook.get("args", [])
-                if hook.get("type") != "command" or not args or "scripts/archlens.py" not in args[0]:
-                    errors.append(f"{event}: hooks must run the bundled checker in exec form")
+                if hook.get("type") != "command" or not args or not args[0].endswith("/scripts/hook.py"):
+                    errors.append(f"{event}: hooks must run the bundled hook entry in exec form")
                 if hook.get("async") or hook.get("asyncRewake"):
                     errors.append(f"{event}: async hooks are not budgeted")
     return errors
