@@ -1,5 +1,13 @@
 # Changelog
 
+## Unreleased
+
+### Project
+
+- Review every pull request with CodeRabbit. Its settings are in `.coderabbit.yaml`.
+- Ask contributors to sign an [Individual Contributor License Agreement](CLA.md) through CLA Assistant
+  before a first contribution is merged. Include `CLA.md` in release archives.
+
 ## 0.5.0 - 2026-11-11
 
 Found by measuring 0.4.0 on a real monorepo handbook (22 pages, 81 line-range citations) with three

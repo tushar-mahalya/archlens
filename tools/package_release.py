@@ -15,7 +15,7 @@ def build(output_dir=None):
     output.mkdir(parents=True, exist_ok=True)
     archive = output / f"archlens-{version}.zip"
     inputs = [ROOT / name for name in (
-        "README.md", "LICENSE", "CHANGELOG.md", "CONTRIBUTING.md", "SECURITY.md",
+        "README.md", "LICENSE", "CHANGELOG.md", "CONTRIBUTING.md", "CLA.md", "SECURITY.md",
         "CODE_OF_CONDUCT.md", "SUPPORT.md", "GOVERNANCE.md", "CITATION.cff",
         "package.json", "package-lock.json",
     )]
