@@ -16,6 +16,28 @@ Thank you for helping improve Archlens. By taking part, you agree to follow the
    and resolved review threads are required. See [Repository rulesets](#repository-rulesets).
 6. Pull requests are merged by squash (preferred) or rebase. `main` keeps a linear history.
 
+## Contributor License Agreement
+
+Before a first contribution can be merged, its author signs the
+[Individual Contributor License Agreement](CLA.md). It is based on the Apache
+Individual CLA. You keep the copyright in your work and grant the maintainer
+copyright and patent licenses for it, including the right to sublicense.
+The project is released under the [MIT License](LICENSE).
+
+On your first pull request, the CLA Assistant bot posts a comment with a link.
+Sign in with GitHub and accept the agreement once. It covers all of your later
+pull requests. The bot sets the `license/cla` status on each pull request.
+If the status does not update after you sign, use the recheck link in the bot's comment.
+
+## Automated review
+
+[CodeRabbit](https://www.coderabbit.ai) reviews every pull request and posts a summary.
+Its settings are in [.coderabbit.yaml](.coderabbit.yaml). Its comments are suggestions:
+a maintainer decides what is required. Reply in a thread to discuss a comment,
+or mention `@coderabbitai` in a comment to ask it something, for example
+`@coderabbitai explain this change` or `@coderabbitai review` to review again.
+Resolve its threads when they are addressed, because the ruleset requires resolved threads.
+
 ## Commit and pull request conventions
 
 Commits and PR titles use [Conventional Commits 1.0](https://www.conventionalcommits.org/en/v1.0.0/):
