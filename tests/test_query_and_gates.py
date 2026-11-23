@@ -702,7 +702,10 @@ class PrecommitTests(Fixture):
         self.git("commit", "-qm", "baseline")
 
     def git(self, *args):
-        return subprocess.check_output(["git", "-C", str(self.root), *args]).decode()
+        # Background maintenance can write .git/objects/maintenance.lock while
+        # test_works_without_git deletes .git, which made that test flaky.
+        no_maintenance = ["-c", "maintenance.auto=false", "-c", "gc.auto=0"]
+        return subprocess.check_output(["git", "-C", str(self.root), *no_maintenance, *args]).decode()
 
     def gate(self, **options):
         return archlens.precommit(self.root, self.config, **options)
