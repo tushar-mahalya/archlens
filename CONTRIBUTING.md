@@ -12,8 +12,9 @@ Thank you for helping improve Archlens. By taking part, you agree to follow the
 3. Install the Git hooks (below) and make focused commits.
 4. Write commit messages and the PR title as described in
    [Commit and pull request conventions](#commit-and-pull-request-conventions).
-5. Open a pull request and complete the template. The `CI passed` check, a code owner approval,
-   and resolved review threads are required. See [Repository rulesets](#repository-rulesets).
+5. Open a pull request and complete the template. The `CI passed` and `license/cla` checks, a
+   code owner approval, and resolved review threads are required. See
+   [Repository rulesets](#repository-rulesets).
 6. Pull requests are merged by squash (preferred) or rebase. `main` keeps a linear history.
 
 ## Contributor License Agreement
@@ -178,7 +179,7 @@ Publish a new patch version instead of replacing a release.
 Branch and tag protection is defined as code in [.github/rulesets](.github/rulesets):
 
 - `main.json`: **contributors** change `main` only through a pull request that passes the
-  `CI passed` check, has one code owner approval, has all review threads resolved, and is merged
+  `CI passed` and `license/cla` (CLA Assistant) checks, has one code owner approval, has all review threads resolved, and is merged
   by squash or rebase (linear history). **The maintainer** (repository admin) may push directly
   to `main`, for example for releases and urgent fixes. CI still runs on those pushes.
 - `main-integrity.json`: **nobody**, including administrators, can force-push to or delete `main`.
