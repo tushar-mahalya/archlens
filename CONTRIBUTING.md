@@ -209,3 +209,5 @@ python plugins/archlens/scripts/archlens.py sync --root . --page ARCH-RUNTIME
 
 Sync only pages you checked against the new source. Commit
 `docs/architecture/.archlens-state.json` with the change.
+
+<!-- Integration check: CodeRabbit + CLA Assistant. This PR will be closed, not merged. -->

@@ -6,3 +6,6 @@ dist/
 .validation/
 .archlens.json
 .claude/settings.local.json
+
+# Cloudflare Wrangler local state (Miniflare caches, D1/KV sqlite)
+.wrangler/
