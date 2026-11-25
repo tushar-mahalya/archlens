@@ -7,6 +7,12 @@
 - Review every pull request with CodeRabbit. Its settings are in `.coderabbit.yaml`.
 - Ask contributors to sign an [Individual Contributor License Agreement](CLA.md) through CLA Assistant
   before a first contribution is merged. Include `CLA.md` in release archives.
+- Audit workflows with zizmor and spell-check the tree with typos in the pre-commit hooks. `_typos.toml`
+  lists the files typos skips.
+- Lint the Python with ruff (rules `E`, `F`, `W`, `I`, `B`, `UP`, `SIM`, and `RUF`, for Python 3.9). Settings are
+  in `ruff.toml`. The checker's behavior does not change.
+- Add an AI-assisted contributions policy to `CONTRIBUTING.md` and an AI assistance item to the pull request template.
+- Add `AGENTS.md` for AI coding agents. `CLAUDE.md` imports it.
 
 ## 0.5.0 - 2026-11-11
 

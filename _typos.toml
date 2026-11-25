@@ -1,0 +1,12 @@
+# Spell check settings for the typos pre-commit hook. See https://github.com/crate-ci/typos
+[files]
+extend-exclude = [
+  "package-lock.json",
+  # Written by `archlens.py sync`: content fingerprints, not prose.
+  "**/.archlens-state.json",
+  # Recorded model output and benchmark results.
+  "benchmarks/results/",
+  # Vendored or search-engine files that must stay byte-exact.
+  "site/*.txt",
+  "site/google*.html",
+]

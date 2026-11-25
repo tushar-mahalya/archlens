@@ -304,7 +304,9 @@ class CheckTests(Fixture):
         (docs / "decisions/DEC-001.md").write_text("# DEC-001\n", encoding="utf-8")
         (self.root / "docs/adr").mkdir(parents=True)
         (self.root / "docs/adr/0001-x.md").write_text("# ADR 0001\n", encoding="utf-8")
-        codes = lambda: [(f["code"], f["path"]) for f in archlens.check_documents(self.root, self.config)["findings"]]
+        def codes():
+            return [(f["code"], f["path"]) for f in archlens.check_documents(self.root, self.config)["findings"]]
+
         self.assertEqual(codes(), [("decision-split", "docs/architecture/decisions/DEC-001.md")],
                          "no README, so no entry-link warning")
         (self.root / "README.md").write_text("# Project\n", encoding="utf-8")
@@ -840,7 +842,7 @@ class AnchorTests(Fixture):
 
     def test_comment_and_blank_line_inside_symbol_are_ignored(self):
         self.write("src/svc.py", self.SOURCE.replace("    return order\n", "    # checked\n\n    return order\n"))
-        state, changes = self.changes()
+        _, changes = self.changes()
         self.assertEqual([c["change"] for c in changes if c.get("symbol")], ["evidence-moved"], "the link now ends early")
         self.assertEqual([c["newLines"] for c in changes if c.get("symbol")], [[4, 9]])
         archlens.fix_anchors(self.root, self.config)

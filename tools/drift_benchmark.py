@@ -228,9 +228,10 @@ def run(root: Path, failures: int = 0, patterns: list[str] | None = None) -> dic
                     # Keep only edits whose effect is certain: harmless ones keep the tree, real ones alter it.
                     new_tree = tree(text)
                     harmless = EXPECT[kind] != "changed"
-                    if new_tree is None or (new_tree == base_tree) != harmless:
-                        if not (kind in {"change-outside", "sibling"} and new_tree is not None and new_tree != base_tree):
-                            continue
+                    if (new_tree is None or (new_tree == base_tree) != harmless) and not (
+                        kind in {"change-outside", "sibling"} and new_tree is not None and new_tree != base_tree
+                    ):
+                        continue
                 target.write_text(text, encoding="utf-8", errors="surrogateescape")
                 ok, what = verdict(kind, archlens.check_anchor(work, record), first, last)
                 bucket = results.setdefault((language(path), kind), [0, 0])

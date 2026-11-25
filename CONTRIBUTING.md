@@ -30,6 +30,28 @@ Sign in with GitHub and accept the agreement once. It covers all of your later
 pull requests. The bot sets the `license/cla` status on each pull request.
 If the status does not update after you sign, use the recheck link in the bot's comment.
 
+## AI-assisted contributions
+
+AI tools are welcome here. An agent-assisted pull request is fine when you direct the work,
+review every line, run the tests, and can explain every change.
+
+- **A person owns each change.** A fully agentic pull request, where an agent writes the code, the
+  tests, and the description with no human review, is not accepted. We may close it without a detailed review.
+- **Agents do not act on their own.** An agent must not open issues or pull requests, post comments,
+  or mention maintainers unless the person it works for asked for that action.
+  [AGENTS.md](AGENTS.md) gives agents the commands and rules for this repository.
+- **Write in your own words.** The description, issues, and replies to reviewers should show your
+  understanding of the change. Answer reviewer questions yourself.
+- **Say what you used.** Name the AI tools and the parts of the change they helped with in the pull
+  request description. The template has a field for this.
+- **Test for real.** A test for a bug fix fails without the fix. Take expected values from an
+  independent source, such as the specification or a hand-checked case, not from the code under test.
+- **Match the project.** Follow the style of the surrounding code. Do not add comments or long
+  docstrings that a human author would not write.
+- **Submit only what you may license.** Contribute code only if you can license it under the
+  [MIT License](LICENSE) and the [CLA](CLA.md). Check that generated code does not copy
+  material with an incompatible license.
+
 ## Automated review
 
 [CodeRabbit](https://www.coderabbit.ai) reviews every pull request and posts a summary.
@@ -89,8 +111,9 @@ git config commit.template .gitmessage
 ## Git hooks
 
 The repository uses [pre-commit](https://pre-commit.com/). Hooks check formatting, line endings,
-JSON and YAML, GitHub workflows, secrets (gitleaks), commit messages, portable-skill drift, prompt
-budgets, and the handbooks. Unit tests run before each push.
+JSON and YAML, GitHub workflows (actionlint and zizmor), Python (ruff), spelling (typos), secrets
+(gitleaks), commit messages, portable-skill drift, prompt budgets, and the handbooks. Unit tests run
+before each push. Ruff lints only; it does not format. Its settings are in [ruff.toml](ruff.toml).
 
 ```text
 pipx install pre-commit        # or: uv tool install pre-commit, or: pip install pre-commit

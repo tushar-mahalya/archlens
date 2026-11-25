@@ -59,7 +59,7 @@ def run(tops: list[int], root: Path = ROOT, questions: Path = QUESTIONS) -> dict
                 sections.append("\n".join(lines[record["lines"][0] - 1:record["lines"][1]]))
                 whole[record["page"]] = texts[record["page"]]
             # The command's own output is part of what an agent loads before it reads the sections.
-            listing = sum(len(f"{r['page']}:{r['lines'][0]}-{r['lines'][1]}  {r['heading']}\n    {r['snippet']}\n".encode("utf-8"))
+            listing = sum(len(f"{r['page']}:{r['lines'][0]}-{r['lines'][1]}  {r['heading']}\n    {r['snippet']}\n".encode())
                           for r in report["results"])
             section_text, page_text = "\n".join(sections), "\n".join(whole.values())
             row[f"top{top}"] = {
