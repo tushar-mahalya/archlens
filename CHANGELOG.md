@@ -11,6 +11,7 @@
   lists the files typos skips.
 - Lint the Python with ruff (rules `E`, `F`, `W`, `I`, `B`, `UP`, `SIM`, and `RUF`, for Python 3.9). Settings are
   in `ruff.toml`. The checker's behavior does not change.
+- Add an AI-assisted contributions policy to `CONTRIBUTING.md` and an AI assistance item to the pull request template.
 
 ## 0.5.0 - 2026-11-11
 

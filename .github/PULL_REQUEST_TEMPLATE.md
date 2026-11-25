@@ -34,6 +34,9 @@ Types and scopes: see CONTRIBUTING.md#commit-and-pull-request-conventions
 - [ ] Handbook freshness passes: `python plugins/archlens/scripts/archlens.py status --root . --fail-on-stale`.
 - [ ] I updated user documentation and the `Unreleased` section of `CHANGELOG.md` where relevant.
 - [ ] I did not include secrets, credentials, private source code, or customer data.
+- [ ] Any AI-generated code has been reviewed line by line by me, and I can explain it.
+
+AI tools used (if any):
 
 ## Breaking changes
 
