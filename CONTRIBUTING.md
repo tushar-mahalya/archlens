@@ -39,6 +39,7 @@ review every line, run the tests, and can explain every change.
   tests, and the description with no human review, is not accepted. We may close it without a detailed review.
 - **Agents do not act on their own.** An agent must not open issues or pull requests, post comments,
   or mention maintainers unless the person it works for asked for that action.
+  [AGENTS.md](AGENTS.md) gives agents the commands and rules for this repository.
 - **Write in your own words.** The description, issues, and replies to reviewers should show your
   understanding of the change. Answer reviewer questions yourself.
 - **Say what you used.** Name the AI tools and the parts of the change they helped with in the pull
