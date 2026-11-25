@@ -48,7 +48,7 @@ claims in the answer that contradict the key or are clearly false. Reply with on
 
 def run(cmd: list[str], cwd: Path, timeout: int = 420) -> dict:
     try:
-        out = subprocess.run(cmd, cwd=cwd, stdout=subprocess.PIPE, stderr=subprocess.PIPE, timeout=timeout, check=False)
+        out = subprocess.run(cmd, cwd=cwd, capture_output=True, timeout=timeout, check=False)
         return json.loads(out.stdout.decode("utf-8", "replace"))
     except (subprocess.TimeoutExpired, json.JSONDecodeError) as exc:
         return {"is_error": True, "result": f"harness error: {exc}"}

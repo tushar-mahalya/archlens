@@ -51,7 +51,7 @@ There is no Archlens server or database.
 | How does it compare with alternatives? | [Benchmarks](../benchmarks.md) | Small question set; one repository |
 
 **Implementation observed:** links above.
-**Test evidence:** [checker tests](../../tests/test_archlens.py#L236-L355),
+**Test evidence:** [checker tests](../../tests/test_archlens.py#L236-L357),
 [distribution tests](../../tests/test_distribution.py), and
 [installer tests](../../tests/test-skills-install.mjs).
 These documents are drafts. No human review is claimed.

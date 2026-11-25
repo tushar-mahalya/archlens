@@ -130,7 +130,7 @@ class StructureTests(unittest.TestCase):
         self.assertEqual(archlens.page_sections(""), [])
 
     def test_diagram_counters(self):
-        prose, blocks, _ = archlens.markdown_sections(FLOW)
+        _, blocks, _ = archlens.markdown_sections(FLOW)
         self.assertEqual(archlens.sequence_messages(blocks[0][2]), 5, "notes, loops, and participants do not count")
         flow = ("flowchart LR\n A[One] -- text --> B(Two)\n B --> C{Three} & D((Four))\n"
                 " subgraph S[\"Zone\"]\n  E[(Store)] -.->|x| F\n end\n classDef hot fill:#f00\n class A hot\n A:::hot ==> G\n"
@@ -140,7 +140,7 @@ class StructureTests(unittest.TestCase):
 
     def test_step_numbers_and_cells(self):
         self.assertEqual(archlens.step_numbers("4-5"), {4, 5})
-        self.assertEqual(archlens.step_numbers("11–13"), {11, 12, 13})
+        self.assertEqual(archlens.step_numbers("11\u201313"), {11, 12, 13})
         self.assertEqual(archlens.step_numbers("1, 3"), {1, 3})
         self.assertEqual(archlens.step_numbers("**7**"), {7})
         self.assertEqual(archlens.step_numbers("none"), set())
@@ -506,7 +506,7 @@ class FingerprintTests(Fixture):
         self.assertEqual(self.run_cli("sync")[0], 2)
 
     def test_status_skips_the_parse_of_unchanged_files(self):
-        docs = self.handbook("# Orders\n\nSee [first](../../src/m.py#L8-L11).\n", pages=[page(covers=["src/**"])])
+        self.handbook("# Orders\n\nSee [first](../../src/m.py#L8-L11).\n", pages=[page(covers=["src/**"])])
         archlens.sync_pages(self.root, self.config, [], True)
         with patch.object(archlens, "check_anchor", side_effect=AssertionError("parsed an unchanged file")):
             self.assertEqual(archlens.freshness(self.root, self.config)["counts"]["fresh"], 1)

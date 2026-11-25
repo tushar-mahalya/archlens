@@ -50,7 +50,7 @@ def main() -> int:
         sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
         import archlens
         return archlens.run_hook(event, raw)
-    except Exception:  # noqa: BLE001 - a documentation hook must never break the agent session
+    except Exception:  # a documentation hook must never break the agent session
         return 0
 
 

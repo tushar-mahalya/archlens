@@ -6,6 +6,7 @@ from __future__ import annotations
 import argparse
 import ast
 import bisect
+import contextlib
 from datetime import datetime, timezone
 import hashlib
 import io
@@ -576,7 +577,7 @@ def cell_text(cell: str) -> str:
 def step_numbers(cell: str) -> set[int]:
     """Step numbers named by a step-table cell, such as `7`, `4-5`, or `11, 13`."""
     found = set()
-    for first, last in re.findall(r"(\d+)(?:\s*[-–]\s*(\d+))?", plain_text(cell)):
+    for first, last in re.findall(r"(\d+)(?:\s*[-\u2013]\s*(\d+))?", plain_text(cell)):
         low, high = int(first), int(last or first)
         if low <= high <= low + 200:
             found.update(range(low, high + 1))
@@ -924,7 +925,7 @@ def git(root: Path, *args: str, stdin: bytes | None = None) -> bytes:
     try:
         result = subprocess.run(
             ["git", "--no-pager", "-C", str(root), *args], input=stdin,
-            stdout=subprocess.PIPE, stderr=subprocess.PIPE, timeout=60, check=False,
+            capture_output=True, timeout=60, check=False,
         )
     except (OSError, subprocess.TimeoutExpired) as exc:
         raise ArchlensError(f"Cannot run Git: {exc}") from exc
@@ -1734,7 +1735,8 @@ def fix_anchors(root: Path, config: dict, ids: list[str] | None = None, status: 
         for old in moves:
             new = renames[old]
             pattern = re.escape(link_target(root, page_path, old)) + r"(?=[#)>\s]|$)"
-            text, count = re.subn(pattern, lambda _: link_target(root, page_path, new), text, flags=re.M)
+            replacement = link_target(root, page_path, new)
+            text, count = re.subn(pattern, lambda _, value=replacement: value, text, flags=re.M)
             for anchor in record.get("anchors") or []:
                 if anchor["path"] == old:
                     anchor["path"] = new
@@ -1769,7 +1771,8 @@ def fix_anchors(root: Path, config: dict, ids: list[str] | None = None, status: 
             old = f"#L{a}" if a == b else f"#L{a}-L{b}"
             new = f"#L{c}" if c == d else f"#L{c}-L{d}"
             pattern = re.escape(target + old) + r"(?![\d-])"
-            text = re.sub(pattern, lambda _: target + new, text)
+            replacement = target + new
+            text = re.sub(pattern, lambda _, value=replacement: value, text)
             for anchor in record.get("anchors") or []:
                 if anchor["path"] == move["path"] and anchor["lines"] == [a, b]:
                     anchor.update(fingerprint_anchor(root, move["path"], c, d))
@@ -2035,7 +2038,7 @@ def impact_report(root: Path, config: dict, base: str | None) -> dict:
 
 
 STOP_WORDS = frozenset(
-    "a an and are as at be by does do for from how in is it its of on or that the this to was what when where "
+    "a an and are as at be by does do for from how in is it its of on or that the this to was what when where "  # noqa: SIM905 - a compact word list reads better than quoted strings
     "which who why will with".split())
 
 
@@ -2224,13 +2227,13 @@ def query_handbook(root: Path, config: dict, terms: list[str], page_name: str | 
     if not wanted:
         raise ArchlensError("Give search words, or --page, or --file")
     documents = []
-    for record, section, title, body in records:
+    for _, section, title, body in records:
         words = search_tokens("\n".join(body[1:] if section["level"] else body))
         words += search_tokens(section["heading"]) * 3 + search_tokens(" ".join(section["trail"])) + search_tokens(title)
         documents.append(words)
     average = sum(map(len, documents)) / max(1, len(documents))
     scored = []
-    for (record, section, _, body), words in zip(records, documents):
+    for (record, _, _, body), words in zip(records, documents):
         score = 0.0
         for term in set(wanted):
             count = words.count(term)
@@ -2383,10 +2386,8 @@ def write_marker(name: str, value: str):
     folder = marker_folder()
     marker = folder / name if folder else None
     if marker and not marker.is_symlink():
-        try:
+        with contextlib.suppress(OSError):
             marker.write_text(value, encoding="utf-8")
-        except OSError:
-            pass
 
 
 def hook_session_start(root: Path, config: dict, payload: dict | None = None) -> str:
@@ -2508,10 +2509,8 @@ def session_changes(root: Path, payload: dict) -> set[str]:
     dirty |= set(names(git(root, "ls-files", "--others", "--exclude-standard", "-z")))
     start = (read_marker(f"head-{session_key(root, payload)}.txt") or "").strip()
     if re.fullmatch(r"[0-9a-f]{40}|[0-9a-f]{64}", start):
-        try:
+        with contextlib.suppress(ArchlensError):
             dirty |= set(names(git(root, "diff", "--relative", "--no-ext-diff", "--no-renames", "--name-only", "-z", start, "HEAD", "--")))
-        except ArchlensError:
-            pass
     return dirty
 
 
@@ -2639,7 +2638,7 @@ def run_hook(event: str, raw: str | None = None) -> int:
             result = hook_stop(root, config, payload)
             if result:
                 print(json.dumps(result))
-    except Exception:  # noqa: BLE001 - a documentation hook must never break the agent session
+    except Exception:  # a documentation hook must never break the agent session
         return 0
     return 0
 

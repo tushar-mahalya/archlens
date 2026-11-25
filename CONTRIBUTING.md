@@ -89,8 +89,9 @@ git config commit.template .gitmessage
 ## Git hooks
 
 The repository uses [pre-commit](https://pre-commit.com/). Hooks check formatting, line endings,
-JSON and YAML, GitHub workflows, secrets (gitleaks), commit messages, portable-skill drift, prompt
-budgets, and the handbooks. Unit tests run before each push.
+JSON and YAML, GitHub workflows (actionlint and zizmor), Python (ruff), spelling (typos), secrets
+(gitleaks), commit messages, portable-skill drift, prompt budgets, and the handbooks. Unit tests run
+before each push. Ruff lints only; it does not format. Its settings are in [ruff.toml](ruff.toml).
 
 ```text
 pipx install pre-commit        # or: uv tool install pre-commit, or: pip install pre-commit
